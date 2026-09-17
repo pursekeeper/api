@@ -95,9 +95,9 @@ function reclassifyCold(ledger, cold) {
 // Pass-through wallets. An address that paid pursekeeper is a pass-through when the chain
 // shows it was opened by a single receive from one account and has done nothing since
 // but pay out (at most four blocks, one funding account, emptied within an hour). Its payment is attributed to
-// the funding account. Looked up on the node once per address and remembered; an
-// address that was not a pass-through when first seen is re-checked only while it is
-// still small (a wallet emptied later cannot become one).
+// the funding account. Positive matches are remembered. Small non-matches are
+// re-checked because a wallet can empty later; only histories that have already
+// exceeded the block limit are terminal and cached as negative.
 const PASSTHROUGH_MAX_BLOCKS = 4;
 const viaCache = new Map();   // address -> funding account | null
 async function passthroughSources(ledger, rpcFn, ownExtra = new Set()) {
@@ -108,7 +108,8 @@ async function passthroughSources(ledger, rpcFn, ownExtra = new Set()) {
     try {
       const h = await rpcFn({ action: 'account_history', account: a, count: String(PASSTHROUGH_MAX_BLOCKS + 1) });
       const hist = h.history || [];
-      if (!hist.length || hist.length > PASSTHROUGH_MAX_BLOCKS) { viaCache.set(a, null); continue; }
+      if (!hist.length) continue;
+      if (hist.length > PASSTHROUGH_MAX_BLOCKS) { viaCache.set(a, null); continue; }
       const receives = hist.filter(x => x.type === 'receive');
       const sends = hist.filter(x => x.type === 'send');
       const funders = new Set(receives.map(x => x.account));
@@ -118,7 +119,7 @@ async function passthroughSources(ledger, rpcFn, ownExtra = new Set()) {
       const quick = Math.max(...ts) - Math.min(...ts) <= 3600;            // opened and emptied within an hour
       const ok = receives.length >= 1 && funders.size === 1 && sends.length + receives.length === hist.length && sends.some(x => x.account === ADDRESS) && emptied && quick;
       const src = ok ? [...funders][0] : null;
-      if (src && src !== a && !ownExtra.has(src) && !COLD.has(src)) { via.set(a, src); viaCache.set(a, src); } else viaCache.set(a, null);
+      if (src && src !== a && !ownExtra.has(src) && !COLD.has(src)) { via.set(a, src); viaCache.set(a, src); }
     } catch { /* node unavailable: treat as its own counterparty this time, re-check later */ }
   }
   return via;

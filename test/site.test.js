@@ -4,7 +4,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { counterpartyNumbers, reclassifyCold, redact, COLD, nanoToRaw, COUNTERPARTY_MIN_RAW, COUNTERPARTY_MIN_NANO } = require('../site');
+const { counterpartyNumbers, reclassifyCold, redact, passthroughSources, COLD, nanoToRaw, COUNTERPARTY_MIN_RAW, COUNTERPARTY_MIN_NANO, ADDRESS } = require('../site');
 
 const A = 'nano_1oatxz8ha1j55m4wzkkgmpoyyn4gr9bgu9snnfyqc6toawb5ht5e8w4x6s9o';
 const B = 'nano_3gmd94aey5nxrntgjrznnbssh3s7htyubeq91x8qgjpbe8qk59xiarf1homu';
@@ -87,6 +87,43 @@ test('a pass-through wallet is counted as the account that funded it', () => {
   n = counterpartyNumbers([row('payment_in', P1, '0.185'), row('payment_in', P2, '0.95')], new Set(), nanoToRaw('0.01'));
   assert.equal(n.external.counterparties, 2);
   assert.equal(n.external.passthrough_wallets, 0);
+});
+
+test('a small non-match is re-checked after the wallet empties', async () => {
+  const P = 'nano_1lateremptied111111111111111111111111111111111111111111111111';
+  const FEE = 'nano_1fee1111111111111111111111111111111111111111111111111111111';
+  const histories = [
+    [
+      { type: 'send', account: ADDRESS, amount: '90', local_timestamp: '100' },
+      { type: 'receive', account: B, amount: '100', local_timestamp: '90' },
+    ],
+    [
+      { type: 'send', account: FEE, amount: '10', local_timestamp: '110' },
+      { type: 'send', account: ADDRESS, amount: '90', local_timestamp: '100' },
+      { type: 'receive', account: B, amount: '100', local_timestamp: '90' },
+    ],
+  ];
+  let calls = 0;
+  const rpc = async () => ({ history: histories[calls++] });
+  const ledger = [row('payment_in', P, '0.09')];
+
+  assert.equal((await passthroughSources(ledger, rpc)).has(P), false);
+  assert.equal((await passthroughSources(ledger, rpc)).get(P), B);
+  assert.equal(calls, 2);
+});
+
+test('a history beyond the pass-through limit remains negatively cached', async () => {
+  const P = 'nano_1terminal1111111111111111111111111111111111111111111111111111';
+  let calls = 0;
+  const rpc = async () => {
+    calls++;
+    return { history: Array.from({ length: 5 }, () => ({ type: 'send', account: ADDRESS, amount: '1', local_timestamp: '100' })) };
+  };
+  const ledger = [row('payment_in', P, '0.09')];
+
+  assert.equal((await passthroughSources(ledger, rpc)).has(P), false);
+  assert.equal((await passthroughSources(ledger, rpc)).has(P), false);
+  assert.equal(calls, 1);
 });
 
 test('page() advertises only the alternate it is given, none by default', () => {
