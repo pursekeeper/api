@@ -39,7 +39,10 @@ const WORK_URLS = (process.env.WORK_URLS || '').split(',').map(s => s.trim()).fi
 // facilitator) skip the shared budget: they have already shown they are a payer, not a flood.
 // Over budget, free work falls back to WORK_URLS then the node and the reply says which source.
 const PAID_WORK_URLS = (process.env.PAID_WORK_URLS || '').split(',').map(s => s.trim()).filter(Boolean);
-const workName = u => { const h = new URL(u).host; return /^(127\.|localhost)/.test(h) ? 'gpu' : h; };
+// A URL fragment names the source (http://127.0.0.1:3007#cpu-simd); otherwise a loopback host is
+// the GPU tunnel and anything else is shown by host. Loopback CPU sources get a longer timeout.
+const workName = u => { const url = new URL(u); if (url.hash) return url.hash.slice(1); return /^(127\.|localhost)/.test(url.host) ? 'gpu' : url.host; };
+const workLocal = u => /^(127\.|localhost)/.test(new URL(u).host);
 const FREE_GPU_PER_MIN = Number(process.env.FREE_GPU_PER_MIN || 30);
 const workSources = () => ({ paid: [...PAID_WORK_URLS.map(workName), ...WORK_URLS.map(workName), 'node'],
   free: [...PAID_WORK_URLS.map(u => workName(u) + ' (' + FREE_GPU_PER_MIN + '/min shared; unlimited for accounts that paid before)'), ...WORK_URLS.map(workName), 'node'] });
@@ -77,7 +80,7 @@ async function workFor(hash, { timeoutMs = 30_000, paid = false, knownPayer = fa
   let tier = paid ? 'paid' : knownPayer ? 'payer' : takeFreeGpu() ? 'free' : 'free-slow';
   const gpuOk = tier !== 'free-slow' && Date.now() >= gpuDownUntil;
   const sources = [...(gpuOk ? PAID_WORK_URLS : []).map(u => ({ name: workName(u), url: u, timeoutMs: paid ? 15_000 : 10_000, gpu: true })),
-                   ...WORK_URLS.map(u => ({ name: workName(u), url: u, timeoutMs })), { name: 'node', url: RPC, timeoutMs: 180_000 }];
+                   ...WORK_URLS.map(u => ({ name: workName(u), url: u, timeoutMs: workLocal(u) ? Math.max(timeoutMs, 90_000) : timeoutMs })), { name: 'node', url: RPC, timeoutMs: 180_000 }];
   let lastErr = 'no work source';
   for (const src of sources) {
     const t0 = Date.now();
