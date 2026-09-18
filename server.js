@@ -90,7 +90,25 @@ async function markFeePassthroughs() {
       if (!isFee) continue;
     } else if (!feeVia.get(r.counterparty)) continue;
     noCredit.set(src.toUpperCase(), NO_CREDIT_REASON);
+    if (src.toUpperCase() in credits && credits[src.toUpperCase()] !== '0') { credits[src.toUpperCase()] = '0'; save(); }   // credited before the wallet's fee block was visible
   }
+}
+// Is `account` a checkout wallet (it forwarded a fee to a known collector)? Asked when a hash is
+// first presented, so a receipt cannot be spent in the minutes before the ten-minute round sees it.
+// A wallet that opened within the last minute with fewer than three blocks may still be settling
+// its fee block (it followed our share by 1-3 s in every case so far): look once more after 3 s.
+async function checkoutWallet(account) {
+  if (feeVia.has(account)) return feeVia.get(account);
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let hist;
+    try { hist = (await rpc({ action: 'account_history', account, count: '5' })).history || []; } catch { return false; }   // node unavailable: the round re-checks
+    if (feePassthrough(hist, FEE_COLLECTORS, ADDRESS)) { feeVia.set(account, true); return true; }
+    if (hist.length >= 3) { feeVia.set(account, false); return false; }
+    const opened = hist.length ? Number(hist[hist.length - 1].local_timestamp) : 0;
+    if (attempt || Date.now() / 1000 - opened > 60) return false;   // a short but older account is a real payer
+    await new Promise(r => setTimeout(r, 3000));
+  }
+  return false;
 }
 const RAW_PER_NANO = 10n ** 30n;
 
@@ -172,6 +190,7 @@ async function creditFor(hash) {
   if (b.subtype !== 'send' || b.contents.link_as_account !== ADDRESS)
     return { error: 'not a send to ' + ADDRESS };
   if (Number(b.local_timestamp) < NOT_BEFORE) return { error: 'block predates this service' };
+  if (await checkoutWallet(b.block_account)) { noCredit.set(hash, NO_CREDIT_REASON); return { error: NO_CREDIT_REASON }; }
   const amount = BigInt(b.amount);
   if (amount > MAX_CREDIT_RAW) return { error: 'send too large to be a payment; max 1 NANO per hash' };
   credits[hash] = amount.toString();
@@ -633,4 +652,4 @@ if (require.main === module) {
   server.listen(PORT, '127.0.0.1', () => console.log('listening on', PORT));
   markFeePassthroughs(); setInterval(markFeePassthroughs, 600_000).unref();
 }
-module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS };
+module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS, checkoutWallet };

@@ -69,8 +69,9 @@ RPC, and answers with `PAYMENT-RESPONSE` carrying the hash. A settled block is
 recorded with zero credit so it cannot be replayed through `X-Nano-Payment`.
 A send that reached this address through a marketplace checkout wallet (a Subnano post
 purchase or tip: a one-time wallet that pays us and the platform's fee collector) paid for that,
-not for API calls, and is refused as credit with a plain reason. The list is read from the ledger
-every ten minutes.
+not for API calls, and is refused as credit with a plain reason. The payer wallet is checked
+when a hash is first presented (a wallet opened seconds ago is looked at twice, 3 s apart, in
+case its fee block is still settling), and the ledger is re-read every ten minutes.
 Client: [`examples/client-x402.js`](examples/client-x402.js) (needs only
 `nanocurrency` and, since 2026-09-12, no node: account_info comes from pursekeeper.dev
 unless `NANO_RPC` is set; works against any `nano:mainnet` x402 seller).
