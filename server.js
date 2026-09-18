@@ -11,6 +11,7 @@ const path = require('path');
 const crypto = require('crypto');
 const dns = require('dns').promises;
 const net = require('net');
+const { DatabaseSync } = require('node:sqlite');
 const site = require('./site');
 const cohorts = require('./cohorts');
 const x402 = require('./x402');
@@ -57,6 +58,40 @@ let gpuDownUntil = 0;   // circuit breaker: after a network failure the GPU is s
 const X402_REQ = x402.requirements({ payTo: ADDRESS, amountRaw: PRICE_RAW, maxTimeoutSeconds: 60, workOptional: true });
 const x402Reference = new X402Reference(new Helper({ NANO_RPC_URL: RPC })); // reference verify() runs in addition to ours
 const settling = new Set();                                    // block hashes with a "process" call in flight
+// Sends that reached this address through a fee-taking checkout wallet paid for something else.
+// Subnano post purchases and tips arrive this way: the buyer pays a one-time wallet, which forwards
+// our share to us and the platform fee to Subnano's collector. Such a hash is never API credit,
+// whoever presents it (the chain is public, so anyone could). Marked from the ledger at startup
+// and every ten minutes; wallets with an incomplete history are re-checked next round.
+const FEE_COLLECTORS = new Set(['nano_1gip4yjax4jzyqfpa3f3pzt1fefbbh4w1wt67wgw75wij34qy7yyio9jeuj4']);  // Subnano (7.5% sales, 5% tips)
+const NO_CREDIT_REASON = 'this send came through a marketplace checkout wallet (a Subnano post purchase or tip); it paid for that, not for API calls';
+const noCredit = new Map();   // send hash -> reason
+const feeVia = new Map();     // payer account -> did it forward a fee to a known collector?
+// Pure: an account_history (newest first, at most PASSTHROUGH-sized) of a wallet that sent to us and to a fee collector.
+function feePassthrough(history, fees, address) {
+  if (!history || !history.length || history.length > 4) return false;
+  const sends = history.filter(x => x.type === 'send');
+  return sends.some(x => x.account === address) && sends.some(x => fees.has(x.account));
+}
+async function markFeePassthroughs() {
+  let rows;
+  try {
+    const db = new DatabaseSync(site.DB_PATH, { readOnly: true });
+    try { rows = db.prepare("select counterparty, meta_json from ledger where kind = 'payment_in' and counterparty like 'nano_%'").all(); } finally { db.close(); }
+  } catch (e) { console.error('markFeePassthroughs: ledger:', e.message); return; }
+  for (const r of rows) {
+    let src; try { src = JSON.parse(r.meta_json || '{}').source_hash; } catch { /* no source hash */ }
+    if (!src || noCredit.has(src.toUpperCase())) continue;
+    if (!feeVia.has(r.counterparty)) {
+      let hist;
+      try { hist = (await rpc({ action: 'account_history', account: r.counterparty, count: '5' })).history || []; } catch { continue; }   // node unavailable: next round
+      const isFee = feePassthrough(hist, FEE_COLLECTORS, ADDRESS);
+      if (hist.length >= 3) feeVia.set(r.counterparty, isFee);   // a checkout wallet has three blocks; fewer means it may still be settling
+      if (!isFee) continue;
+    } else if (!feeVia.get(r.counterparty)) continue;
+    noCredit.set(src.toUpperCase(), NO_CREDIT_REASON);
+  }
+}
 const RAW_PER_NANO = 10n ** 30n;
 
 let credits = {};
@@ -129,6 +164,7 @@ async function isKnownPayerFrontier(hash) {
 async function creditFor(hash) {
   if (!/^[0-9A-F]{64}$/i.test(hash)) return { error: 'bad hash' };
   hash = hash.toUpperCase();
+  if (noCredit.has(hash)) return { error: noCredit.get(hash) };
   if (hash in credits) return { remaining: BigInt(credits[hash]) };
   const b = await rpc({ action: 'block_info', json_block: 'true', hash });
   if (b.error) return { error: 'block not found on this node yet; wait a second and retry' };
@@ -593,5 +629,8 @@ const server = http.createServer(async (req, res) => {
     send(res, 500, { error: e.message });
   }
 });
-if (require.main === module) server.listen(PORT, '127.0.0.1', () => console.log('listening on', PORT));
-module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG };
+if (require.main === module) {
+  server.listen(PORT, '127.0.0.1', () => console.log('listening on', PORT));
+  markFeePassthroughs(); setInterval(markFeePassthroughs, 600_000).unref();
+}
+module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS };
