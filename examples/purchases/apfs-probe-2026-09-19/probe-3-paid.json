@@ -1,0 +1,25 @@
+{
+  "at": "2026-09-19T22:54:58.456Z",
+  "status": 200,
+  "ms": 2095,
+  "totalMs": 3339,
+  "headers": {
+    "cache-control": "private",
+    "cf-cache-status": "DYNAMIC",
+    "cf-ray": "a3dc2cdf6c942e0f-ARN",
+    "connection": "keep-alive",
+    "content-encoding": "gzip",
+    "content-type": "application/json",
+    "date": "Sat, 19 Sep 2026 22:55:00 GMT",
+    "payment-response": "eyJzdWNjZXNzIjogdHJ1ZSwgInBheWVyIjogIm5hbm9fMWkzeTk0NGVzbmdxdzZ3YjZpYTY4ZG90ajR5dXFjdGNoOWt4OGN0NjV0d3Q4ZXdpNHJkY2ZnYXg3Z2dmIiwgInRyYW5zYWN0aW9uIjogIjNGMjlDMUQ3QkVBOTNEMTkzMTg5MUFFNjBFNDVCNjVDNDhBOTI0QzAwNkU3QjUzQzE0RUNDRDkwNEREMjFBQTQiLCAibmV0d29yayI6ICJuYW5vOm1haW5uZXQifQ==",
+    "server": "cloudflare",
+    "transfer-encoding": "chunked"
+  },
+  "settlement": {
+    "success": true,
+    "payer": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
+    "transaction": "3F29C1D7BEA93D1931891AE60E45B65C48A924C006E7B53C14ECCD904DD21AA4",
+    "network": "nano:mainnet"
+  },
+  "body": "{\"tested_at\":\"2026-09-19T22:54:59.593998+00:00\",\"environment\":{\"system\":\"Darwin\",\"macos_version\":\"26.5.2\",\"macos_build\":\"25F84\",\"architecture\":\"arm64\",\"python\":\"3.14.7\",\"filesystem\":\"APFS\",\"filesystem_type\":\"apfs\"},\"input_sha256\":\"06263b9ceaa6927c6ec72466f144459274977807021aaeb298bce5ddcf9bd73d\",\"pairs\":[{\"requested_names\":[\"Report.csv\",\"report.csv\"],\"requested_utf8_hex\":[\"5265706f72742e637376\",\"7265706f72742e637376\"],\"exclusive_second_create_blocked\":true,\"same_file\":true,\"directory_entries\":[\"Report.csv\"],\"before_overwrite_sha256\":[\"13aa2e1ed964c243f2d4f1ed40c150e7acbb53046dd454b1463afb9bae6f46a0\",\"13aa2e1ed964c243f2d4f1ed40c150e7acbb53046dd454b1463afb9bae6f46a0\"],\"controlled_overwrite_via_second_name_changes_first\":true},{\"requested_names\":[\"café.txt\",\"café.txt\"],\"requested_utf8_hex\":[\"636166c3a92e747874\",\"636166c3a92e747874\"],\"exclusive_second_create_blocked\":true,\"same_file\":true,\"directory_entries\":[\"café.txt\"],\"before_overwrite_sha256\":[\"13aa2e1ed964c243f2d4f1ed40c150e7acbb53046dd454b1463afb9bae6f46a0\",\"13aa2e1ed964c243f2d4f1ed40c150e7acbb53046dd454b1463afb9bae6f46a0\"],\"controlled_overwrite_via_second_name_changes_first\":true},{\"requested_names\":[\"a.txt\",\"b.txt\"],\"requested_utf8_hex\":[\"612e747874\",\"622e747874\"],\"exclusive_second_create_blocked\":false,\"same_file\":false,\"directory_entries\":[\"b.txt\",\"a.txt\"],\"before_overwrite_sha256\":[\"13aa2e1ed964c243f2d4f1ed40c150e7acbb53046dd454b1463afb9bae6f46a0\",\"a95bb855aa9698adfd6646c9b5cb2295c0917f2fdbbf24c99cafe0c5a13e2d7c\"]}],\"renames\":[{\"requested_names\":[\"Invoice.txt\",\"invoice.txt\"],\"directory_entries\":[\"invoice.txt\"],\"same_inode_after_rename\":true,\"content_preserved\":true}],\"scratch_cleanup_complete\":true,\"scope\":\"Actual POSIX file creation, stat, read, overwrite and rename on this macOS APFS data volume, using only newly created temporary files. No Finder, ZIP extraction tool, Windows, Linux, network volume or alternate filesystem tested.\",\"service\":\"Mac APFS Probe\",\"price_xno\":\"1\"}"
+}

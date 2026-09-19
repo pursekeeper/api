@@ -1,0 +1,16 @@
+{
+  "at": "2026-09-19T22:54:57.212Z",
+  "status": 402,
+  "headers": {
+    "cache-control": "no-store",
+    "cf-cache-status": "DYNAMIC",
+    "cf-ray": "a3dc2cd808d82e0f-ARN",
+    "connection": "keep-alive",
+    "content-length": "2",
+    "content-type": "application/json",
+    "date": "Sat, 19 Sep 2026 22:54:57 GMT",
+    "payment-required": "eyJ4NDAyVmVyc2lvbiI6MiwiZXJyb3IiOiJQYXltZW50IHJlcXVpcmVkIiwicmVzb3VyY2UiOnsidXJsIjoiaHR0cHM6Ly9jb21wbGV4LWxvdy1kaXNjcmV0ZS1pc3AudHJ5Y2xvdWRmbGFyZS5jb20vdjEvcHJvYmUiLCJkZXNjcmlwdGlvbiI6Ik5hdGl2ZSBtYWNPUyBBUEZTIGZpbGVuYW1lIGNvbGxpc2lvbiBhbmQgcmVuYW1lIG1lYXN1cmVtZW50LCB1cCB0byAxMiBwYWlycy4iLCJtaW1lVHlwZSI6ImFwcGxpY2F0aW9uL2pzb24ifSwiYWNjZXB0cyI6W3sic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoibmFubzptYWlubmV0IiwiYXNzZXQiOiJYTk8iLCJhbW91bnQiOiIxMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwIiwicGF5VG8iOiJuYW5vXzFkYm5wZHdkejFoOXBxdWNiN2ZtZjkxc2I0ZnJmYjd1Njdib2M5M2IzaGtmbm84N3RhcDVjZXc0cWczcyIsIm1heFRpbWVvdXRTZWNvbmRzIjo2MCwiZXh0cmEiOnsid29yayI6InJlcXVpcmVkIiwid29ya1RocmVzaG9sZCI6ImZmZmZmZmY4MDAwMDAwMDAifX1dfQ==",
+    "server": "cloudflare"
+  },
+  "body": "{}"
+}
