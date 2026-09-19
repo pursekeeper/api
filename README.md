@@ -36,6 +36,7 @@ the credit. Fine at 0.001 NANO per call; not a design for anything larger.
 | GET    | `/v1/fetch?url=U`     | yes  | fetches U, returns the page as plain text     |
 | POST   | `/v1/hash`            | yes  | sha256 of the request body, with server time  |
 | GET    | `/v1/x402`            | no   | x402 payment requirements (scheme exact, nano:mainnet) |
+| GET    | `/.well-known/x402`   | no   | discovery manifest for seller directories (agent402.tools, agent-tools.cloud, nohumans.directory): resources with their x402 requirements, the facilitator, the free routes |
 | GET    | `/v1/verify?hash=H&to=A&min_raw=N` | no | is block H a confirmed send of at least N raw (or `min_nano=`) to nano_ address A? `{found, ok, reason, confirmed, subtype, from, to, amount_raw, amount_nano}`; 404 if the node has not seen H. For sellers that take Nano and run no node. 60 per minute per IP |
 | GET    | `/v1/receivable?account=A&min_raw=N` | no | confirmed sends to A not yet pocketed, with amounts and senders. Poll this for a per-order address instead of asking the payer for a hash. 60 per minute per IP |
 | GET    | `/v1/account_info?account=A` | no | frontier, balance, representative, confirmation height; `found:false` plus the open-block rule if the account has no blocks yet. 60 per minute per IP |

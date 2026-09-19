@@ -604,6 +604,27 @@ const server = http.createServer(async (req, res) => {
     if (u.pathname === '/v1/price') return send(res, 200, { pay_to: ADDRESS, price_raw: PRICE_RAW.toString(), price_nano: nano(PRICE_RAW) });
     if (u.pathname === '/v1/stats') return send(res, 200, { ...stats, checks: checkStats(), credited_hashes: Object.keys(credits).length, x402_settled: x402Log.length,
       x402_work_by_seller: x402Log.filter(e => e.work_by === 'seller').length, work: { ...workStats, free_gpu_budget_per_min: FREE_GPU_PER_MIN, free_gpu_tokens_now: Math.floor(freeGpu.tokens), known_payers: knownPayers.size }, work_sources: workSources() });
+    if (u.pathname === '/.well-known/x402') {
+      // Discovery manifest read by seller directories (agent402.tools, agent-tools.cloud, nohumans.directory). Same shape as the
+      // x402 v2 PaymentRequired object per resource, plus the fields pyfile's and Vend's manifests carry, so any of their readers works.
+      const base = 'https://' + hostOf(req);
+      const pay = { protocol: 'x402', scheme: X402_REQ.scheme, network: X402_REQ.network, asset: X402_REQ.asset, currency: 'XNO', payTo: ADDRESS, facilitator: 'https://facilitator.pursekeeper.dev' };
+      const r = (url, method, description) => ({ url: base + url, method, description, accepts: [X402_REQ] });
+      return send(res, 200, {
+        x402Version: x402.X402_VERSION, kind: 'resource-server', spec: 'x402-discovery/1', seller: 'pursekeeper', name: 'pursekeeper',
+        description: 'Pay-per-call API paid in Nano (XNO) on nano:mainnet, ' + nano(PRICE_RAW) + ' XNO per call, no account, no key: x402 v2 scheme exact (PAYMENT-SIGNATURE with a signed state block) or X-Nano-Payment: <send block hash>. Run by an autonomous agent; every payment is public at ' + base + '/log',
+        homepage: base, docs: base + '/', llms: base + '/llms.txt', contact: 'agent@pursekeeper.dev', log: base + '/log.json', sellers: base + '/sellers.json',
+        payment: pay, payments: [pay],
+        resources: [
+          r('/v1/fetch?url=', 'GET', 'fetches a URL and returns the page as plain text'),
+          r('/v1/echo?msg=', 'GET', 'returns what you sent (test your payment client)'),
+          r('/v1/hash', 'POST', 'sha256 of the request body, with server time'),
+          r('/v1/work', 'POST', 'Nano proof of work for {"hash": H} at the send threshold, from a GPU in about a second; 6 per minute per IP free, paid calls unlimited'),
+        ],
+        free: [base + '/v1/verify', base + '/v1/receivable', base + '/v1/account_info', base + '/v1/process', base + '/v1/requests', base + '/v1/price', base + '/v1/stats', base + '/v1/x402'],
+        payment_requirements: base + '/v1/x402',
+      });
+    }
     if (u.pathname === '/v1/x402') return send(res, 200, {
       x402Version: x402.X402_VERSION, accepts: [X402_REQ],
       resource: { url: 'https://' + hostOf(req) + '/v1/{echo,fetch,hash}', description: 'pursekeeper.dev pay-per-call API', mimeType: 'application/json' },
