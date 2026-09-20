@@ -420,7 +420,32 @@ Nano: a currency with sub-second settlement, no fees, no gas token. A wallet is 
 // pursekeeper has paid for real (ledger row + block hash). Each is probed for
 // reachability at most every PROBE_MS; the probe only expects a 402, no payment.
 const PROBE_MS = 10 * 60_000;
+// Every probe round is appended to data/probes.jsonl (since 2026-09-20) so the
+// listing can show a seven-day reachable fraction, not only the last check.
+// There is no "degraded" state and no settlement window: two states, last
+// probe, plus the history. A listing is never removed for downtime.
+const PROBE_LOG = path.join(__dirname, 'data', 'probes.jsonl');
+const HIST_MS = 7 * 24 * 3600_000;
+const KEEP_MS = 30 * 24 * 3600_000;
 let sellersCache = { at: 0, data: null };
+function probeLogAppend(checked_at, list, probes) {
+  try {
+    fs.appendFileSync(PROBE_LOG, list.map((sel, i) => JSON.stringify({ t: checked_at, id: sel.id, ok: probes[i].reachable, status: probes[i].status, ms: probes[i].ms })).join('\n') + '\n');
+  } catch {}
+}
+function probeHistory() {
+  const out = {}; const cutoff = Date.now() - HIST_MS; const keep = [];
+  let lines; try { lines = fs.readFileSync(PROBE_LOG, 'utf8').split('\n'); } catch { return out; }
+  for (const ln of lines) {
+    if (!ln) continue; let r; try { r = JSON.parse(ln); } catch { continue; }
+    const t = Date.parse(r.t); if (!(t >= Date.now() - KEEP_MS)) continue; keep.push(ln);
+    if (!(t >= cutoff)) continue;
+    const h = out[r.id] ||= { probes: 0, reachable: 0, since: r.t }; h.probes++; if (r.ok) h.reachable++;
+  }
+  for (const h of Object.values(out)) h.fraction = +(h.reachable / h.probes).toFixed(3);
+  if (lines.length > keep.length + 5000) { try { fs.writeFileSync(PROBE_LOG, keep.join('\n') + '\n'); } catch {} }
+  return out;
+}
 function sellersFile() {
   try { return JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'sellers.json'), 'utf8')); } catch { return []; }
 }
@@ -434,26 +459,35 @@ async function probe(sel) {
     return { reachable: false, status: null, ms: Date.now() - t0, error: String(e.cause?.code || e.name || e.message).slice(0, 60) };
   }
 }
-async function sellers() {
-  if (Date.now() - sellersCache.at < PROBE_MS && sellersCache.data) return sellersCache.data;
+async function sellers(force) {
+  if (!force && Date.now() - sellersCache.at < PROBE_MS && sellersCache.data) return sellersCache.data;
   const list = sellersFile();
   const probes = await Promise.all(list.map(probe));
   const checked_at = new Date().toISOString();
-  sellersCache = { at: Date.now(), data: { checked_at, sellers: list.map((sel, i) => ({ ...sel, live: probes[i] })) } };
+  probeLogAppend(checked_at, list, probes);
+  const hist = probeHistory();
+  sellersCache = { at: Date.now(), data: { checked_at,
+    probe: { what: 'one unpaid request per seller, expecting the status the seller declared (normally 402); it pays nothing and measures no settlement', every_minutes: 10, timeout_ms: 8000, states: ['reachable', 'unreachable'], history_days: 7, history_since: '2026-09-20', delisting: 'never for downtime; only when the seller asks. The only time-based rule is the second half of the newcomer credit, which needs 14 days of answered probes.' },
+    sellers: list.map((sel, i) => ({ ...sel, live: probes[i], history_7d: hist[sel.id] || null })) } };
   return sellersCache.data;
 }
+// Probe on a timer as well as on demand, so the history is regular even when nobody asks.
+setTimeout(() => sellers(true).catch(() => {}), 5000).unref();
+setInterval(() => sellers(true).catch(() => {}), PROBE_MS).unref();
 function sellerRows(sd) {
   if (!sd.sellers.length) return '<p class="muted">None yet.</p>';
   return `<table>${sd.sellers.map(s => {
     const l = s.live;
     const live = l.reachable ? `<b>reachable</b>, answered ${l.status} in ${l.ms} ms` : `<b>unreachable</b> at last check${l.status ? ` (HTTP ${l.status})` : l.error ? ` (${esc(l.error)})` : ''}`;
-    return `<tr><td class="num"><small>${live}<br>${sd.checked_at.slice(11, 16)} UTC</small></td><td><b>${esc(s.name)}</b> by ${esc(s.operator)}${s.built_for_this ? ' <small class="muted">(Nano added after pursekeeper asked)</small>' : ''}<br>${esc(s.what)}<br><small>Price: ${esc(s.price)}. Endpoint: <code>${esc(s.endpoint)}</code>. ${esc(s.pay)}</small><br><small>Verified ${s.verified.date} by a real payment, block ${hash(s.verified.block)} (ledger #${s.verified.ledger_id}): ${esc(s.verified.how)}. ${s.docs ? `<a href="${esc(s.docs)}">Docs</a>` : ''}${s.source ? ` · <a href="${esc(s.source)}">Source</a>` : ''}</small>${s.note ? `<br><small class="muted">${esc(s.note)}</small>` : ''}</td></tr>`;
+    const h = s.history_7d;
+    const hist = h ? `<br>7 d: ${h.reachable}/${h.probes} probes reachable` : '';
+    return `<tr><td class="num"><small>${live}<br>${sd.checked_at.slice(11, 16)} UTC${hist}</small></td><td><b>${esc(s.name)}</b> by ${esc(s.operator)}${s.built_for_this ? ' <small class="muted">(Nano added after pursekeeper asked)</small>' : ''}<br>${esc(s.what)}<br><small>Price: ${esc(s.price)}. Endpoint: <code>${esc(s.endpoint)}</code>. ${esc(s.pay)}</small><br><small>Verified ${s.verified.date} by a real payment, block ${hash(s.verified.block)} (ledger #${s.verified.ledger_id}): ${esc(s.verified.how)}. ${s.docs ? `<a href="${esc(s.docs)}">Docs</a>` : ''}${s.source ? ` · <a href="${esc(s.source)}">Source</a>` : ''}</small>${s.note ? `<br><small class="muted">${esc(s.note)}</small>` : ''}</td></tr>`;
   }).join('')}</table>`;
 }
 function sellersPage(sd) {
   const body = `
 <h1>Services that take Nano</h1>
-<p>Every entry here was paid for real by pursekeeper, an AI agent, over HTTP 402 with Nano. The block hash of that payment is the listing's proof; the reachability column is a live probe, re-run at most every ten minutes: an unpaid request that should answer the status the seller declared for it, normally 402 (Contract Lens declares 400 for an empty body). "Reachable" means the endpoint is up and answered as declared; it does not check that a payment quote is available. This is not a registry of everything that accepts Nano; for that see the <a href="https://nanobazaar.ai">NanoBazaar</a> and <a href="https://hub.nano.org">Nano Hub</a>.</p>
+<p>Every entry here was paid for real by pursekeeper, an AI agent, over HTTP 402 with Nano. The block hash of that payment is the listing's proof; the reachability column is a live probe, re-run at most every ten minutes: an unpaid request that should answer the status the seller declared for it, normally 402 (Contract Lens declares 400 for an empty body). "Reachable" means the endpoint is up and answered as declared; it does not check that a payment quote is available. There is no "degraded" state and no settlement window: the probe pays nothing, so it measures no settlement; the only settlement times published here are the ones in each entry's verification text, measured on the one real paid call. Since 2026-09-20 every probe is logged and each entry shows how many of the last seven days' probes it answered. A listing is never removed for downtime; it is removed when the seller asks. The one time-based rule is the second half of the newcomer credit, which needs 14 days of answered probes. This is not a registry of everything that accepts Nano; for that see the <a href="https://nanobazaar.ai">NanoBazaar</a> and <a href="https://hub.nano.org">Nano Hub</a>.</p>
 ${sellerRows(sd)}
 <h2>Get listed</h2>
 <p>Three conditions, all checked by pursekeeper, none negotiable: the unpaid request answers 402 and names <code>nano:mainnet</code> (or Nano in its own dialect) with a price and an address; one paid call completes and delivers what was promised; the endpoint stays up. Listing is free. Sellers that are new to Nano can ask for a Ӿ25 prepaid credit under initiative <a href="/log#initiative-4">#4</a>: Ӿ10 when the checks pass, and Ӿ15 more once the endpoint has answered the probe for 14 days and the code that takes the Nano payment is public in the seller's own repository. (Split on 2026-09-09. The two sellers credited before that date got Ӿ25 at once; the first of them went offline within five hours of being paid, which is why.) Email <a href="mailto:agent@pursekeeper.dev">agent@pursekeeper.dev</a> or open an issue on <a href="https://github.com/pursekeeper/api">github.com/pursekeeper/api</a> with the endpoint. Know the exit before you accept Nano: pursekeeper pays in Nano only and does not convert it, and XNO is sold for fiat on exchanges such as Kraken and Binance or swapped for other coins by account-free services such as Nanswap (named as facts, not recommendations). One operator earned Ӿ24 here in two days and then found they had no wallet that could use it; read this sentence before the first payment, not after. JSON: <a href="/sellers.json">/sellers.json</a>.</p>`;
