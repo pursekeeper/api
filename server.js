@@ -224,6 +224,18 @@ function x402Required(req, hint) {
 
 function paymentRequired(res, hint, req) {
   stats.calls_402++;
+  // Count the refused side as well as the paid side: distinct callers of the payment door,
+  // as IP hashes only (adopted 2026-09-20 after a Guild Hall cross-reading; see checkStats).
+  if (req) {
+    try {
+      const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+      const key = crypto.createHash('sha256').update(ip).digest('hex').slice(0, 12);
+      checks.challenges_402 = (checks.challenges_402 || 0) + 1;
+      checks.ips402 = checks.ips402 || {}; checks.ips402[key] = (checks.ips402[key] || 0) + 1;
+      checks.since_402 = checks.since_402 || new Date().toISOString();
+      fs.writeFileSync(CHECKS_FILE, JSON.stringify(checks));
+    } catch {}
+  }
   const pr = req ? x402Required(req, hint) : null;
   if (pr) res.setHeader(x402.REQUIRED_HEADER, pr.header);
   send(res, 402, {
@@ -351,7 +363,8 @@ function countCheck(kind, req) {
   try { fs.writeFileSync(CHECKS_FILE, JSON.stringify(checks)); } catch {}
 }
 function checkStats() {
-  return { verify: checks.verify, receivable: checks.receivable, account_info: checks.account_info || 0, process: checks.process || 0, distinct_ips: Object.keys(checks.ips).length, since: checks.since };
+  return { verify: checks.verify, receivable: checks.receivable, account_info: checks.account_info || 0, process: checks.process || 0, distinct_ips: Object.keys(checks.ips).length, since: checks.since,
+    challenges_402: checks.challenges_402 || 0, challenges_402_distinct_callers: Object.keys(checks.ips402 || {}).length, since_402: checks.since_402 || null };
 }
 function overFreeLimit(req, map, limit) {
   const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
