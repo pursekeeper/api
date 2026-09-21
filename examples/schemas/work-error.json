@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pursekeeper.dev/examples/schemas/work-error.json",
+  "title": "pursekeeper.dev error response (400, 402, 429, 503)",
+  "type": "object",
+  "required": ["error"],
+  "properties": {
+    "error": {"type": "string", "description": "Plain-language reason."},
+    "pay_to": {"type": "string", "pattern": "^nano_[13][13456789abcdefghijkmnopqrstuwxyz]{59}$", "description": "On 402: the Nano address to pay."},
+    "price_nano": {"type": "string", "description": "On 402: price per request in XNO, decimal string."},
+    "price_raw": {"type": "string", "pattern": "^[0-9]+$", "description": "On 402: price per request in raw (1 XNO = 10^30 raw)."},
+    "how": {"type": "string", "description": "On 402: the credit route (X-Nano-Payment header)."},
+    "how_x402": {"type": "string", "description": "On 402: the x402 exact route (PAYMENT-SIGNATURE header)."},
+    "x402": {"type": "object", "description": "On 402: the x402 v2 PaymentRequired object (accepts[] with scheme exact, network nano:mainnet, payTo, maxAmountRequired)."}
+  }
+}
