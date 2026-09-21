@@ -1,0 +1,4 @@
+{
+ "headers": "HTTP/2 200 \nalt-svc: h3=\":443\"; ma=2592000\ncontent-type: application/json\ndate: Mon, 21 Sep 2026 02:18:12 GMT\nserver: uvicorn\nvia: 1.1 Caddy\ncontent-length: 497\n\n",
+ "body": "{\"query\":\"8.8.4.4\",\"status\":\"success\",\"continent\":\"North America\",\"continent_code\":\"NA\",\"country\":\"United States\",\"country_code\":\"US\",\"region\":\"VA\",\"region_name\":\"Virginia\",\"city\":\"Ashburn\",\"zip\":\"20149\",\"latitude\":39.03,\"longitude\":-77.5,\"timezone\":\"America/New_York\",\"isp\":\"Google LLC\",\"org\":\"Google Public DNS\",\"asn\":\"AS15169 Google LLC\",\"asn_name\":\"GOOGLE\",\"payment\":{\"amount_xno\":\"0.000100\",\"block_hash\":\"5AA26A588A8400156D6C...\",\"source\":\"nano_1i3y944esn...\"},\"receipt\":\"paid-by-nano_1i3y9\"}"
+}

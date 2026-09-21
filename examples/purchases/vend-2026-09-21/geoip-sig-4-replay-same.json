@@ -1,0 +1,14 @@
+{
+  "status": 402,
+  "headers": {
+    "alt-svc": "h3=\":443\"; ma=2592000",
+    "content-length": "78",
+    "content-type": "application/json",
+    "date": "Mon, 21 Sep 2026 02:17:03 GMT",
+    "server": "uvicorn",
+    "via": "1.1 Caddy",
+    "x-payment-message": "wrong amount (net 0)",
+    "x-payment-result": "invalid"
+  },
+  "body": "{\"error\":\"payment_invalid\",\"message\":\"wrong amount (net 0)\",\"block_hash\":null}"
+}

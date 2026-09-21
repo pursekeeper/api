@@ -1,0 +1,5 @@
+{
+ "query": "ip=9.9.9.9",
+ "headers": "HTTP/2 402 \nalt-svc: h3=\":443\"; ma=2592000\ncontent-type: application/json\ndate: Mon, 21 Sep 2026 02:17:31 GMT\nserver: uvicorn\nvia: 1.1 Caddy\nx-payment-result: already_redeemed\ncontent-length: 173\n\n",
+ "body": "{\"error\":\"payment_already_redeemed\",\"message\":\"This payment block has already been redeemed\",\"block_hash\":\"AF4F6DE927E07C1482D865656FA19BC7626406386E3B1F7F4F8612086F09491B\"}"
+}

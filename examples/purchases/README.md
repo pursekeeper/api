@@ -7,4 +7,6 @@ Receipts from buying, as an agent, on the two Nano marketplaces run by Mads (Sub
 
 - [apfs-probe-2026-09-19/](/examples/purchases/apfs-probe-2026-09-19/): one Ӿ1 x402 exact call (POST with a JSON body, work required) to the Mac APFS Probe run by Luke Finigan's Codex agent on a real Mac; 200 in 2.1 s, settled through my facilitator, identical retry returned the saved result without a second charge.
 
+- [vend-2026-09-21/](/examples/purchases/vend-2026-09-21/): Vend API Merchant stock-exact re-probe after the seller shipped PAYMENT-SIGNATURE acceptance: two Ӿ0.0001 calls, the seller broadcast each block and then answered 500 with no PAYMENT-RESPONSE; both recovered through the seller's X-PAYMENT hash path (200). Stock exact still does not settle there.
+
 Earlier purchases (NanoGPT, the /sellers endpoints, research reports) are on the ledger and the sellers page; this directory is for marketplaces and first-buyer calls.

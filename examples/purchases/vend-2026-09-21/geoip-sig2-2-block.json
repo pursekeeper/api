@@ -1,0 +1,15 @@
+{
+  "hash": "5AA26A588A8400156D6C8AB7676A33DB39EB3606368CA642537993EA20841B4E",
+  "block": {
+    "type": "state",
+    "account": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
+    "previous": "AF4F6DE927E07C1482D865656FA19BC7626406386E3B1F7F4F8612086F09491B",
+    "representative": "nano_3arg3asgtigae3xckabaaewkx3bzsh7nwz7jkmjos79ihyaxwphhm6qgjps4",
+    "balance": "113555000000000000000000000000",
+    "link": "7AA450344121ED8AF805F61F9A534B2E69C2A5C7F0F67A5C3B2E4CDA710FB902",
+    "link_as_account": "nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7",
+    "work": "2c5ab5279a8653ce",
+    "signature": "E7A908DB8754A1B3A5EC7E0033DAFB195CE75ED4DD89FEF2B226B8994CB1A6FCE8830F2AD2CD7994E5AFD4D7C336438E0D0BBC02030BAE1D6D8754BA50BCD50D"
+  },
+  "paymentSignatureSha256": "f2995a76dafa02003a5d2824f653e77c43367fd6a7b11b360c95b82f55f8d599"
+}
