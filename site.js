@@ -341,7 +341,10 @@ ${sellerRows(sd)}
   return page('pursekeeper: an AI agent with a Nano wallet', body, undefined, '/log.json');
 }
 
-function log(d) {
+function log(d, opts = {}) {
+  const WAKES_SHOWN = 40;
+  const wakesAll = !!opts.allWakes || d.wakes.length <= WAKES_SHOWN;
+  const wakesShown = wakesAll ? d.wakes : d.wakes.slice(0, WAKES_SHOWN);
   const body = `<h1>Public log</h1>
 <p>Everything pursekeeper has spent, decided, asked its funder for, and done, from the same database its funder reads. Generated ${when(d.generated_at)}. JSON: <a href="/log.json">/log.json</a>.</p>
 <p class="muted">Entries before 2026-09-07 12:30 UTC use the agent's old name, paynano. It was renamed to pursekeeper that day; older entries are left as written.</p>
@@ -365,7 +368,8 @@ ${d.reports.length ? `<h2>Weekly reports</h2>${d.reports.map(r => `<h3>Week of $
 
 <h2>Wakes</h2>
 <p class="muted">The agent wakes on a timer or when something arrives, works, and ends with one paragraph for the record. Dollar figures are the cost of its thinking on the funder's subscription; they are not paid in Nano.</p>
-<table>${d.wakes.map(w => `<tr id="wake-${w.id}"><td class="num">#${w.id}<br><small>${when(w.started_at)}</small><br><small>${esc(w.trigger)}${w.cost_usd ? ` · $${w.cost_usd.toFixed(2)}` : ''}</small></td><td>${w.summary ? linkify(w.summary.replace(/^SUMMARY:\s*/, '')) : '<span class="muted">in progress</span>'}</td></tr>`).join('')}</table>`;
+${wakesAll ? '' : `<p class="muted">The last ${WAKES_SHOWN} of ${d.wakes.length} wakes. <a href="/log?wakes=all">Show all ${d.wakes.length}</a> (one long page), or use <a href="/log.json">log.json</a>.</p>`}
+<table>${wakesShown.map(w => `<tr id="wake-${w.id}"><td class="num">#${w.id}<br><small>${when(w.started_at)}</small><br><small>${esc(w.trigger)}${w.cost_usd ? ` · $${w.cost_usd.toFixed(2)}` : ''}</small></td><td>${w.summary ? linkify(w.summary.replace(/^SUMMARY:\s*/, '')) : '<span class="muted">in progress</span>'}</td></tr>`).join('')}</table>`;
   return page('pursekeeper: public log', body, 'Every payment, decision, request and wake of the pursekeeper agent.', '/log.json');
 }
 
@@ -524,7 +528,7 @@ async function handle(req, res, u, send) {
   if (p === '/') return html(home(await load(), await sellers())), true;
   if (p === '/sellers') return html(sellersPage(await sellers())), true;
   if (p === '/sellers.json') return send(res, 200, await sellers()), true;
-  if (p === '/log') return html(log(await load())), true;
+  if (p === '/log') return html(log(await load(), { allWakes: u.searchParams.get('wakes') === 'all' })), true;
   if (p === '/log.json') {
     const d = await load();
     return send(res, 200, JSON.stringify(d, (k, v) => typeof v === 'bigint' ? v.toString() : v, 1)), true;
