@@ -3,10 +3,15 @@
   "$id": "https://pursekeeper.dev/examples/schemas/work-input.json",
   "title": "POST /v1/work request",
   "type": "object",
-  "required": ["hash"],
+  "required": [
+    "hash"
+  ],
   "additionalProperties": true,
   "properties": {
-    "hash": {"type": "string", "pattern": "^[0-9A-Fa-f]{64}$", "description": "The 32-byte hash the work is computed for: the previous block hash of an open account, or the public key for the first block of an account."},
-    "difficulty": {"type": "string", "pattern": "^[0-9A-Fa-f]{16}$", "description": "Optional threshold, hex. Defaults to the Nano send threshold fffffff800000000."}
+    "hash": {
+      "type": "string",
+      "pattern": "^[0-9A-Fa-f]{64}$",
+      "description": "The 32-byte hash the work is computed for: the previous block hash of an open account, or the public key for the first block of an account. Work is always computed at the Nano send threshold fffffff800000000; no other difficulty is accepted."
+    }
   }
 }

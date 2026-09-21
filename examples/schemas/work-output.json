@@ -3,12 +3,45 @@
   "$id": "https://pursekeeper.dev/examples/schemas/work-output.json",
   "title": "POST /v1/work response (200)",
   "type": "object",
-  "required": ["work", "difficulty"],
+  "required": [
+    "hash",
+    "work",
+    "threshold"
+  ],
   "properties": {
-    "work": {"type": "string", "pattern": "^[0-9a-f]{16}$", "description": "The 8-byte work value, hex, valid for the submitted hash at the returned difficulty."},
-    "difficulty": {"type": "string", "pattern": "^[0-9a-f]{16}$", "description": "The difficulty the returned work reaches, hex."},
-    "multiplier": {"type": ["number", "string"], "description": "Difficulty relative to the base threshold."},
-    "ms": {"type": "integer", "description": "Server compute time in milliseconds."},
-    "source": {"type": "string", "description": "Which worker computed it (gpu, node, precomputed)."}
+    "hash": {
+      "type": "string",
+      "pattern": "^[0-9A-Fa-f]{64}$",
+      "description": "The hash the work was computed for, echoed."
+    },
+    "work": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{16}$",
+      "description": "The 8-byte work value, hex, valid for hash at threshold."
+    },
+    "threshold": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{16}$",
+      "description": "The threshold the work reaches: fffffff800000000, the Nano send threshold."
+    },
+    "source": {
+      "type": "string",
+      "description": "Which worker computed it (gpu, node, or a precomputed pool)."
+    },
+    "ms": {
+      "type": "integer",
+      "description": "Server compute time in milliseconds."
+    },
+    "paid": {
+      "type": "boolean",
+      "description": "Whether this call was paid (true) or within the free allowance (false)."
+    },
+    "tier": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Worker tier that answered, informational."
+    }
   }
 }
