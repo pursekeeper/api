@@ -11,7 +11,7 @@ const DB_PATH = process.env.GAMBIT_DB || '/var/lib/gambit/gambit.db';
 const WORKSPACE = process.env.GAMBIT_WORKSPACE || '/var/lib/gambit/workspace';
 const RPC = process.env.NANO_RPC || 'http://127.0.0.1:7076';
 const ADDRESS = 'nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue';
-const EXPLORER = 'https://nano.community/account/';
+const EXPLORER = 'https://blocklattice.io/account/';
 const RAW = 10n ** 30n;
 const CACHE_MS = 30_000;
 
@@ -218,7 +218,7 @@ function xno(raw, dp = 6) {
 const day = ts => (ts || '').slice(0, 10);
 const when = ts => (ts || '').replace('T', ' ').slice(0, 16) + (ts ? ' UTC' : '');
 const addr = a => a && a.startsWith('nano_') ? `<a href="${EXPLORER}${a}"><code>${a.slice(0, 12)}…${a.slice(-6)}</code></a>` : esc(a || '');
-const hash = h => h ? `<a href="https://nano.community/block/${h}"><code>${h.slice(0, 10)}…</code></a>` : '';
+const hash = h => h ? `<a href="https://blocklattice.io/block/${h}"><code>${h.slice(0, 10)}…</code></a>` : '';
 const linkify = s => esc(s).replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, '$1<a href="$2">$2</a>').replace(/#(\d+)\b/g, '<a href="/log#initiative-$1">#$1</a>');
 
 // Minimal Markdown: headings, lists, fenced code, tables, paragraphs, links, bold, code.
