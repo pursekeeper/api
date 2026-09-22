@@ -131,3 +131,24 @@ test('page() advertises only the alternate it is given, none by default', () => 
   assert.doesNotMatch(page('t', '<p>b</p>'), /<link rel="alternate"/);
   assert.match(page('t', '<p>b</p>', undefined, '/sellers.json'), /<link rel="alternate" type="application\/json" href="\/sellers.json">/);
 });
+
+test('facilitator page marks own addresses and names labelled sellers, and its JSON carries the split', () => {
+  const { facilitatorData, facilitatorPage } = require('../site');
+  const OWN_PAYER = 'nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf', SELLER = 'nano_1zqdw3qf1z8k3jx8jintaiwpo3yz7zqh1me4ph5j439ts8hsppx8dzy4xcsz';
+  const st = { since: '2026-09-10T12:20:45Z', verify: 3, verify_ok: 2, settle: 2, settle_ok: 2, distinct_ips: 2, settled_count: 2, settled_amount_raw: '20000000000000000000000000000',
+    distinct_pay_to: 2, distinct_pay_to_settled: 2, distinct_payers: 2, pay_to_counters_since: '2026-09-22T00:00:00Z',
+    sellers: [{ pay_to: SELLER, settled: 1, amount_raw: '10000000000000000000000000000', payers: 1, payer_list: [OWN_PAYER], verify: 1, verify_ok: 1, settle: 1, settle_ok: 1, first: '2026-09-11T00:00:00Z', last: '2026-09-11T00:00:00Z' },
+      { pay_to: ADDRESS, settled: 1, amount_raw: '10000000000000000000000000000', payers: 1, payer_list: ['nano_3untmgdrmee8dbghrk88pdij8kpuiqpfyben6gwgzerjwc44fbj4g847qhe4'], verify: 0, verify_ok: 0, settle: 0, settle_ok: 0, first: '2026-09-12T00:00:00Z', last: '2026-09-12T00:00:00Z' }],
+    payers: [{ payer: OWN_PAYER, settled: 1, amount_raw: '10000000000000000000000000000' }, { payer: 'nano_3untmgdrmee8dbghrk88pdij8kpuiqpfyben6gwgzerjwc44fbj4g847qhe4', settled: 1, amount_raw: '10000000000000000000000000000' }],
+    settled_last_20: [{ hash: 'A'.repeat(64), payer: OWN_PAYER, pay_to: SELLER, amount_raw: '10000000000000000000000000000', at: '2026-09-11T00:00:00Z' }] };
+  const d = facilitatorData(st, { [SELLER]: { seller: 'oreomuncher-attest', name: 'Goonbot' } }, new Set([ADDRESS, OWN_PAYER]));
+  assert.equal(d.own_pay_to_settled, 1); assert.equal(d.own_payers, 1); assert.equal(d.settled_by_own_payer, 1); assert.equal(d.settled_amount_by_own_payer_raw, '10000000000000000000000000000');
+  assert.equal(d.settled_last_20[0].payer_own, true); assert.equal(d.settled_last_20[0].pay_to_own, false);
+  const h = facilitatorPage(d);
+  assert.match(h, /1 third-party seller and 1 of pursekeeper's own/);
+  assert.match(h, /One of them is pursekeeper's own test account, which paid 1 of the 2/);
+  assert.match(h, /<b>pursekeeper<\/b> \(own address\)/);
+  assert.match(h, /Goonbot Utility Suite|Goonbot/);
+  assert.match(h, /blocklattice\.io\/block\/AAAA/);
+  for (const c of COLD) assert.doesNotMatch(h, new RegExp(c));
+});

@@ -171,3 +171,18 @@ test('a body under the limit is parsed as before', async () => {
   assert.equal(out.status, 200);
   assert.equal(out.body.invalidReason, 'requirements_unsupported');
 });
+
+test('rollup: totals, one row per payTo, per-payer counts, verify-only payTos included', () => {
+  const A = 'nano_1zqdw3qf1z8k3jx8jintaiwpo3yz7zqh1me4ph5j439ts8hsppx8dzy4xcsz', B = 'nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue';
+  const P1 = 'nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf', P2 = 'nano_3uojbn47b5xqcbs4yibbasamn8aeyqxgyi1z8peogwtdn6z3kagjanjpz4ss';
+  const s = { since: 't0', verify: 5, verify_ok: 3, settle: 4, settle_ok: 3, ips: { a: 1, b: 2 },
+    settled: [{ hash: 'H1', payer: P1, pay_to: A, amount_raw: '1000', at: '2026-09-11T00:00:00Z' }, { hash: 'H2', payer: P2, pay_to: A, amount_raw: '2000', at: '2026-09-12T00:00:00Z' }, { hash: 'H3', payer: P1, pay_to: B, amount_raw: '5', at: '2026-09-13T00:00:00Z' }],
+    pay_to: { [A]: { verify: 2, verify_ok: 2, settle: 1, settle_ok: 1, first: 'x', last: 'y' }, nano_3untmgdrmee8dbghrk88pdij8kpuiqpfyben6gwgzerjwc44fbj4g847qhe4: { verify: 1, verify_ok: 0, settle: 0, settle_ok: 0, first: 'v', last: 'v' } }, pay_to_since: 'ts' };
+  const r = f.rollup(s);
+  assert.equal(r.settled_count, 3); assert.equal(r.settled_amount_raw, '3005');
+  assert.equal(r.distinct_pay_to, 3); assert.equal(r.distinct_pay_to_settled, 2); assert.equal(r.distinct_payers, 2); assert.equal(r.distinct_ips, 2);
+  assert.deepEqual(r.sellers.map(x => [x.pay_to, x.settled, x.amount_raw, x.payers, x.verify]), [[A, 2, '3000', 2, 2], [B, 1, '5', 1, 0], ['nano_3untmgdrmee8dbghrk88pdij8kpuiqpfyben6gwgzerjwc44fbj4g847qhe4', 0, '0', 0, 1]]);
+  assert.deepEqual(r.payers, [{ payer: P1, settled: 2, amount_raw: '1005' }, { payer: P2, settled: 1, amount_raw: '2000' }]);
+  assert.equal(r.pay_to_counters_since, 'ts');
+  assert.ok(!('ips' in r), 'hashed ips never leave');
+});

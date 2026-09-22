@@ -34,8 +34,10 @@ const STATS_FILE = path.join(__dirname, 'data', 'facilitator.json');
 const LIMITS = { verify: 120, settle: 60 };   // per IP per minute
 const MAX_POLL_S = 30;                          // cap on maxTimeoutSeconds for confirmation polling
 
-let stats = { since: new Date().toISOString(), verify: 0, verify_ok: 0, settle: 0, settle_ok: 0, ips: {}, settled: [] };
+let stats = { since: new Date().toISOString(), verify: 0, verify_ok: 0, settle: 0, settle_ok: 0, ips: {}, settled: [], pay_to: {}, pay_to_since: null };
 try { stats = { ...stats, ...JSON.parse(fs.readFileSync(STATS_FILE, 'utf8')) }; } catch {}
+if (!stats.pay_to) stats.pay_to = {};
+if (!stats.pay_to_since) stats.pay_to_since = new Date().toISOString();   // per-payTo counters exist since 2026-09-22
 function saveStats() { try { fs.mkdirSync(path.dirname(STATS_FILE), { recursive: true }); fs.writeFileSync(STATS_FILE, JSON.stringify(stats)); } catch {} }
 
 // Map the descriptive reasons of x402.verify() to short codes a client can branch on.
@@ -135,10 +137,45 @@ function countIp(req) {
   const key = crypto.createHash('sha256').update(ip).digest('hex').slice(0, 12);
   stats.ips[key] = (stats.ips[key] || 0) + 1;
 }
-function publicStats() {
-  const { ips, settled, ...rest } = stats;
-  return { ...rest, distinct_ips: Object.keys(ips).length, settled_count: settled.length, settled_last_20: settled.slice(-20) };
+// Per-payTo counters, so a resource server that points its clients here is visible even
+// before a settlement succeeds. Keyed by the requirements' payTo; anything that is not a
+// Nano address is dropped, and the map stops growing at 500 keys.
+const ADDR_RE = /^nano_[13][13456789abcdefghijkmnopqrstuwxyz]{59}$/;
+function countPayTo(payTo, kind, ok) {
+  if (!ADDR_RE.test(payTo)) return;
+  const m = stats.pay_to;
+  if (!m[payTo] && Object.keys(m).length >= 500) return;
+  const now = new Date().toISOString();
+  const e = m[payTo] || (m[payTo] = { verify: 0, verify_ok: 0, settle: 0, settle_ok: 0, first: now, last: now });
+  e[kind]++; if (ok) e[kind + '_ok']++; e.last = now;
 }
+// The public view of the counters (GET /stats and pursekeeper.dev/facilitator): totals,
+// one row per payTo address, the last settlements. Pure over a stats object so it can be
+// tested. Client IPs are only ever stored as truncated hashes and only their count leaves.
+function rollup(s) {
+  const settled = s.settled || [], counters = s.pay_to || {}, rows = new Map();
+  for (const e of settled) {
+    const r = rows.get(e.pay_to) || { pay_to: e.pay_to, settled: 0, amount_raw: 0n, payers: new Set(), first: e.at, last: e.at };
+    r.settled++; r.amount_raw += BigInt(e.amount_raw || 0); r.payers.add(e.payer);
+    if (e.at < r.first) r.first = e.at; if (e.at > r.last) r.last = e.at;
+    rows.set(e.pay_to, r);
+  }
+  for (const [a, c] of Object.entries(counters)) if (!rows.has(a)) rows.set(a, { pay_to: a, settled: 0, amount_raw: 0n, payers: new Set(), first: c.first, last: c.last });
+  const sellers = [...rows.values()].map(r => { const c = counters[r.pay_to] || {}; return {
+    pay_to: r.pay_to, settled: r.settled, amount_raw: r.amount_raw.toString(), payers: r.payers.size, payer_list: [...r.payers],
+    verify: c.verify || 0, verify_ok: c.verify_ok || 0, settle: c.settle || 0, settle_ok: c.settle_ok || 0, first: r.first, last: r.last }; })
+    .sort((a, b) => b.settled - a.settled || String(b.last || '').localeCompare(String(a.last || '')));
+  const byPayer = new Map();
+  for (const e of settled) { const r = byPayer.get(e.payer) || { payer: e.payer, settled: 0, amount_raw: 0n }; r.settled++; r.amount_raw += BigInt(e.amount_raw || 0); byPayer.set(e.payer, r); }
+  const payers = [...byPayer.values()].map(r => ({ ...r, amount_raw: r.amount_raw.toString() })).sort((a, b) => b.settled - a.settled);
+  const total = settled.reduce((a, e) => a + BigInt(e.amount_raw || 0), 0n);
+  return { since: s.since, verify: s.verify || 0, verify_ok: s.verify_ok || 0, settle: s.settle || 0, settle_ok: s.settle_ok || 0,
+    distinct_ips: Object.keys(s.ips || {}).length, settled_count: settled.length, settled_amount_raw: total.toString(),
+    distinct_pay_to: sellers.length, distinct_pay_to_settled: sellers.filter(x => x.settled > 0).length,
+    distinct_payers: payers.length, pay_to_counters_since: s.pay_to_since || null,
+    sellers, payers, settled_last_20: settled.slice(-20) };
+}
+function publicStats() { return rollup(stats); }
 
 // Over the limit: reject at once (the caller answers 400 with Connection: close) and keep draining
 // the rest of the request so the answer can be written; only a body ten times over the limit
@@ -179,10 +216,12 @@ async function handle(req, res, u, send, deps) {
     if (kind === 'verify') {
       const r = await verifyRequest(body, deps);
       if (r.isValid) stats.verify_ok++;
+      countPayTo(nanoPrefix(body.paymentRequirements.payTo), 'verify', !!r.isValid);
       saveStats();
       return send(res, 200, strip(r)), true;
     }
     const r = await settleRequest(body, deps);
+    countPayTo(nanoPrefix(body.paymentRequirements.payTo), 'settle', !!r.success);
     if (r.success) {
       stats.settle_ok++;
       stats.settled.push({ hash: r.transaction, payer: r.payer, pay_to: nanoPrefix(body.paymentRequirements.payTo), amount_raw: String(body.paymentRequirements.amount), at: new Date().toISOString(), polls: r._polls });
@@ -217,7 +256,7 @@ Endpoints (the x402 facilitator HTTP API; @x402/core and the x402 Python package
        -> {"success":true,"transaction":"<block hash>","network":"nano:mainnet","payer":"nano_..."}
        -> {"success":false,"errorReason":"<code>","detail":"<why>","transaction":"","network":"nano:mainnet","payer":"..."}
 
-  GET  /stats    counters and the last settled blocks
+  GET  /stats    counters, one row per payTo address, the last settled blocks (human page: https://pursekeeper.dev/facilitator)
 
 paymentRequirements must be {"scheme":"exact","network":"nano:mainnet","asset":"XNO",
 "payTo":"nano_...","amount":"<raw, integer string>","maxTimeoutSeconds":60}. The
@@ -282,4 +321,4 @@ Reference client/server code for the same block shape: https://github.com/x402na
 A seller recipe with no node at all: https://pursekeeper.dev/examples/no-node.md
 `;
 
-module.exports = { handle, verifyRequest, settleRequest, checkRequirements, codeFor, SUPPORTED, HOST, PREFIX, LIMITS, MAX_POLL_S };
+module.exports = { handle, verifyRequest, settleRequest, checkRequirements, codeFor, rollup, publicStats, SUPPORTED, HOST, PREFIX, LIMITS, MAX_POLL_S };
