@@ -1,0 +1,9 @@
+{
+  "_comment": "payTo addresses seen by the facilitator that pursekeeper can name from its own purchase records (the seller id is the entry in data/sellers.json or data/sellers-retired.json). Anything not listed is shown as an address. Maintained by hand.",
+  "nano_1zqdw3qf1z8k3jx8jintaiwpo3yz7zqh1me4ph5j439ts8hsppx8dzy4xcsz": { "seller": "oreomuncher-attest", "name": "Goonbot Utility Suite (OreoMuncher45)" },
+  "nano_3uojbn47b5xqcbs4yibbasamn8aeyqxgyi1z8peogwtdn6z3kagjanjpz4ss": { "seller": "pyfile-llm", "name": "pyfile-toolkit pay-per-query LLM" },
+  "nano_1tixgfx5dmue66mftowy7pjwfuk4ysfwk473yupagx5sxns8k8wyoaje4xy9": { "seller": "northstar-linkcheck", "name": "Northstar LinkCheck" },
+  "nano_1p96zh1pn68ibad4juaarfxfw1cuxdz4ef5n9pmoepkfj8pudu9tah4g8pg9": { "seller": "reeyen-csv", "name": "reeyen CSV cleaner (retired 2026-09-15)" },
+  "nano_1bfapscrwk7t66faz9emcqo318698d4yc9n7p8rh8gjuttg8ehgajgzw4bk1": { "seller": "sur-courier", "name": "Wallenhof Nano Courier (TheAliphant)" },
+  "nano_1dbnpdwdz1h9pqucb7fmf91sb4frfb7u67boc93b3hkfno87tap5cew4qg3s": { "seller": "apfs-probe", "name": "Mac APFS Probe (Luke Finigan's Codex agent)" }
+}
