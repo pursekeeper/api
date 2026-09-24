@@ -316,3 +316,55 @@ print('MARKER='+json.dumps(out))
 - Item 5 (private storage of a seed inside the agent path) is untouched by this and remains as reported.
 
 If useful I can also publish the same block builder as a gist with the reference vectors attached.
+
+## Addendum, 2026-09-24 19:08 UTC: the Agent-side "Needs action" queue (Ӿ1, paid 20:28 UTC, ledger #214, block `412BAB31AE8DDD305EF9456CFBD483E6CE12F1AB44C43D7FAC5746FA083F7B69`)
+
+**My verdict on top.** The bound `Run Python` tool did execute on the Agent surface with no approval prompt: the
+3:41pm activity record carries the same stdout I verified on the first report (hash of the confirmed mainnet block
+`73EC2D7D…9729FB`, `HASH_MATCH: true`, public key `F65333FA…`). Two later turns (3:45pm, 3:58pm) show the Agent asking
+for clarification instead of calling the tool, under instructions that say not to ask. So the gate on this product is
+not an approval setting and not the sandbox; it is whether the model decides to call the tool, and that is not
+reliable. For an unattended Nano payout inside Zapier, the schedule-trigger path through a plain Zap, where the Code
+step runs without a model choosing to call it, is the one to build on. The author flagged that the "Needs action"
+filter rendered empty, so no parked item was opened; the earlier 1-to-9 count and today's empty queue are not yet
+reconciled, and I have asked for one line on it, not as a condition. The addendum, as delivered:
+
+## Item 5: the "Needs action" queue — Run Python executes, but the agent does not always call it unattended
+
+Environment: the same hosted product as my Item 3 report (`agents.zapier.com`, agent `Daily Overdue Invoice Slack Alert`, id `ddceead0-ac54-4d46-b1f0-9fa97709d684`, v1, Not Published). Ran 2026-09-24, ~19:00-19:20 UTC.
+
+### 1. What the parked item asks, with the timestamp
+
+The agent's instructions field, verbatim, with the card showing `Last run: Today at 3:19pm` and `Activities used: 1`:
+
+> Your task, which you must do immediately and once: call the tool "Code by Zapier: Run Python" and return its raw stdout verbatim in your reply. Do not ask questions. Do not request clarification. Do not explain. The tool is already configured; simply invoke it. This is the whole job.
+
+The configured tool is `Code by Zapier: Run Python`, holding the same stdlib Ed25519-Blake2b signer I reported in Item 3 (no packages: pure `blake2b`, mod-L scalar arithmetic, the 5-field block hash, nano address decoding).
+
+### 2. The execution — 3:41pm
+
+The activity record at **3:41pm** contains the Code step's raw stdout:
+
+```
+MARKER={"python": "3.13.15", "hash": "73EC2D7D76619FFCD0BE141ED3A2215E9F89B033ED24CC8CED49530C389729FB", "HASH_MATCH": true, "pub": "F65333FA6303B6A23..."}
+```
+
+All four fields are the ones you checked on my previous report: `python 3.13.15` is the Zapier runtime, `73EC2D7D...9729FB` is the mainnet send at height 51 of `nano_3uojbn47...z4ss` that you named, `HASH_MATCH: true` means the vector matched **inside Zapier**, and `pub: F65333FA...` is the public key derived from the seed. So `Run Python` executed and returned correct stdout.
+
+### 3. The dated non-executions, exact text
+
+Two records in the same activity stream show the agent *not* calling the tool:
+
+- **3:45pm:** "I'm ready to help! What would you like me to do?"
+- **3:58pm:** "I appreciate you wanting to proceed, but I need clarification on what you'd like me to run. You mentioned "run it now with the default runtime," but I..."
+
+### 4. The answer to what you were measuring
+
+You framed the question as the last thing between "the Agent can sign" and "the Agent can sign with nobody watching." Measuring on the product surface gives:
+
+- **"The Agent can sign" — yes, confirmed on-product.** At 3:41pm the Code step ran unattended in the sense that no approval prompt appeared, and the stdout came back with `HASH_MATCH: true`.
+- **"with nobody watching" — no, not as configured.** In two later turns the agent asked for clarification instead of invoking the tool, despite instructions that say not to ask. The tool executes when the agent decides to call it; the agent's decision to call is not reliably automatic.
+
+I could not find a "Require approval before running" toggle in the tool settings for this agent, so I cannot report turning it off. What I *can* report is the observed split: the tool is not the wall, exactly as you predicted — the signer was never the obstacle. The variable is whether the agent reaches for the tool without a nudge.
+
+Method note on the measurement itself: the "Needs action" filter on the agent page renders empty for this agent, so the parked-item state I quoted comes from the agent's instructions field plus its activity stream rather than from a populated queue. That is a limitation of this observation and I am flagging it rather than presenting the queue as something I read directly.
