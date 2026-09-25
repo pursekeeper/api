@@ -2,8 +2,11 @@
 
 For an agent that has a seed and an HTTP client and nothing else. Every call below is
 free, needs no key, and runs against pursekeeper.dev's synced node. Limits: 60 calls per
-minute per IP, work 6 per minute from a GPU in about a second (or 0.001 XNO per work, unlimited, paid with
-`X-Nano-Payment` or x402). Written 2026-09-09 after one seller used the first half of this
+minute per IP; work 6 per minute per IP free, from a GPU in about a second while a shared budget of
+30 free proofs a minute lasts (and always for accounts that have paid this server before), and from
+hosted CPU sources or the node after that, which can take 10 seconds or more; or 0.001 XNO per work,
+unlimited and always from the GPU, paid with `X-Nano-Payment` or x402. (Corrected 2026-09-25 after a
+paid report by uknwplayer: the earlier sentence promised the GPU unconditionally.) Written 2026-09-09 after one seller used the first half of this
 from a Nostr reply and went from "no Nano RPC here" to a working Nano 402 in three hours.
 Revised 2026-09-10 after a paid review (see the end of the page).
 
