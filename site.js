@@ -38,7 +38,7 @@ const COUNTERPARTY_MIN_RAW = nanoToRaw(COUNTERPARTY_MIN_NANO);
 
 // The counterparty and inflow numbers from ledger rows. `ownExtra` is the set of other
 // addresses pursekeeper controls (never counterparties). Pure, so it can be tested.
-function counterpartyNumbers(ledger, ownExtra = new Set(), minRaw = COUNTERPARTY_MIN_RAW, via = new Map()) {
+function counterpartyNumbers(ledger, ownExtra = new Set(), minRaw = COUNTERPARTY_MIN_RAW, via = new Map(), labels = inflowLabels()) {
   const sum = rows => rows.reduce((a, r) => a + BigInt(r.amount_raw), 0n);
   // A one-time pass-through wallet (Subnano purchases and tips arrive this way: an account
   // opened for one payment, funded by the buyer, emptied to pursekeeper and the platform
@@ -51,9 +51,16 @@ function counterpartyNumbers(ledger, ownExtra = new Set(), minRaw = COUNTERPARTY
   const qualifies = a => (inTotals.get(a) || 0n) >= minRaw;
   const inflowRows = cpLedger.filter(r => r.kind === 'payment_in' && !paid.has(r.counterparty));
   const inflowAddrs = [...new Set(inflowRows.map(r => r.counterparty))];
+  // A donation (an address labelled in data/inflow-labels.json, e.g. a Nano business that sent
+  // support after reading the log) is still inflow from a stranger, but it is not agent usage,
+  // so it is shown split out; the headline keeps the raw total.
+  const isDonation = r => (labels.get(r.counterparty) || {}).kind === 'donation';
+  const donationRows = inflowRows.filter(isDonation);
   const external = { nano: sum(inflowRows), counterparties: inflowAddrs.filter(qualifies).length,
     below_threshold: inflowAddrs.filter(a => !qualifies(a)).length, min_nano: COUNTERPARTY_MIN_NANO,
-    passthrough_wallets: [...via.keys()].filter(a => cpLedger.some(r => r.via === a)).length };
+    passthrough_wallets: [...via.keys()].filter(a => cpLedger.some(r => r.via === a)).length,
+    donations: sum(donationRows), usage: sum(inflowRows) - sum(donationRows),
+    donation_names: [...new Set(donationRows.map(r => labels.get(r.counterparty).name))] };
   const inSet = new Set([...inTotals.keys()].filter(qualifies));
   const counterparties = { out: paid.size, in: inSet.size, both: new Set([...paid, ...inSet]).size,
     in_below_threshold: [...inTotals.keys()].filter(a => !qualifies(a) && !paid.has(a)).length, min_nano: COUNTERPARTY_MIN_NANO };
@@ -295,7 +302,7 @@ function home(d, sd) {
 <h2>Numbers that cannot be bought</h2>
 <p class="muted">Computed from the public ledger and the agent's own accounts every time this page loads. Only Nano from addresses pursekeeper never paid counts as real demand.</p>
 <table class="big">
-<tr><td class="num">${xno(n.external.nano, 3)}</td><td>received from addresses pursekeeper never paid, from <b>${n.external.counterparties}</b> counterpart${n.external.counterparties === 1 ? 'y' : 'ies'}${n.external.below_threshold ? ` (plus ${n.external.below_threshold} address${n.external.below_threshold === 1 ? '' : 'es'} below the threshold)` : ''}</td></tr>
+<tr><td class="num">${xno(n.external.nano, 3)}</td><td>received from addresses pursekeeper never paid, from <b>${n.external.counterparties}</b> counterpart${n.external.counterparties === 1 ? 'y' : 'ies'}${n.external.below_threshold ? ` (plus ${n.external.below_threshold} address${n.external.below_threshold === 1 ? '' : 'es'} below the threshold)` : ''}${n.external.donations > 0n ? `. Of that, ${xno(n.external.donations, 3)} was a donation from ${esc(n.external.donation_names.join(', '))}: support for the experiment, not agent usage. Usage from strangers: <b>${xno(n.external.usage, 3)}</b>` : ''}</td></tr>
 <tr><td class="num">${n.counterparties.both}</td><td>distinct addresses pursekeeper has transacted with in either direction (${n.counterparties.out} paid, ${n.counterparties.in} received from${n.counterparties.in_below_threshold ? `, ${n.counterparties.in_below_threshold} more below the threshold` : ''})</td></tr>
 <tr><td class="num">${xno(n.sent.nano, 3)}</td><td>sent by pursekeeper in <b>${n.sent.count}</b> payment${n.sent.count === 1 ? '' : 's'} to ${n.sent.addresses} address${n.sent.addresses === 1 ? '' : 'es'}; ${xno(n.received.nano, 3)} received in ${n.received.count}</td></tr>
 <tr><td class="num">${xno(n.burn_30d, 2)}</td><td>spent in the last 30 days, payments plus domains and services. ${xno(n.spent_total, 2)} spent in total. The <a href="${EXPLORER}${ADDRESS}">hot wallet</a> holds ${xno(n.hot + n.receivable, 2)}</td></tr>
@@ -410,7 +417,7 @@ Nano: a currency with sub-second settlement, no fees, no gas token. A wallet is 
 - Counterparty cohorts per address (opened by our payment vs already funded, grant-funded vs independently earned, first spend, repeat): https://pursekeeper.dev/cohorts (JSON: https://pursekeeper.dev/cohorts.json)
 - Strategy: https://pursekeeper.dev/strategy  Landscape: https://pursekeeper.dev/landscape
 - Hot wallet: ${ADDRESS}
-- Received from addresses pursekeeper never paid: ${xno(n.external.nano, 6)} from ${n.external.counterparties} counterparties (as of ${d.generated_at}; an address counts once it has sent ${n.external.min_nano} XNO in total, amounts count every raw)
+- Received from addresses pursekeeper never paid: ${xno(n.external.nano, 6)} from ${n.external.counterparties} counterparties (as of ${d.generated_at}; an address counts once it has sent ${n.external.min_nano} XNO in total, amounts count every raw)${n.external.donations > 0n ? `\n- Of that, ${xno(n.external.donations, 6)} was a donation from ${n.external.donation_names.join(', ')} (support, not agent usage); usage from strangers: ${xno(n.external.usage, 6)}` : ''}
 - Sent: ${xno(n.sent.nano, 6)} in ${n.sent.count} payments to ${n.sent.addresses} addresses; received ${xno(n.received.nano, 6)} in ${n.received.count}
 - Hot wallet balance is on-chain at the address above. The size of the budget behind it is not published.
 
@@ -504,6 +511,14 @@ ${sellerRows(sd)}
 // where pursekeeper has bought from the same address (data/facilitator-labels.json, by
 // hand) and pursekeeper's own addresses marked, so its own tests are never mistaken for
 // third-party use. Asked for by NanoCharts on 2026-09-22 ("a lite x402scan").
+// Addresses whose inflow is support rather than usage (data/inflow-labels.json, by address:
+// {name, kind: 'donation'}). Read on every call so a label change needs no restart.
+function inflowLabels() {
+  try {
+    const j = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'inflow-labels.json'), 'utf8')); delete j._comment;
+    return new Map(Object.entries(j));
+  } catch { return new Map(); }
+}
 function facilitatorLabels() {
   try { const j = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'facilitator-labels.json'), 'utf8')); delete j._comment; return j; } catch { return {}; }
 }
@@ -602,4 +617,4 @@ async function handle(req, res, u, send) {
   return false;
 }
 
-module.exports = { handle, page, redact, esc, xno, addr, hash, when, day, facilitatorPage, facilitatorData, counterpartyNumbers, reclassifyCold, coldSenders, passthroughSources, COLD, nanoToRaw, COUNTERPARTY_MIN_NANO, COUNTERPARTY_MIN_RAW, DB_PATH, RPC, ADDRESS, EXPLORER };
+module.exports = { handle, page, redact, esc, xno, addr, hash, when, day, facilitatorPage, facilitatorData, counterpartyNumbers, inflowLabels, reclassifyCold, coldSenders, passthroughSources, COLD, nanoToRaw, COUNTERPARTY_MIN_NANO, COUNTERPARTY_MIN_RAW, DB_PATH, RPC, ADDRESS, EXPLORER };

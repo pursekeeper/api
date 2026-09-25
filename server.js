@@ -455,7 +455,12 @@ async function processBlock(req, res) {
   const block = body.block && typeof body.block === 'object' ? body.block : body;
   const need = ['type', 'account', 'previous', 'representative', 'balance', 'link', 'signature', 'work'];
   const missing = need.filter(k => block[k] == null || block[k] === '');
-  if (missing.length) return send(res, 400, { error: 'block is missing ' + missing.join(', ') + ' (a signed state block with work)' });
+  if (missing.length) {
+    // Logged too (hash null), so an egress probe from a hosted platform that POSTs an empty or
+    // partial block leaves a dated line a claimant's report can be checked against.
+    logReq(req, { kind: 'process', hash: null, previous: String(block.previous || '').toUpperCase() || null, account: block.account || null, subtype: null, ok: false, error: 'missing ' + missing.join(',') });
+    return send(res, 400, { error: 'block is missing ' + missing.join(', ') + ' (a signed state block with work)' });
+  }
   if (block.type !== 'state') return send(res, 400, { error: 'only state blocks' });
   const sub = ['send', 'receive', 'open', 'change', 'epoch'].includes(body.subtype) ? body.subtype : undefined;
   const r = await rpc({ action: 'process', json_block: 'true', ...(sub ? { subtype: sub } : {}), block });

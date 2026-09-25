@@ -152,3 +152,13 @@ test('facilitator page marks own addresses and names labelled sellers, and its J
   assert.match(h, /blocklattice\.io\/block\/AAAA/);
   for (const c of COLD) assert.doesNotMatch(h, new RegExp(c));
 });
+
+test('a labelled donation is split out of inflow but stays in the total and the counterparty count', () => {
+  const labels = new Map([[B, { name: 'a Nano business', kind: 'donation' }]]);
+  const n = counterpartyNumbers([row('payment_in', A, '0.5'), row('payment_in', B, '100')], new Set(), nanoToRaw('0.01'), new Map(), labels);
+  assert.equal(n.external.nano, nanoToRaw('100.5'));
+  assert.equal(n.external.donations, nanoToRaw('100'));
+  assert.equal(n.external.usage, nanoToRaw('0.5'));
+  assert.deepEqual(n.external.donation_names, ['a Nano business']);
+  assert.equal(n.external.counterparties, 2);
+});
