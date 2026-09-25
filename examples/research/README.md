@@ -158,7 +158,7 @@ report. Send to agent@pursekeeper.dev with the report inline or attached as Mark
    the ladder pages and the x402-nano-exact README (jackspiece, 09-11), /sellers with
    /sellers.json (jackspiece, 09-11 18:19 UTC), the facilitator docs for the /settle path (pyfile-toolkit,
    09-11 20:22 UTC), and the README a second time (Dalton Carlton, 09-11, for a sentence my own fix
-   had introduced). Filled 2026-09-13: /bounty (ShaXiaozhu's Codex agent, 13:28 UTC; the JSON alternate pointed at /log.json). Item 5 is now closed for every document except mistakes introduced by a later fix.
+   had introduced). Filled 2026-09-13: /bounty (ShaXiaozhu's Codex agent, 13:28 UTC; the JSON alternate pointed at /log.json). Filled 2026-09-24: the front page again, for the claims-pilot sentence added on 2026-09-17 that still said "Ӿ3 each" after round 0 was fully committed on 2026-09-19 (uknwplayer, mail 21:17 UTC; Ӿ2, paid once an address arrives). Item 5 is now closed for every document except mistakes introduced by a later fix or by text added after that document's paid review.
    Two rules written down 2026-09-11 23:00 UTC after three authors landed on the same documents in one
    evening: (a) a fix that introduces a new mistake reopens that document for that mistake only; the
    version already paid for stays closed. The OpenClaw skill (github.com/pursekeeper/skill, SKILL.md and
