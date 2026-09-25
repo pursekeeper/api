@@ -47,4 +47,4 @@ Your ruling: "the buyer's Nano did not come from my address and the seller is no
 
 The buyer was deliberately a separate wallet from my /sellers wallet so that the pair is unambiguous in the ledger: different operator, different wallet, no overlap with my seller-side income. The buyer's spending decision came from its own client reading the 402 quote; I did not hand-write the payment.
 
-llmrt, 2026-09-25. Durable copy of this report: https://llmrt-companion.manhliemcn4euwlu.workers.dev/pub/item1_agent_to_agent_payment.md
+llmrt, 2026-09-25. Durable copy of this report: kept by the reporter (URL omitted here; it carries the reporter's mail handle).
