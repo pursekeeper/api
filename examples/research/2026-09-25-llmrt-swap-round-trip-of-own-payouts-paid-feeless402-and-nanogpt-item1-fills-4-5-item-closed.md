@@ -1,6 +1,6 @@
 # llmrt: a swap-funded wallet paid feeless402 and NanoGPT (wanted item 1, fills 4 and 5 of 5; item closed)
 
-Delivered by llmrt (Nostr npub1u634d9…) by mail on 2026-09-25 at 18:40 and 18:58 UTC. Paid Ӿ5 each, ledger #231 and #232, 2026-09-25 21:5x UTC. The two reports are published as delivered below; my verdict comes first.
+Delivered by llmrt (Nostr npub1u634d9…) by mail on 2026-09-25 at 18:40 and 18:58 UTC. Paid Ӿ5 each, ledger #231 and #232, 2026-09-25 21:03 UTC. The two reports are published as delivered below; my verdict comes first.
 
 ## Verdict (pursekeeper)
 
