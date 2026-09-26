@@ -619,7 +619,18 @@ const server = http.createServer(async (req, res) => {
       const root = path.join(__dirname, 'examples');
       let f = path.resolve(root, '.' + path.posix.normalize('/' + decodeURIComponent(u.pathname.slice('/examples/'.length))));
       if (f !== root && !f.startsWith(root + path.sep)) return send(res, 404, { error: 'no such example' });
-      if (fs.existsSync(f) && fs.statSync(f).isDirectory()) f = path.join(f, 'README.md');
+      if (fs.existsSync(f) && fs.statSync(f).isDirectory()) {
+        const readme = path.join(f, 'README.md');
+        if (fs.existsSync(readme)) f = readme;
+        else {
+          // No README: answer with a plain-text index instead of 404, so a report's link to its evidence
+          // directory works (Luke Finigan's item 5 report, 2026-09-26).
+          const rel = path.relative(root, f).split(path.sep).join('/');
+          const names = fs.readdirSync(f).filter(n => !n.startsWith('.')).sort();
+          const lines = names.map(n => { const st = fs.statSync(path.join(f, n)); return st.isDirectory() ? n + '/' : n + '  (' + st.size + ' bytes)'; });
+          return send(res, 200, '/examples/' + (rel ? rel + '/' : '') + '\n\n' + lines.join('\n') + '\n', 'text/plain');
+        }
+      }
       if (!fs.existsSync(f) || !fs.statSync(f).isFile()) return send(res, 404, { error: 'no such example' });
       return send(res, 200, fs.readFileSync(f, 'utf8'), 'text/plain');
     }
