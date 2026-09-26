@@ -1,0 +1,828 @@
+Native Execute Code card bodies. Run in listed order in a standard node.
+Declare bot.probePersist and workflow.probePersistFlow as strings, initially empty.
+Create Fixed Schedule from the native Trigger menu, connect to the node, set a short cron, publish, capture results and disable afterward. Synthetic fixtures only.
+
+
+===== probe-1-runtime-surface.js =====
+const check = (fn) => {
+  try {
+    return fn()
+  } catch (error) {
+    return 'error: ' + String(error && error.message ? error.message : error)
+  }
+}
+
+const listKeys = (object, limit) => {
+  try {
+    return Object.keys(object).slice(0, limit || 40)
+  } catch (error) {
+    return ['<unreadable: ' + String(error && error.message) + '>']
+  }
+}
+
+const detectEvent = () => {
+  try {
+    if (typeof event === 'undefined' || !event) return { present: false }
+    return {
+      present: true,
+      keys: listKeys(event),
+      type: event.type || null,
+      hasPayload: !!event.payload,
+      hasConversationId: !!event.conversationId,
+      hasUserId: !!event.userId
+    }
+  } catch (error) {
+    return { present: false, error: String(error && error.message ? error.message : error) }
+  }
+}
+
+const result = {
+  probe: '1-runtime-surface',
+  generatedAt: new Date().toISOString(),
+  globalThisType: typeof globalThis,
+  studioGlobalsPresent: {
+    axios: check(() => typeof axios !== 'undefined'),
+    lodash: check(() => typeof _ !== 'undefined'),
+    luxon: check(() => typeof luxon !== 'undefined'),
+    client: check(() => typeof client !== 'undefined'),
+    z: check(() => typeof z !== 'undefined'),
+    zui: check(() => typeof zui !== 'undefined'),
+    zai: check(() => typeof zai !== 'undefined'),
+    console: check(() => typeof console !== 'undefined'),
+    workflow: check(() => typeof workflow !== 'undefined'),
+    conversation: check(() => typeof conversation !== 'undefined'),
+    user: check(() => typeof user !== 'undefined'),
+    bot: check(() => typeof bot !== 'undefined'),
+    env: check(() => typeof env !== 'undefined'),
+    event: check(() => typeof event !== 'undefined'),
+    crypto: check(() => typeof crypto !== 'undefined'),
+    fetch: check(() => typeof fetch !== 'undefined'),
+    Buffer: check(() => typeof Buffer !== 'undefined'),
+    process: check(() => typeof process !== 'undefined'),
+    require: check(() => typeof require !== 'undefined'),
+    module: check(() => typeof module !== 'undefined'),
+    global: check(() => typeof global !== 'undefined'),
+    globalThis: check(() => typeof globalThis !== 'undefined'),
+    TextEncoder: check(() => typeof TextEncoder !== 'undefined'),
+    atob: check(() => typeof atob !== 'undefined'),
+    btoa: check(() => typeof btoa !== 'undefined'),
+    setTimeout: check(() => typeof setTimeout !== 'undefined')
+  },
+  languageAndNode: {
+    bigInt: check(() => typeof BigInt === 'function' && BigInt(2) ** BigInt(64) > 0),
+    optionalChaining: check(() => ({ a: { b: 1 } })?.a?.b === 1),
+    nullishCoalescing: check(() => (null ?? 3) === 3),
+    asyncFunctions: check(() => (async function () { return 1 })() instanceof Promise),
+    textEncoder: check(() => new TextEncoder().encode('a').length),
+    bufferFrom: check(() => Buffer.from('00', 'hex').length),
+    nodeCryptoCreateHash: check(() =>
+      typeof require('crypto').createHash === 'function' ? 'createHash present' : 'no createHash'
+    ),
+    nodeCryptoTimingSafeEqual: check(() =>
+      typeof require('crypto').timingSafeEqual === 'function'
+    ),
+    nodeCryptoSign: check(() =>
+      typeof require('crypto').sign === 'function'
+        ? 'crypto.sign present (SHA-512 Ed25519, not BLAKE2b)'
+        : null
+    ),
+    nodeCryptoBlake2b512: check(() =>
+      require('crypto').getHashes().indexOf('blake2b512') >= 0
+        ? 'blake2b512 listed'
+        : 'blake2b512 absent'
+    ),
+    botpressClientListTables: check(() => typeof client.listTables === 'function'),
+    botpressClientFindTableRows: check(() => typeof client.findTableRows === 'function')
+  },
+  eventObject: detectEvent(),
+  nodeVersions:
+    typeof process !== 'undefined' && process && process.versions ? process.versions : null
+}
+
+result.studioGlobalKeys = {
+  axios: check(() => listKeys(axios, 12)),
+  client: check(() => listKeys(client, 30)),
+  luxon: check(() => listKeys(luxon, 20)),
+  lodash: check(() => listKeys(_, 12)),
+  z: check(() => listKeys(z, 20))
+}
+
+result.variableScopes = {
+  workflowKeys: check(() => listKeys(workflow)),
+  conversationKeys: check(() => listKeys(conversation)),
+  userKeys: check(() => listKeys(user)),
+  botKeys: check(() => listKeys(bot)),
+  envKeys: check(() => listKeys(env))
+}
+
+console.log('PROBE_RESULT ' + JSON.stringify(result))
+
+
+===== probe-2-persistence.js =====
+const SYNTHETIC_SEED_HEX = 'B7DE4B5DB84AEDCEFFEBC1E68897E7BDA750F3317B2CB717C3E1AB5A250E1ECB'
+const FIXTURE_MARKER = 'botpress-execute-code-fixture-v1'
+const BOT_VARIABLE = 'probePersist'
+const CONVERSATION_VARIABLE = 'probePersistConv'
+const WORKFLOW_VARIABLE = 'probePersistFlow'
+const TABLE_NAME = 'ProbePersist'
+
+const readScope = (scope, name) => {
+  try {
+    if (scope === undefined || scope === null) return { readable: false, reason: 'scope absent' }
+    const value = scope[name]
+    return { readable: true, value: value === undefined ? null : value }
+  } catch (error) {
+    return { readable: false, reason: String(error && error.message ? error.message : error) }
+  }
+}
+
+const writeScope = (scope, name, value) => {
+  try {
+    if (scope === undefined || scope === null) return { writable: false, reason: 'scope absent' }
+    scope[name] = value
+    return { writable: true, readBack: scope[name] }
+  } catch (error) {
+    return { writable: false, reason: String(error && error.message ? error.message : error) }
+  }
+}
+
+const parseRecord = (value) => {
+  if (typeof value !== 'string' || value.indexOf(FIXTURE_MARKER) === -1) return null
+  try {
+    return JSON.parse(value)
+  } catch (error) {
+    return null
+  }
+}
+
+const nextRecord = (previous) => {
+  const now = new Date().toISOString()
+  return {
+    marker: FIXTURE_MARKER,
+    runIndex: previous && typeof previous.runIndex === 'number' ? previous.runIndex + 1 : 1,
+    writtenAt: now,
+    syntheticSeedHex: SYNTHETIC_SEED_HEX,
+    firstSeenAt: previous && previous.firstSeenAt ? previous.firstSeenAt : now
+  }
+}
+
+const handleScope = (label, scope, name, result) => {
+  const before = readScope(scope, name)
+  const previous = before.readable ? parseRecord(before.value) : null
+  const record = nextRecord(previous)
+  const after = writeScope(scope, name, JSON.stringify(record))
+  result.scopes[label] = {
+    variable: name,
+    before,
+    sawPreviousRun: !!previous,
+    previousRunIndex: previous ? previous.runIndex : null,
+    wrote: record,
+    writeResult: after
+  }
+  return { sawPreviousRun: !!previous, runIndex: record.runIndex }
+}
+
+const tableCheck = async () => {
+  const out = { attempted: true, apiAvailable: false }
+  try {
+    if (typeof client === 'undefined' || !client || typeof client.findTableRows !== 'function') {
+      out.reason = 'client.findTableRows is not a function in this runtime'
+      return out
+    }
+    out.apiAvailable = true
+    const page = await client.findTableRows({ table: TABLE_NAME, limit: 10, offset: 0, filter: {} })
+    out.tableExists = true
+    out.rowCount = page && typeof page.count === 'number' ? page.count : null
+    out.rows = page && page.rows ? page.rows : null
+    out.writeResult = await client.createTableRows({
+      table: TABLE_NAME,
+      rows: [
+        {
+          marker: FIXTURE_MARKER,
+          runAt: new Date().toISOString(),
+          syntheticSeedHex: SYNTHETIC_SEED_HEX
+        }
+      ]
+    })
+    return out
+  } catch (error) {
+    out.tableExists = false
+    out.error = String(error && error.message ? error.message : error)
+    return out
+  }
+}
+
+const result = {
+  probe: '2-persistence',
+  generatedAt: new Date().toISOString(),
+  syntheticSeedHex: SYNTHETIC_SEED_HEX,
+  whoCanReadWhat: {
+    source: 'https://botpress.com/docs/docs/studio/concepts/variables/scopes/bot.md',
+    botVariableQuote:
+      "Bot variables aren't encrypted or stored securely. This means an Autonomous Node can read and display any information you store in a bot variable.",
+    conversationVariableQuote:
+      'Information stored in conversation variables is deleted when the current conversation is over.',
+    studioSurface:
+      'The value is visible to anyone who can open this bot in Studio; a Table row is visible in the explorer under the table.',
+    answerToCapture:
+      'Record, with a date: who can open this workspace, whether the bot is shared, and whether the value is visible in the Studio explorer, the Tables explorer, or only to code.'
+  },
+  scopes: {}
+}
+
+const botScopeResult = handleScope(
+  'bot',
+  typeof bot !== 'undefined' ? bot : undefined,
+  BOT_VARIABLE,
+  result
+)
+handleScope(
+  'conversation',
+  typeof conversation !== 'undefined' ? conversation : undefined,
+  CONVERSATION_VARIABLE,
+  result
+)
+handleScope(
+  'workflow',
+  typeof workflow !== 'undefined' ? workflow : undefined,
+  WORKFLOW_VARIABLE,
+  result
+)
+
+result.verdict = {
+  botScopePersistsAcrossRuns: botScopeResult.sawPreviousRun,
+  botScopeRunIndex: botScopeResult.runIndex,
+  reading:
+    botScopeResult.runIndex > 1
+      ? 'bot variable retained bytes written by an earlier execution of this card'
+      : 'first recorded run for this bot variable; run the card again in another conversation to prove persistence'
+}
+
+result.table = await tableCheck()
+
+console.log('PROBE_RESULT ' + JSON.stringify(result))
+
+
+===== probe-3-sign-kat.js =====
+const SEED_HEX = 'B7DE4B5DB84AEDCEFFEBC1E68897E7BDA750F3317B2CB717C3E1AB5A250E1ECB'
+const PREVIOUS = '1111111111111111111111111111111111111111111111111111111111111111'
+const LINK = '0000000000000000000000000000000000000000000000000000000000000000'
+const BALANCE = '1000000000000000000000000000000'
+const WORK = '0000000000000000'
+const STATE_BLOCK_TYPE = 6
+const ADDRESS_ALPHABET = '13456789abcdefghijkmnopqrstuwxyz'
+
+const EXPECTED = {
+  privateKey: '02024f06d9b0c5a10c8b775eca0181110f899743b5159d431c0a1de7cecb7395',
+  publicKey: '8b88e1defe87319aa5abeb66efde95bb53bb9a4f5258f8887bd335418f877db7',
+  address: 'nano_34waw9hhx3sjmcktqtu8xzhbdgtmqgf6ynkrz469qnsoa89rgzfq5mu1k1nx',
+  blockHash: '730AAEBD21EA3DBFCD916E30E9BD82E058369C04653E5F4D04196D16AC2AEAED',
+  signature:
+    'FB3AF6EF8321A2A548F53593C88F090461EECE2F703675A1C6BC033C7EB9FB27' +
+    'E847BAE03C0238AF39EF5B678337FFF0763A2B423464CE6789C60E634BBD220D'
+}
+
+const MASK64 = (1n << 64n) - 1n
+const IV = [
+  0x6a09e667f3bcc908n, 0xbb67ae8584caa73bn, 0x3c6ef372fe94f82bn, 0xa54ff53a5f1d36f1n,
+  0x510e527fade682d1n, 0x9b05688c2b3e6c1fn, 0x1f83d9abfb41bd6bn, 0x5be0cd19137e2179n
+]
+const SIGMA = [
+   0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
+  14, 10,  4,  8,  9, 15, 13,  6,  1, 12,  0,  2, 11,  7,  5,  3,
+  11,  8, 12,  0,  5,  2, 15, 13, 10, 14,  3,  6,  7,  1,  9,  4,
+   7,  9,  3,  1, 13, 12, 11, 14,  2,  6,  5, 10,  4,  0, 15,  8,
+   9,  0,  5,  7,  2,  4, 10, 15, 14,  1, 11, 12,  6,  8,  3, 13,
+   2, 12,  6, 10,  0, 11,  8,  3,  4, 13,  7,  5, 15, 14,  1,  9,
+  12,  5,  1, 15, 14, 13,  4, 10,  0,  7,  6,  3,  9,  2,  8, 11,
+  13, 11,  7, 14, 12,  1,  3,  9,  5,  0, 15,  4,  8,  6,  2, 10,
+   6, 15, 14,  9, 11,  3,  0,  8, 12,  2, 13,  7,  1,  4, 10,  5,
+  10,  2,  8,  4,  7,  6,  1,  5, 15, 11,  9, 14,  3, 12, 13,  0,
+   0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
+  14, 10,  4,  8,  9, 15, 13,  6,  1, 12,  0,  2, 11,  7,  5,  3
+]
+
+const rotr64 = (x, n) => ((x >> n) | (x << (64n - n))) & MASK64
+
+const readLE64 = (u8, off) => {
+  let x = 0n
+  for (let i = 7; i >= 0; i--) x = (x << 8n) | BigInt(u8[off + i])
+  return x
+}
+
+const mix = (v, a, b, c, d, x, y) => {
+  v[a] = (v[a] + v[b] + x) & MASK64
+  v[d] = rotr64(v[d] ^ v[a], 32n)
+  v[c] = (v[c] + v[d]) & MASK64
+  v[b] = rotr64(v[b] ^ v[c], 24n)
+  v[a] = (v[a] + v[b] + y) & MASK64
+  v[d] = rotr64(v[d] ^ v[a], 16n)
+  v[c] = (v[c] + v[d]) & MASK64
+  v[b] = rotr64(v[b] ^ v[c], 63n)
+}
+
+const compressBlake2b = (h, m, t0, t1, last) => {
+  const v = new Array(16)
+  let i
+  for (i = 0; i < 8; i++) v[i] = h[i]
+  for (i = 0; i < 8; i++) v[8 + i] = IV[i]
+  v[12] ^= t0
+  v[13] ^= t1
+  if (last) v[14] ^= MASK64
+  for (let r = 0; r < 12; r++) {
+    const s = r * 16
+    mix(v, 0, 4, 8, 12, m[SIGMA[s]], m[SIGMA[s + 1]])
+    mix(v, 1, 5, 9, 13, m[SIGMA[s + 2]], m[SIGMA[s + 3]])
+    mix(v, 2, 6, 10, 14, m[SIGMA[s + 4]], m[SIGMA[s + 5]])
+    mix(v, 3, 7, 11, 15, m[SIGMA[s + 6]], m[SIGMA[s + 7]])
+    mix(v, 0, 5, 10, 15, m[SIGMA[s + 8]], m[SIGMA[s + 9]])
+    mix(v, 1, 6, 11, 12, m[SIGMA[s + 10]], m[SIGMA[s + 11]])
+    mix(v, 2, 7, 8, 13, m[SIGMA[s + 12]], m[SIGMA[s + 13]])
+    mix(v, 3, 4, 9, 14, m[SIGMA[s + 14]], m[SIGMA[s + 15]])
+  }
+  for (i = 0; i < 8; i++) h[i] = h[i] ^ v[i] ^ v[i + 8]
+}
+
+const blake2b = (input, outlen) => {
+  const out = outlen || 32
+  const h = IV.slice()
+  h[0] ^= 0x01010000n ^ BigInt(out)
+  let t0 = 0n
+  const t1 = 0n
+  const m = new Array(16)
+  const len = input.length
+  let off = 0
+  let i
+  while (len - off > 128) {
+    for (i = 0; i < 16; i++) m[i] = readLE64(input, off + 8 * i)
+    t0 += 128n
+    compressBlake2b(h, m, t0, t1, false)
+    off += 128
+  }
+  const lastBlock = new Uint8Array(128)
+  const rem = len - off
+  for (i = 0; i < rem; i++) lastBlock[i] = input[off + i]
+  t0 += BigInt(rem)
+  for (i = 0; i < 16; i++) m[i] = readLE64(lastBlock, 8 * i)
+  compressBlake2b(h, m, t0, t1, true)
+  const res = new Uint8Array(out)
+  for (i = 0; i < out; i++) res[i] = Number((h[i >> 3] >> BigInt(8 * (i & 7))) & 0xffn)
+  return res
+}
+
+const hexToBytes = (hex) => {
+  const h = String(hex).replace(/^0x/i, '')
+  const out = new Uint8Array(h.length / 2)
+  for (let i = 0; i < out.length; i++) out[i] = parseInt(h.substr(i * 2, 2), 16)
+  return out
+}
+
+const bytesToHex = (bytes) => {
+  let s = ''
+  for (let i = 0; i < bytes.length; i++) s += (bytes[i] + 0x100).toString(16).slice(1)
+  return s
+}
+
+const concatBytes = (list) => {
+  let total = 0
+  let i
+  for (i = 0; i < list.length; i++) total += list[i].length
+  const out = new Uint8Array(total)
+  let off = 0
+  for (i = 0; i < list.length; i++) {
+    out.set(list[i], off)
+    off += list[i].length
+  }
+  return out
+}
+
+const bytesToBigIntLE = (bytes) => {
+  let x = 0n
+  for (let i = bytes.length - 1; i >= 0; i--) x = (x << 8n) | BigInt(bytes[i])
+  return x
+}
+
+const bigIntToBytesLE = (value, length) => {
+  const out = new Uint8Array(length)
+  let v = value
+  for (let i = 0; i < length; i++) {
+    out[i] = Number(v & 0xffn)
+    v >>= 8n
+  }
+  return out
+}
+
+const uint32BE = (n) =>
+  new Uint8Array([(n >>> 24) & 0xff, (n >>> 16) & 0xff, (n >>> 8) & 0xff, n & 0xff])
+
+const P = (1n << 255n) - 19n
+const L = (1n << 252n) + 27742317777372353535851937790883648493n
+const D = 37095705934669439343138083508754565189542113879843219016388785533085940283555n
+const D2 = (2n * D) % P
+const SQRT_M1 = 19681161376707505956807079304988542015446066515923890162744021073123829784752n
+const BX = 15112221349535400772501151409588531511454012693041857206046113283949847762202n
+const BY = 46316835694926478169428394003475163141307993866256225615783033603165251855960n
+const BASE = { X: BX, Y: BY, Z: 1n, T: (BX * BY) % P }
+const IDENTITY = { X: 0n, Y: 1n, Z: 1n, T: 0n }
+
+const fmod = (x) => {
+  const r = x % P
+  return r < 0n ? r + P : r
+}
+
+const powmod = (base, exp) => {
+  let result = 1n
+  let b = fmod(base)
+  let e = exp
+  while (e > 0n) {
+    if (e & 1n) result = (result * b) % P
+    b = (b * b) % P
+    e >>= 1n
+  }
+  return result
+}
+
+const pointAdd = (p1, p2) => {
+  const a = fmod((p1.Y - p1.X) * (p2.Y - p2.X))
+  const b = fmod((p1.Y + p1.X) * (p2.Y + p2.X))
+  const c = fmod(p1.T * D2 * p2.T)
+  const d = fmod(2n * p1.Z * p2.Z)
+  const e = fmod(b - a)
+  const f = fmod(d - c)
+  const g = fmod(d + c)
+  const h = fmod(b + a)
+  return { X: fmod(e * f), Y: fmod(g * h), T: fmod(e * h), Z: fmod(f * g) }
+}
+
+const pointDouble = (p) => {
+  const a = fmod(p.X * p.X)
+  const b = fmod(p.Y * p.Y)
+  const c = fmod(2n * p.Z * p.Z)
+  const d = fmod(-a)
+  const e = fmod(fmod((p.X + p.Y) * (p.X + p.Y)) - a - b)
+  const g = fmod(d + b)
+  const f = fmod(g - c)
+  const h = fmod(d - b)
+  return { X: fmod(e * f), Y: fmod(g * h), T: fmod(e * h), Z: fmod(f * g) }
+}
+
+const scalarMultiply = (scalar, point) => {
+  let result = IDENTITY
+  let addend = point
+  let k = scalar
+  while (k > 0n) {
+    if (k & 1n) result = pointAdd(result, addend)
+    addend = pointDouble(addend)
+    k >>= 1n
+  }
+  return result
+}
+
+const pointEncode = (p) => {
+  const zi = powmod(p.Z, P - 2n)
+  const x = fmod(p.X * zi)
+  const y = fmod(p.Y * zi)
+  const out = bigIntToBytesLE(y, 32)
+  if (x & 1n) out[31] |= 0x80
+  return out
+}
+
+const pointDecode = (bytes) => {
+  if (bytes.length !== 32) return null
+  let y = 0n
+  for (let i = 31; i >= 0; i--) {
+    const byte = i === 31 ? bytes[i] & 0x7f : bytes[i]
+    y = (y << 8n) | BigInt(byte)
+  }
+  const wantedSign = (bytes[31] & 0x80) !== 0
+  const yy = fmod(y * y)
+  const u = fmod(yy - 1n)
+  const v = fmod(D * yy + 1n)
+  const v3 = fmod(v * v * v)
+  const v7 = fmod(v3 * v3 * v)
+  let x = fmod(u * v3 * powmod(fmod(u * v7), (P - 5n) / 8n))
+  const vxx = fmod(v * x * x)
+  if (vxx === fmod(-u)) {
+    x = fmod(x * SQRT_M1)
+  } else if (vxx !== fmod(u)) {
+    return null
+  }
+  if ((x & 1n) !== (wantedSign ? 1n : 0n)) x = fmod(-x)
+  return { X: x, Y: y, Z: 1n, T: fmod(x * y) }
+}
+
+const clampScalar = (seed32) => {
+  const s = seed32.slice()
+  s[0] &= 248
+  s[31] &= 127
+  s[31] |= 64
+  return bytesToBigIntLE(s)
+}
+
+const publicKeyFromPrivateKey = (privateKeyBytes) =>
+  pointEncode(scalarMultiply(clampScalar(blake2b(privateKeyBytes, 64).subarray(0, 32)), BASE))
+
+const ed25519Blake2bSign = (message, privateKeyBytes) => {
+  const expanded = blake2b(privateKeyBytes, 64)
+  const scalar = clampScalar(expanded.subarray(0, 32))
+  const prefix = expanded.subarray(32, 64)
+  const publicKey = pointEncode(scalarMultiply(scalar, BASE))
+  const r = bytesToBigIntLE(blake2b(concatBytes([prefix, message]), 64)) % L
+  const encodedR = pointEncode(scalarMultiply(r, BASE))
+  const k = bytesToBigIntLE(blake2b(concatBytes([encodedR, publicKey, message]), 64)) % L
+  const s = (r + k * scalar) % L
+  return { signature: concatBytes([encodedR, bigIntToBytesLE(s, 32)]), publicKey }
+}
+
+const ed25519Blake2bVerify = (message, publicKeyBytes, signature) => {
+  const s = bytesToBigIntLE(signature.subarray(32, 64))
+  if (s >= L) return false
+  const a = pointDecode(publicKeyBytes)
+  const rPoint = pointDecode(signature.subarray(0, 32))
+  if (!a || !rPoint) return false
+  const k =
+    bytesToBigIntLE(
+      blake2b(concatBytes([signature.subarray(0, 32), publicKeyBytes, message]), 64)
+    ) % L
+  const left = pointEncode(scalarMultiply(s, BASE))
+  const right = pointEncode(pointAdd(rPoint, scalarMultiply(k, a)))
+  for (let i = 0; i < 32; i++) if (left[i] !== right[i]) return false
+  return true
+}
+
+const privateKeyFromSeed = (seedHex, index) =>
+  blake2b(concatBytes([hexToBytes(seedHex), uint32BE(index || 0)]), 32)
+
+const base32Nano = (bytes) => {
+  let bits = ''
+  for (let i = 0; i < bytes.length; i++) bits += (bytes[i] + 0x100).toString(2).slice(1)
+  let out = ''
+  for (let i = 0; i + 5 <= bits.length; i += 5) {
+    out += ADDRESS_ALPHABET[parseInt(bits.substr(i, 5), 2)]
+  }
+  return out
+}
+
+const publicKeyToAddress = (publicKeyBytes) => {
+  let bits = '0000'
+  for (let i = 0; i < publicKeyBytes.length; i++) {
+    bits += (publicKeyBytes[i] + 0x100).toString(2).slice(1)
+  }
+  while (bits.length % 5 !== 0) bits += '0'
+  let encoded = ''
+  for (let i = 0; i < bits.length; i += 5) {
+    encoded += ADDRESS_ALPHABET[parseInt(bits.substr(i, 5), 2)]
+  }
+  return 'nano_' + encoded + base32Nano(blake2b(publicKeyBytes, 5).slice().reverse())
+}
+
+const stateBlockHash = (block) => {
+  const preamble = new Uint8Array(32)
+  preamble[31] = STATE_BLOCK_TYPE
+  let balanceHex = BigInt(block.balance).toString(16).toUpperCase()
+  while (balanceHex.length < 32) balanceHex = '0' + balanceHex
+  return blake2b(
+    concatBytes([
+      preamble,
+      hexToBytes(block.account),
+      hexToBytes(block.previous),
+      hexToBytes(block.representative),
+      hexToBytes(balanceHex),
+      hexToBytes(block.link)
+    ]),
+    32
+  )
+}
+
+const detectPrimitives = () => {
+  const info = {
+    hasBigInt: typeof BigInt === 'function',
+    hasUint8Array: typeof Uint8Array === 'function',
+    hasBuffer: typeof Buffer !== 'undefined',
+    hasTextEncoder: typeof TextEncoder !== 'undefined',
+    hasRequire: typeof require === 'function',
+    hasProcess: typeof process !== 'undefined' && !!process,
+    hasCryptoGlobal: typeof crypto !== 'undefined' && !!crypto,
+    hasSubtle: !!(typeof crypto !== 'undefined' && crypto && crypto.subtle),
+    hasAxios: typeof axios !== 'undefined',
+    hasBotpressClient: typeof client !== 'undefined',
+    nodeVersion:
+      typeof process !== 'undefined' && process && process.version ? process.version : null,
+    requireCrypto: null
+  }
+  if (typeof require === 'function') {
+    try {
+      info.requireCrypto = 'available: ' + Object.keys(require('crypto')).length + ' exports'
+    } catch (error) {
+      info.requireCrypto = 'unavailable: ' + String(error && error.message ? error.message : error)
+    }
+  }
+  return info
+}
+
+const result = {
+  probe: '3-sign-kat',
+  generatedAt: new Date().toISOString(),
+  runtime: detectPrimitives(),
+  expected: EXPECTED,
+  match: {}
+}
+
+try {
+  const privateKey = privateKeyFromSeed(SEED_HEX, 0)
+  const publicKey = publicKeyFromPrivateKey(privateKey)
+  const address = publicKeyToAddress(publicKey)
+  const block = {
+    type: 'state',
+    account: bytesToHex(publicKey),
+    previous: PREVIOUS,
+    representative: bytesToHex(publicKey),
+    balance: BALANCE,
+    link: LINK,
+    work: WORK
+  }
+  const blockHash = stateBlockHash(block)
+  const signature = ed25519Blake2bSign(blockHash, privateKey).signature
+
+  result.block = block
+  result.address = address
+  result.privateKey = bytesToHex(privateKey)
+  result.publicKey = bytesToHex(publicKey)
+  result.blockHash = bytesToHex(blockHash).toUpperCase()
+  result.signature = bytesToHex(signature).toUpperCase()
+  result.selfVerify = ed25519Blake2bVerify(blockHash, publicKey, signature)
+  result.match = {
+    privateKey: result.privateKey.toUpperCase() === EXPECTED.privateKey.toUpperCase(),
+    publicKey: result.publicKey.toUpperCase() === EXPECTED.publicKey.toUpperCase(),
+    address: address === EXPECTED.address,
+    blockHash: result.blockHash === EXPECTED.blockHash.toUpperCase(),
+    signature: result.signature === EXPECTED.signature.toUpperCase()
+  }
+  result.allMatch =
+    result.match.privateKey &&
+    result.match.publicKey &&
+    result.match.address &&
+    result.match.blockHash &&
+    result.match.signature &&
+    result.selfVerify
+} catch (error) {
+  result.error = String(error && error.stack ? error.stack : error)
+  result.allMatch = false
+}
+
+console.log('PROBE_RESULT ' + JSON.stringify(result))
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports.nano = {
+    blake2b,
+    privateKeyFromSeed,
+    publicKeyFromPrivateKey,
+    publicKeyToAddress,
+    stateBlockHash,
+    ed25519Blake2bSign,
+    ed25519Blake2bVerify,
+    bytesToHex,
+    hexToBytes
+  }
+}
+
+
+===== probe-4-http-pursekeeper.js =====
+const BASE = 'https://pursekeeper.dev'
+const REQUEST_TIMEOUT_MS = 15000
+const PUBLIC_ACCOUNT = 'nano_3t6k35gi95xu6tergt6p69ck76ogmitsa8mnijtpxm9fkcm736xtoncuohr3'
+const FIXTURE_ACCOUNT = 'nano_34waw9hhx3sjmcktqtu8xzhbdgtmqgf6ynkrz469qnsoa89rgzfq5mu1k1nx'
+const NULL_ACCOUNT = 'nano_1111111111111111111111111111111111111111111111111111hifc8npp'
+
+const INVALID_BLOCK = {
+  type: 'state',
+  account: FIXTURE_ACCOUNT,
+  previous: '1111111111111111111111111111111111111111111111111111111111111111',
+  representative: FIXTURE_ACCOUNT,
+  balance: '0',
+  link: '0000000000000000000000000000000000000000000000000000000000000000',
+  link_as_account: NULL_ACCOUNT,
+  signature: '0'.repeat(128),
+  work: '0000000000000000'
+}
+
+const callAxios = async (config) => {
+  const started = Date.now()
+  try {
+    const response = await axios.request(config)
+    return {
+      transport: 'axios',
+      status: response.status,
+      headers: {
+        'content-type': response.headers && response.headers['content-type'],
+        'payment-required': response.headers && response.headers['payment-required']
+      },
+      body: response.data,
+      durationMs: Date.now() - started
+    }
+  } catch (error) {
+    if (error && error.response) {
+      return {
+        transport: 'axios',
+        status: error.response.status,
+        headers: {
+          'content-type': error.response.headers && error.response.headers['content-type'],
+          'payment-required':
+            error.response.headers && error.response.headers['payment-required']
+        },
+        body: error.response.data,
+        durationMs: Date.now() - started
+      }
+    }
+    return {
+      transport: 'axios',
+      status: null,
+      transportError: String(error && error.message ? error.message : error),
+      durationMs: Date.now() - started
+    }
+  }
+}
+
+const callFetch = async (config) => {
+  const started = Date.now()
+  try {
+    const response = await fetch(config.url, {
+      method: config.method,
+      headers: config.headers,
+      body: config.data ? JSON.stringify(config.data) : undefined,
+      signal: AbortSignal.timeout(config.timeout)
+    })
+    const text = await response.text()
+    let body = text
+    try {
+      body = JSON.parse(text)
+    } catch (error) {
+      body = text
+    }
+    return { transport: 'fetch', status: response.status, body, durationMs: Date.now() - started }
+  } catch (error) {
+    return {
+      transport: 'fetch',
+      status: null,
+      transportError: String(error && error.message ? error.message : error),
+      durationMs: Date.now() - started
+    }
+  }
+}
+
+const call = async (label, config, result) => {
+  const hasAxios = typeof axios !== 'undefined' && axios && typeof axios.request === 'function'
+  const hasFetch = typeof fetch === 'function'
+  const outcome = hasAxios
+    ? await callAxios(config)
+    : hasFetch
+      ? await callFetch(config)
+      : { transport: 'none', transportError: 'neither axios nor fetch exists in this runtime' }
+  outcome.request = { method: config.method, url: config.url, timeoutMs: config.timeout }
+  result.calls[label] = outcome
+}
+
+const result = {
+  probe: '4-http-pursekeeper',
+  generatedAt: new Date().toISOString(),
+  base: BASE,
+  timeoutMs: REQUEST_TIMEOUT_MS,
+  transports: {
+    axios: typeof axios !== 'undefined' && !!axios,
+    fetch: typeof fetch === 'function'
+  },
+  calls: {},
+  invalidBlockSent: INVALID_BLOCK
+}
+
+await call(
+  'accountInfo',
+  { method: 'get', url: BASE + '/v1/account_info?account=' + PUBLIC_ACCOUNT, timeout: REQUEST_TIMEOUT_MS },
+  result
+)
+
+await call(
+  'processInvalidSignature',
+  {
+    method: 'post',
+    url: BASE + '/v1/process',
+    timeout: REQUEST_TIMEOUT_MS,
+    headers: { 'content-type': 'application/json' },
+    data: { block: INVALID_BLOCK, subtype: 'send' }
+  },
+  result
+)
+
+result.summary = {
+  callsAttempted: Object.keys(result.calls).length,
+  reachedNetwork: Object.keys(result.calls).some(
+    (key) => typeof result.calls[key].status === 'number'
+  ),
+  processRefused:
+    !!result.calls.processInvalidSignature.body &&
+    (!!result.calls.processInvalidSignature.body.error ||
+      result.calls.processInvalidSignature.status >= 400)
+}
+
+console.log('PROBE_RESULT ' + JSON.stringify(result))
+

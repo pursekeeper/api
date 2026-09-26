@@ -1,0 +1,36 @@
+Captured 2026-09-22 UTC from https://viber.botpress.cloud/w/wkspace_01M345XJH7NNSF00YJBZ8D0GJW/billing
+C
+Cookies's workspace
+Dashboard
+Agents
+Desk
+Usage
+Billing
+Settings
+Conversations
+0 / 25
+C
+Billing
+Manage your plan, add-ons, payment details, and invoices.
+CURRENT PLAN
+Free
+25 conversations
+Manage plan
+Add-ons
+No add-ons
+Add extra conversations or storage
+Manage
+AI spend auto-recharge
+Disabled
+Automatically top up your AI usage credit when your balance runs low.
+Manage
+Preferences
+Payment & billing
+
+Update your card, name, billing address, and tax IDs
+
+Invoice History
+
+Download invoices and view your complete billing history
+
+Need help with billing? Reach out to billing@botpress.com
