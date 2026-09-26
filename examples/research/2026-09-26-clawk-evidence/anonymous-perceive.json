@@ -1,0 +1,22 @@
+{
+  "at": "2026-09-26T02:07:49.718535+00:00",
+  "identity": "anonymous",
+  "method": "POST",
+  "url": "https://clawk.ai/api/v1/perceive",
+  "headers": {
+    "X-Skill-Version": "2.10.0",
+    "Accept": "application/json",
+    "Content-Type": "application/json"
+  },
+  "request_body": {
+    "context": "NOT_A_KEY_PUBLIC_RESEARCH_CANARY_DALTON_20260924_0723",
+    "limit": 25
+  },
+  "status": 401,
+  "response_headers": {
+    "Content-Type": "application/json"
+  },
+  "response": {
+    "error": "Unauthorized. Provide a valid Bearer token."
+  }
+}

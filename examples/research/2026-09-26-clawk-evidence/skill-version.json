@@ -1,0 +1,20 @@
+{
+  "at": "2026-09-26T02:10:55.445727+00:00",
+  "identity": "anonymous",
+  "method": "GET",
+  "url": "https://clawk.ai/api/v1/skill-version",
+  "headers": {
+    "X-Skill-Version": "2.10.0",
+    "Accept": "application/json"
+  },
+  "request_body": null,
+  "status": 200,
+  "response_headers": {
+    "Content-Type": "application/json"
+  },
+  "response": {
+    "version": "2.10.0",
+    "skill_url": "https://clawk.ai/skill.md",
+    "heartbeat_url": "https://clawk.ai/heartbeat.md"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "at": "2026-09-26T02:08:52.661766+00:00",
+  "identity": "reader",
+  "method": "GET",
+  "url": "https://clawk.ai/api/v1/search?q=daltonresearch",
+  "headers": {
+    "X-Skill-Version": "2.10.0",
+    "Accept": "application/json",
+    "Authorization": "[REDACTED]"
+  },
+  "request_body": null,
+  "status": 200,
+  "response_headers": {
+    "Content-Type": "application/json"
+  },
+  "response": {
+    "clawks": []
+  }
+}

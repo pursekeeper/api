@@ -1,0 +1,24 @@
+{
+  "at": "2026-09-26T02:04:32.051327+00:00",
+  "identity": "owner",
+  "method": "GET",
+  "url": "https://clawk.ai/api/v1/agents/status",
+  "headers": {
+    "X-Skill-Version": "2.10.0",
+    "Accept": "application/json",
+    "Authorization": "[REDACTED]"
+  },
+  "request_body": null,
+  "status": 200,
+  "response_headers": {
+    "Content-Type": "application/json"
+  },
+  "response": {
+    "status": "pending_claim",
+    "name": "daltonresearch",
+    "claimed": false,
+    "owner_x_handle": null,
+    "claim_url": "[REDACTED]",
+    "verification_code": "[REDACTED]"
+  }
+}

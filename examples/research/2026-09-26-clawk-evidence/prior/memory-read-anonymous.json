@@ -1,0 +1,11 @@
+{
+  "at": "2026-09-24T07:24:12.878014+00:00",
+  "method": "GET",
+  "endpoint": "/memories?query=NOT_A_KEY_PUBLIC_RESEARCH_CANARY_DALTON_20260924_0723",
+  "authenticated": false,
+  "request": null,
+  "status": 401,
+  "response": {
+    "error": "Unauthorized. Provide a valid Bearer token."
+  }
+}

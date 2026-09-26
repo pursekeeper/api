@@ -1,0 +1,731 @@
+[
+  {
+    "file": "actions-options.json",
+    "at": "2026-09-26T02:12:09.692461+00:00",
+    "status": 204,
+    "method": "OPTIONS",
+    "identity": "owner",
+    "path": "/actions",
+    "canary_in_response": false
+  },
+  {
+    "file": "anonymous-about.json",
+    "at": "2026-09-26T02:07:23.963661+00:00",
+    "status": 401,
+    "method": "GET",
+    "identity": "anonymous",
+    "path": "/memories?about=daltonresearch",
+    "canary_in_response": false
+  },
+  {
+    "file": "anonymous-actions.json",
+    "at": "2026-09-26T02:10:49.673367+00:00",
+    "status": 401,
+    "method": "GET",
+    "identity": "anonymous",
+    "path": "/actions?agent=daltonresearch",
+    "canary_in_response": false
+  },
+  {
+    "file": "anonymous-agent-filter.json",
+    "at": "2026-09-26T02:07:29.280655+00:00",
+    "status": 401,
+    "method": "GET",
+    "identity": "anonymous",
+    "path": "/memories?agent=daltonresearch",
+    "canary_in_response": false
+  },
+  {
+    "file": "anonymous-agent-id-filter.json",
+    "at": "2026-09-26T02:07:34.621543+00:00",
+    "status": 401,
+    "method": "GET",
+    "identity": "anonymous",
+    "path": "/memories?agent_id=3708987c-0e1d-46b3-839c-dfbe4020a1ec",
+    "canary_in_response": false
+  },
+  {
+    "file": "anonymous-engage.json",
+    "at": "2026-09-26T02:13:36.201857+00:00",
+    "status": 401,
+    "method": "GET",
+    "identity": "anonymous",
+    "path": "/engage",
+    "canary_in_response": false
+  },
+  {
+    "file": "anonymous-explore-ranked.json",
+    "at": "2026-09-26T02:10:00.048762+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "anonymous",
+    "path": "/explore?sort=ranked&limit=100&offset=0",
+    "canary_in_response": false
+  },
+  {
+    "file": "anonymous-explore-recent.json",
+    "at": "2026-09-26T02:09:50.243004+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "anonymous",
+    "path": "/explore?sort=recent&limit=100&offset=0",
+    "canary_in_response": false
+  },
+  {
+    "file": "anonymous-id-path.json",
+    "at": "2026-09-26T02:07:18.672639+00:00",
+    "status": 404,
+    "method": "GET",
+    "identity": "anonymous",
+    "path": "/memories/f5daae1a-8ef3-4f56-a05e-7390345f6272",
+    "canary_in_response": false
+  },
+  {
+    "file": "anonymous-id-query.json",
+    "at": "2026-09-26T02:07:13.311665+00:00",
+    "status": 401,
+    "method": "GET",
+    "identity": "anonymous",
+    "path": "/memories?id=f5daae1a-8ef3-4f56-a05e-7390345f6272",
+    "canary_in_response": false
+  },
+  {
+    "file": "anonymous-list.json",
+    "at": "2026-09-26T02:07:02.713461+00:00",
+    "status": 401,
+    "method": "GET",
+    "identity": "anonymous",
+    "path": "/memories",
+    "canary_in_response": false
+  },
+  {
+    "file": "anonymous-perceive.json",
+    "at": "2026-09-26T02:07:49.718535+00:00",
+    "status": 401,
+    "method": "POST",
+    "identity": "anonymous",
+    "path": "/perceive",
+    "canary_in_response": false
+  },
+  {
+    "file": "anonymous-profile.json",
+    "at": "2026-09-26T02:07:40.014458+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "anonymous",
+    "path": "/agents/daltonresearch",
+    "canary_in_response": false
+  },
+  {
+    "file": "anonymous-query.json",
+    "at": "2026-09-26T02:07:07.977524+00:00",
+    "status": 401,
+    "method": "GET",
+    "identity": "anonymous",
+    "path": "/memories?query=NOT_A_KEY_PUBLIC_RESEARCH_CANARY_DALTON_20260924_0723",
+    "canary_in_response": false
+  },
+  {
+    "file": "anonymous-search-canary.json",
+    "at": "2026-09-26T02:09:39.003537+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "anonymous",
+    "path": "/search?q=NOT_A_KEY_PUBLIC_RESEARCH_CANARY_DALTON_20260924_0723",
+    "canary_in_response": false
+  },
+  {
+    "file": "anonymous-search-control.json",
+    "at": "2026-09-26T02:09:44.613332+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "anonymous",
+    "path": "/search?q=daltonresearch",
+    "canary_in_response": false
+  },
+  {
+    "file": "anonymous-search-positive.json",
+    "at": "2026-09-26T02:13:24.967827+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "anonymous",
+    "path": "/search?q=Minecraft",
+    "canary_in_response": false
+  },
+  {
+    "file": "anonymous-stream.json",
+    "at": "2026-09-26T02:10:44.299013+00:00",
+    "status": 401,
+    "method": "GET",
+    "identity": "anonymous",
+    "path": "/posts/stream?limit=100",
+    "canary_in_response": false
+  },
+  {
+    "file": "anonymous-timeline.json",
+    "at": "2026-09-26T02:10:38.899745+00:00",
+    "status": 401,
+    "method": "GET",
+    "identity": "anonymous",
+    "path": "/timeline?limit=100",
+    "canary_in_response": false
+  },
+  {
+    "file": "api-root.json",
+    "at": "2026-09-26T02:11:00.835128+00:00",
+    "status": 404,
+    "method": "GET",
+    "identity": "owner",
+    "path": "",
+    "canary_in_response": false
+  },
+  {
+    "file": "owner-about.json",
+    "at": "2026-09-26T02:05:35.041808+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/memories?about=daltonresearch",
+    "canary_in_response": false
+  },
+  {
+    "file": "owner-actions.json",
+    "at": "2026-09-26T02:08:41.662493+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/actions?agent=daltonresearch",
+    "canary_in_response": false
+  },
+  {
+    "file": "owner-agent-filter.json",
+    "at": "2026-09-26T02:05:41.478086+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/memories?agent=daltonresearch",
+    "canary_in_response": true
+  },
+  {
+    "file": "owner-agent-id-filter.json",
+    "at": "2026-09-26T02:05:46.904589+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/memories?agent_id=3708987c-0e1d-46b3-839c-dfbe4020a1ec",
+    "canary_in_response": true
+  },
+  {
+    "file": "owner-explore-ranked.json",
+    "at": "2026-09-26T02:08:16.558412+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/explore?sort=ranked&limit=100&offset=0",
+    "canary_in_response": false
+  },
+  {
+    "file": "owner-explore-recent.json",
+    "at": "2026-09-26T02:08:06.665212+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/explore?sort=recent&limit=100&offset=0",
+    "canary_in_response": false
+  },
+  {
+    "file": "owner-id-path.json",
+    "at": "2026-09-26T02:05:29.664250+00:00",
+    "status": 404,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/memories/f5daae1a-8ef3-4f56-a05e-7390345f6272",
+    "canary_in_response": false
+  },
+  {
+    "file": "owner-id-query.json",
+    "at": "2026-09-26T02:05:24.142400+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/memories?id=f5daae1a-8ef3-4f56-a05e-7390345f6272",
+    "canary_in_response": true
+  },
+  {
+    "file": "owner-list.json",
+    "at": "2026-09-26T02:05:11.505549+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/memories",
+    "canary_in_response": true
+  },
+  {
+    "file": "owner-me-final.json",
+    "at": "2026-09-26T02:12:10.725380+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/agents/me",
+    "canary_in_response": false
+  },
+  {
+    "file": "owner-me.json",
+    "at": "2026-09-26T02:04:26.592280+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/agents/me",
+    "canary_in_response": false
+  },
+  {
+    "file": "owner-perceive.json",
+    "at": "2026-09-26T02:06:02.091382+00:00",
+    "status": 200,
+    "method": "POST",
+    "identity": "owner",
+    "path": "/perceive",
+    "canary_in_response": true
+  },
+  {
+    "file": "owner-profile.json",
+    "at": "2026-09-26T02:05:52.366625+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/agents/daltonresearch",
+    "canary_in_response": false
+  },
+  {
+    "file": "owner-query.json",
+    "at": "2026-09-26T02:05:17.019126+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/memories?query=NOT_A_KEY_PUBLIC_RESEARCH_CANARY_DALTON_20260924_0723",
+    "canary_in_response": true
+  },
+  {
+    "file": "owner-search-canary.json",
+    "at": "2026-09-26T02:07:55.578598+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/search?q=NOT_A_KEY_PUBLIC_RESEARCH_CANARY_DALTON_20260924_0723",
+    "canary_in_response": false
+  },
+  {
+    "file": "owner-search-control.json",
+    "at": "2026-09-26T02:08:01.159964+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/search?q=daltonresearch",
+    "canary_in_response": false
+  },
+  {
+    "file": "owner-search-positive.json",
+    "at": "2026-09-26T02:13:14.158452+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/search?q=Minecraft",
+    "canary_in_response": false
+  },
+  {
+    "file": "owner-status.json",
+    "at": "2026-09-26T02:04:32.051327+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/agents/status",
+    "canary_in_response": false
+  },
+  {
+    "file": "owner-stream.json",
+    "at": "2026-09-26T02:08:32.008829+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/posts/stream?limit=100",
+    "canary_in_response": false
+  },
+  {
+    "file": "owner-timeline.json",
+    "at": "2026-09-26T02:08:26.536650+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/timeline?limit=100",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-about.json",
+    "at": "2026-09-26T02:06:30.664814+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/memories?about=daltonresearch",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-actions.json",
+    "at": "2026-09-26T02:09:33.506965+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/actions?agent=daltonresearch",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-agent-filter.json",
+    "at": "2026-09-26T02:06:36.122578+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/memories?agent=daltonresearch",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-agent-id-filter.json",
+    "at": "2026-09-26T02:06:41.551118+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/memories?agent_id=3708987c-0e1d-46b3-839c-dfbe4020a1ec",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-control-list.json",
+    "at": "2026-09-26T02:12:51.474551+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/memories",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-control-owner-id-query.json",
+    "at": "2026-09-26T02:12:56.956656+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/memories?id=f5daae1a-8ef3-4f56-a05e-7390345f6272",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-control-owner-query.json",
+    "at": "2026-09-26T02:13:02.445075+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/memories?query=NOT_A_KEY_PUBLIC_RESEARCH_CANARY_DALTON_20260924_0723",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-control-perceive.json",
+    "at": "2026-09-26T02:13:08.244321+00:00",
+    "status": 200,
+    "method": "POST",
+    "identity": "reader",
+    "path": "/perceive",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-control-write.json",
+    "at": "2026-09-26T02:12:46.010127+00:00",
+    "status": 200,
+    "method": "POST",
+    "identity": "reader",
+    "path": "/memories",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-engage.json",
+    "at": "2026-09-26T02:13:30.450150+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/engage",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-explore-ranked.json",
+    "at": "2026-09-26T02:09:08.157487+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/explore?sort=ranked&limit=100&offset=0",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-explore-recent.json",
+    "at": "2026-09-26T02:08:58.156816+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/explore?sort=recent&limit=100&offset=0",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-id-path.json",
+    "at": "2026-09-26T02:06:25.265892+00:00",
+    "status": 404,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/memories/f5daae1a-8ef3-4f56-a05e-7390345f6272",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-id-query.json",
+    "at": "2026-09-26T02:06:19.752617+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/memories?id=f5daae1a-8ef3-4f56-a05e-7390345f6272",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-list.json",
+    "at": "2026-09-26T02:06:07.855951+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/memories",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-me.json",
+    "at": "2026-09-26T02:04:43.043452+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/agents/me",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-notifications.json",
+    "at": "2026-09-26T02:13:41.569197+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/notifications",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-perceive.json",
+    "at": "2026-09-26T02:06:56.803735+00:00",
+    "status": 200,
+    "method": "POST",
+    "identity": "reader",
+    "path": "/perceive",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-profile.json",
+    "at": "2026-09-26T02:06:47.241270+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/agents/daltonresearch",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-query.json",
+    "at": "2026-09-26T02:06:13.302265+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/memories?query=NOT_A_KEY_PUBLIC_RESEARCH_CANARY_DALTON_20260924_0723",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-register.json",
+    "at": "2026-09-26T02:04:37.598229+00:00",
+    "status": 201,
+    "method": "POST",
+    "identity": "anonymous",
+    "path": "/agents/register",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-relationships.json",
+    "at": "2026-09-26T02:13:47.097416+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/my/relationships",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-search-canary.json",
+    "at": "2026-09-26T02:08:47.159682+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/search?q=NOT_A_KEY_PUBLIC_RESEARCH_CANARY_DALTON_20260924_0723",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-search-control.json",
+    "at": "2026-09-26T02:08:52.661766+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/search?q=daltonresearch",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-search-positive.json",
+    "at": "2026-09-26T02:13:19.602127+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/search?q=Minecraft",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-status.json",
+    "at": "2026-09-26T02:04:48.445512+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/agents/status",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-stream.json",
+    "at": "2026-09-26T02:09:23.643798+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/posts/stream?limit=100",
+    "canary_in_response": false
+  },
+  {
+    "file": "reader-timeline.json",
+    "at": "2026-09-26T02:09:18.043824+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "reader",
+    "path": "/timeline?limit=100",
+    "canary_in_response": false
+  },
+  {
+    "file": "route-code-get.json",
+    "at": "2026-09-26T02:11:37.965910+00:00",
+    "status": 404,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/code",
+    "canary_in_response": false
+  },
+  {
+    "file": "route-code-post.json",
+    "at": "2026-09-26T02:11:43.294548+00:00",
+    "status": 404,
+    "method": "POST",
+    "identity": "owner",
+    "path": "/code",
+    "canary_in_response": false
+  },
+  {
+    "file": "route-execute-get.json",
+    "at": "2026-09-26T02:11:06.199541+00:00",
+    "status": 404,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/execute",
+    "canary_in_response": false
+  },
+  {
+    "file": "route-execute-post.json",
+    "at": "2026-09-26T02:11:11.535591+00:00",
+    "status": 404,
+    "method": "POST",
+    "identity": "owner",
+    "path": "/execute",
+    "canary_in_response": false
+  },
+  {
+    "file": "route-nonexistent-dalton-control-get.json",
+    "at": "2026-09-26T02:11:59.146757+00:00",
+    "status": 404,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/nonexistent-dalton-control",
+    "canary_in_response": false
+  },
+  {
+    "file": "route-nonexistent-dalton-control-post.json",
+    "at": "2026-09-26T02:12:04.423795+00:00",
+    "status": 404,
+    "method": "POST",
+    "identity": "owner",
+    "path": "/nonexistent-dalton-control",
+    "canary_in_response": false
+  },
+  {
+    "file": "route-schedule-get.json",
+    "at": "2026-09-26T02:11:16.813735+00:00",
+    "status": 404,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/schedule",
+    "canary_in_response": false
+  },
+  {
+    "file": "route-schedule-post.json",
+    "at": "2026-09-26T02:11:22.021559+00:00",
+    "status": 404,
+    "method": "POST",
+    "identity": "owner",
+    "path": "/schedule",
+    "canary_in_response": false
+  },
+  {
+    "file": "route-wallet-get.json",
+    "at": "2026-09-26T02:11:48.570796+00:00",
+    "status": 404,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/wallet",
+    "canary_in_response": false
+  },
+  {
+    "file": "route-wallet-post.json",
+    "at": "2026-09-26T02:11:53.820759+00:00",
+    "status": 404,
+    "method": "POST",
+    "identity": "owner",
+    "path": "/wallet",
+    "canary_in_response": false
+  },
+  {
+    "file": "route-webhook-get.json",
+    "at": "2026-09-26T02:11:27.302683+00:00",
+    "status": 404,
+    "method": "GET",
+    "identity": "owner",
+    "path": "/webhook",
+    "canary_in_response": false
+  },
+  {
+    "file": "route-webhook-post.json",
+    "at": "2026-09-26T02:11:32.632326+00:00",
+    "status": 404,
+    "method": "POST",
+    "identity": "owner",
+    "path": "/webhook",
+    "canary_in_response": false
+  },
+  {
+    "file": "skill-version.json",
+    "at": "2026-09-26T02:10:55.445727+00:00",
+    "status": 200,
+    "method": "GET",
+    "identity": "anonymous",
+    "path": "/skill-version",
+    "canary_in_response": false
+  }
+]

@@ -1,0 +1,27 @@
+{
+  "at": "2026-09-24T07:24:07.950854+00:00",
+  "method": "GET",
+  "endpoint": "/memories?query=NOT_A_KEY_PUBLIC_RESEARCH_CANARY_DALTON_20260924_0723",
+  "authenticated": true,
+  "request": null,
+  "status": 200,
+  "response": {
+    "memories": [
+      {
+        "id": "f5daae1a-8ef3-4f56-a05e-7390345f6272",
+        "about_agent": null,
+        "about_agent_id": null,
+        "memory_type": "note",
+        "is_reflection": false,
+        "content": "NOT_A_KEY_PUBLIC_RESEARCH_CANARY_DALTON_20260924_0723",
+        "metadata": {
+          "purpose": "Authorized persistence test, non-secret and not a wallet seed"
+        },
+        "poignancy": null,
+        "score": 2.75,
+        "created_at": "2026-09-24T07:24:01.216Z",
+        "updated_at": "2026-09-24T07:24:01.212Z"
+      }
+    ]
+  }
+}

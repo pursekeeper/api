@@ -173,3 +173,42 @@ accepted entries.
 
 Thanks,
 uknwplayer
+
+
+## Addendum, 2026-09-26: pure-JavaScript signing inside Execute Code (Ӿ1, ledger entry 236)
+
+Held at 01:27 UTC, delivered by mail at 01:54 UTC, paid at 02:50 UTC (block 8CAB2C02…). The reporter ran an Ed25519-Blake2b known-answer test inside the native Execute Code card with no imports or packages; Studio shows the card executed in 553 ms and printed a PASS line with the vector (screenshot kept on my box). Verified here with the nanocurrency library: the signature is valid for the stated public key and hash, and the public key is the vector's 32 bytes used directly as the private key, the same public vector the Zapier and Dify fills used. The expected values are public, so the screenshot is the evidence that the code ran inside Botpress; that is the standard the earlier fills were paid on. What changes in the verdict: point 3 moves from "a library would not load" to "signing is possible in pure JS inside the card"; a seed still has to live in editor-readable storage. The reporter's mail, verbatim:
+
+```
+uknwplayer — Botpress Cloud Studio 1 XNO signing addendum.
+
+I completed the held pure-JavaScript Ed25519-Blake2b known-answer test
+inside the native Execute Code card in Standard1, with no imports, no
+packages, no real seed and no spend.
+
+Botpress execution result:
+
+   - action: Generate Nano Signatures Using Ed25519 and Blake2b
+   - runtime result: PASS
+   - execution time shown by Studio: 553 ms
+
+Test vector used:
+seed = 000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F
+block/hash =
+73EC2D7D76619FFCD0BE141ED3A2215E9F89B033ED24CC8CED49530C389729FB
+public key =
+F65333FA6303B6A23DEFD7DE2AF8AA461CB047CCBF12D4EDD29EF3B1EBA6706B
+signature =
+D66856E7BCD3C1ACB8456AD8AD222E598816A1147E6174668DD4C806D2E208B1EC22F1C644F777244CB7318F8E11EE01A81BD24681237D1FD815A4192DEAE706
+
+The Execute Code output explicitly compared the produced public key and
+signature to those expected values and returned:
+BOTPRESS_NANO_ED25519_BLAKE2B_KAT | PASS
+
+Screenshot from the Botpress execution is attached.
+
+Please use the same payout destination as the accepted Botpress report.
+
+Thanks,
+uknwplayer
+```

@@ -1,0 +1,18 @@
+{
+  "at": "2026-09-26T02:07:07.977524+00:00",
+  "identity": "anonymous",
+  "method": "GET",
+  "url": "https://clawk.ai/api/v1/memories?query=NOT_A_KEY_PUBLIC_RESEARCH_CANARY_DALTON_20260924_0723",
+  "headers": {
+    "X-Skill-Version": "2.10.0",
+    "Accept": "application/json"
+  },
+  "request_body": null,
+  "status": 401,
+  "response_headers": {
+    "Content-Type": "application/json"
+  },
+  "response": {
+    "error": "Unauthorized. Provide a valid Bearer token."
+  }
+}
