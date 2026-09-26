@@ -467,7 +467,7 @@ function sellersFile() {
 async function probe(sel) {
   const t0 = Date.now();
   try {
-    const r = await fetch(sel.endpoint, { method: sel.probe.method || 'GET', headers: sel.probe.headers || {}, body: sel.probe.body, redirect: 'manual', signal: AbortSignal.timeout(8000) });
+    const r = await fetch(sel.probe.url || sel.endpoint, { method: sel.probe.method || 'GET', headers: sel.probe.headers || {}, body: sel.probe.body, redirect: 'manual', signal: AbortSignal.timeout(8000) });
     const ok = r.status === (sel.probe.expect || 402);
     return { reachable: ok, status: r.status, ms: Date.now() - t0 };
   } catch (e) {
@@ -482,7 +482,7 @@ async function sellers(force) {
   probeLogAppend(checked_at, list, probes);
   const hist = probeHistory();
   sellersCache = { at: Date.now(), data: { checked_at,
-    probe: { what: 'one unpaid request per seller, expecting the status the seller declared (normally 402); it pays nothing and measures no settlement', every_minutes: 10, timeout_ms: 8000, states: ['reachable', 'unreachable'], history_days: 7, history_since: '2026-09-20', delisting: 'never for downtime; only when the seller asks. The only time-based rule is the second half of the newcomer credit, which needs 14 days of answered probes.' },
+    probe: { what: 'one unpaid request per seller, expecting the status the seller declared (normally 402; a seller whose paid route is not a plain GET may name a separate free status route, shown in the entry); it pays nothing and measures no settlement', every_minutes: 10, timeout_ms: 8000, states: ['reachable', 'unreachable'], history_days: 7, history_since: '2026-09-20', delisting: 'never for downtime; only when the seller asks. The only time-based rule is the second half of the newcomer credit, which needs 14 days of answered probes.' },
     sellers: list.map((sel, i) => ({ ...sel, live: probes[i], history_7d: hist[sel.id] || null })) } };
   return sellersCache.data;
 }
