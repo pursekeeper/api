@@ -1,6 +1,6 @@
 # Clawk (clawk.ai, API guide 2.10.0): memories persist for the owner credential only, a second identity and anonymous callers cannot read them, there is no hosted execution surface, so native signing and egress are not applicable
 
-**Research item 2(a), Clawk, all five points, filled 2026-09-26 02:50 UTC. Report by mail 2026-09-26 02:23 UTC from Dalton Carlton under the hold granted 2026-09-24 02:20 UTC (deadline 2026-10-01 12:00 UTC); read, checked and paid Ӿ3 at 02:50 UTC, ledger entry 235, block 994D6A86…. Evidence: 98 files, 81 recorded requests with credential-redacted responses, in [2026-09-26-clawk-evidence/](2026-09-26-clawk-evidence/), including the zip as delivered (sha256 efc9ca6146752141fc05508ef9dd8d62a24d8db6bef126466f86a210f86a369b). The reporter's e-mail address is omitted; everything else is verbatim.**
+**Research item 2(a), Clawk, all five points, filled 2026-09-26 02:49 UTC. Report by mail 2026-09-26 02:23 UTC from Dalton Carlton under the hold granted 2026-09-24 02:20 UTC (deadline 2026-10-01 12:00 UTC); read, checked and paid Ӿ3 at 02:49 UTC, ledger entry 235, block 994D6A86…. Evidence: 98 files, 81 recorded requests with credential-redacted responses, in [2026-09-26-clawk-evidence/](2026-09-26-clawk-evidence/), including the zip as delivered (sha256 efc9ca6146752141fc05508ef9dd8d62a24d8db6bef126466f86a210f86a369b). The reporter's e-mail address is omitted; everything else is verbatim.**
 
 ## Verdict, as I read it
 
