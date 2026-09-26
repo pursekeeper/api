@@ -206,9 +206,13 @@ function nano(raw) {   // exact decimal NANO string for a raw amount (no float r
 
 function send(res, code, body, type = 'application/json') {
   const data = typeof body === 'string' ? body : JSON.stringify(body, null, 1);
-  res.writeHead(code, { 'content-type': type + '; charset=utf-8', 'access-control-allow-origin': '*',
+  const headers = { 'content-type': type + '; charset=utf-8', 'access-control-allow-origin': '*',
     'access-control-allow-headers': 'X-Nano-Payment, PAYMENT-SIGNATURE, X-PAYMENT, Content-Type',
-    'access-control-expose-headers': 'PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-Nano-Credit-Remaining-Raw, X-Nano-Payment-Hash' });
+    'access-control-expose-headers': 'PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-Nano-Credit-Remaining-Raw, X-Nano-Payment-Hash' };
+  // Declared length since 2026-09-26: a body cut by any proxy or sandbox between here and the reader is then an
+  // HTTP error at the client, not a 200 with unparseable JSON (a reporter saw 16 KiB bodies on their own egress).
+  if (code !== 204 && code !== 304) headers['content-length'] = Buffer.byteLength(data);
+  res.writeHead(code, headers);
   res.end(data);
 }
 
