@@ -180,7 +180,14 @@ async function isKnownPayerFrontier(hash) {
 }
 
 // Look up a send block hash and turn it into credit (once).
+// Every first-credit initialisation for a hash runs under that hash's lock, whoever asks. The 12:25 UTC fix locked only
+// charge(), and GET /v1/credit still called the unlocked body: a status read racing a first paid call could finish after
+// the debit and write the full block amount back, restoring spent credit (Ops Control HQ, 2026-09-27, from the source).
 async function creditFor(hash) {
+  if (!/^[0-9A-F]{64}$/i.test(hash)) return { error: 'bad hash' };
+  return withHashLock(hash.toUpperCase(), () => creditForUnlocked(hash));
+}
+async function creditForUnlocked(hash) {
   if (!/^[0-9A-F]{64}$/i.test(hash)) return { error: 'bad hash' };
   hash = hash.toUpperCase();
   if (noCredit.has(hash)) return { error: noCredit.get(hash) };
@@ -203,6 +210,23 @@ async function creditFor(hash) {
 function nano(raw) {   // exact decimal NANO string for a raw amount (no float rounding)
   const r = BigInt(raw); const i = r / RAW_PER_NANO; const f = (r % RAW_PER_NANO).toString().padStart(30, '0').replace(/0+$/, '');
   return f ? i + '.' + f : i.toString();
+}
+
+// RFC 9110 12.5.3: a coding listed with q=0 is not acceptable and "*" stands for codings not named. The first version
+// of the in-process gzip (12:25 UTC the same day) tested for the bare token, so "Accept-Encoding: gzip;q=0" still got a
+// gzip body (Ops Control HQ from the source, uknwplayer against /.well-known/x402, 2026-09-27). No header means identity.
+function acceptsGzip(header) {
+  let gzip = null, star = null;
+  for (const part of String(header || '').split(',')) {
+    const [coding, ...params] = part.split(';');
+    const c = coding.trim().toLowerCase();
+    if (!c) continue;
+    let q = 1;
+    for (const prm of params) { const m = /^\s*q\s*=\s*([0-9]*\.?[0-9]*)\s*$/i.exec(prm); if (m) q = parseFloat(m[1]) || 0; }
+    if (c === 'gzip' || c === 'x-gzip') gzip = q > 0;
+    else if (c === '*') star = q > 0;
+  }
+  return gzip !== null ? gzip : star === true;
 }
 
 function send(res, code, body, type = 'application/json') {
@@ -491,7 +515,7 @@ async function charge(req, res) {
   // the lock several simultaneous first requests on one hash each read the full amount and each wrote the same
   // post-debit balance, so N requests could be served for one price (uknwplayer, 2026-09-27, from the source).
   return withHashLock(String(hash).toUpperCase(), async () => {
-    const c = await creditFor(hash);
+    const c = await creditForUnlocked(hash);
     if (c.error) return paymentRequired(res, c.error, req), false;
     if (c.remaining < PRICE_RAW) return paymentRequired(res, 'credit on this hash is used up', req), false;
     const left = c.remaining - PRICE_RAW;
@@ -652,7 +676,7 @@ function redirectOldHost(req, res) {
 const server = http.createServer(async (req, res) => {
   try {
     const u = new URL(req.url, 'http://x');
-    res.acceptsGzip = /\bgzip\b/i.test(String(req.headers['accept-encoding'] || ''));
+    res.acceptsGzip = acceptsGzip(req.headers['accept-encoding']);
     if (redirectOldHost(req, res)) return;
     if (req.method === 'OPTIONS') return send(res, 204, '');
     if (await site.handle(req, res, u, send)) return;
@@ -739,9 +763,17 @@ const server = http.createServer(async (req, res) => {
       try { return send(res, 200, await fetchText(target)); }
       catch (e) {
         // A redirect to a refused host is the target's doing, not the buyer's, and nothing was fetched: hand the call back.
-        const h = String(req.headers['x-nano-payment'] || '').toUpperCase();
-        if (e.unpaid && h && h in credits) { credits[h] = (BigInt(credits[h]) + PRICE_RAW).toString(); save(); }
-        return send(res, 400, { error: e.message, ...(e.unpaid ? { note: 'the redirect target was refused before any fetch; this call was not charged' } : {}) });
+        // For X-Nano-Payment the price goes back on the hash. For x402 the payment block is already on the chain and cannot
+        // be undone, so the price goes on the settled block's hash as X-Nano-Payment credit instead; the first version of
+        // this hand-back (12:25 UTC) restored only the header path and still said "not charged" (Ops Control HQ, Pururin-ux).
+        const h = String(req.headers['x-nano-payment'] || res.getHeader('x-nano-payment-hash') || '').toUpperCase();
+        let note;
+        if (e.unpaid && h && h in credits) {
+          credits[h] = (BigInt(credits[h]) + PRICE_RAW).toString(); save(); stats.calls_paid--;
+          res.setHeader('x-nano-credit-remaining-raw', credits[h]);
+          note = 'the redirect target was refused before any fetch; the price of this call is back on hash ' + h + ' as X-Nano-Payment credit (' + nano(credits[h]) + ' NANO remaining), so retry with X-Nano-Payment: ' + h + (req.headers['x-nano-payment'] ? '' : '; the x402 payment block itself is on the chain and is not reversed');
+        } else if (e.unpaid) note = 'the redirect target was refused before any fetch; nothing was charged';
+        return send(res, 400, { error: e.message, ...(note ? { note } : {}) });
       }
     }
     if (u.pathname === '/v1/hash' && req.method === 'POST') {

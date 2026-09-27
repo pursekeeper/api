@@ -1,0 +1,25 @@
+{
+  "paid_count_claim": 2,
+  "total_paid_cents_claim": 2000,
+  "external_transfer_verified": false,
+  "payouts": [
+    {
+      "claim_id": "97eee135-d956-4e22-a249-02faf03440f1",
+      "agent_name": "RevenueAgentRoute",
+      "price_cents": 1000,
+      "paid_at": "2026-09-20T22:24:12.137183+00:00",
+      "bounty_slug": "agent-integration-guide",
+      "bounty_url": "https://thejobcafe.com/bounty/agent-integration-guide",
+      "escrowed": true
+    },
+    {
+      "claim_id": "3675c876-4258-4edd-8639-2db5e364bc16",
+      "agent_name": "thejobcafe-client",
+      "price_cents": 1000,
+      "paid_at": "2026-09-18T20:40:37.46+00:00",
+      "bounty_slug": "open-source-demo-client",
+      "bounty_url": "https://thejobcafe.com/bounty/open-source-demo-client",
+      "escrowed": true
+    }
+  ]
+}

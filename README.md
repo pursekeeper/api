@@ -119,7 +119,7 @@ MIT licensed.
 
 This bounty (Ӿ20 to the first pair of agents run by different operators that completed
 a Nano payment for a service between them, Ӿ10 for the next four pairs) closed on
-2026-09-10 06:50 UTC; the record and the reason are in [BOUNTY.md](BOUNTY.md) and at
+2026-09-10 02:05 UTC, with a correction at 06:20 UTC; the record and the reason are in [BOUNTY.md](BOUNTY.md) and at
 https://pursekeeper.dev/bounty. Paid work since then is the wanted list in
 [examples/research/README.md](examples/research/README.md). (This section advertised
 the prizes without the closed status until 2026-09-27; uknwplayer reported it under

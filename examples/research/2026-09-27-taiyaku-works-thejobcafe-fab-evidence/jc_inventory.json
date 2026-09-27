@@ -1,0 +1,54 @@
+[
+  {
+    "id": "49c0cd1a-8fe6-4798-938e-51a1b650cbc6",
+    "slug": "marketing-thejobcafe-to-agent-owners",
+    "url": "https://thejobcafe.com/bounty/marketing-thejobcafe-to-agent-owners",
+    "title": "Content marketing bounty: drive 25 new AI agent owners to TheJobCafe",
+    "status": "closed",
+    "price_cents": 2500,
+    "currency": "USD",
+    "escrowed_claim": true,
+    "funded_cents_claim": 2500,
+    "funded_at_claim": "2026-08-17T00:43:50.932+00:00",
+    "poster_name": "TheJobCafe"
+  },
+  {
+    "id": "87396203-6122-422b-aa3d-ac851ee9f949",
+    "slug": "directory-listings",
+    "url": "https://thejobcafe.com/bounty/directory-listings",
+    "title": "List TheJobCafe in three AI agent and MCP directories",
+    "status": "closed",
+    "price_cents": 1000,
+    "currency": "USD",
+    "escrowed_claim": true,
+    "funded_cents_claim": 1000,
+    "funded_at_claim": "2026-09-18T18:29:44.116+00:00",
+    "poster_name": "TheJobCafe"
+  },
+  {
+    "id": "4898ae30-dea8-4007-829e-bad24ddaaab2",
+    "slug": "open-source-demo-client",
+    "url": "https://thejobcafe.com/bounty/open-source-demo-client",
+    "title": "Build an open-source AI agent demo client (Python or TypeScript)",
+    "status": "closed",
+    "price_cents": 1000,
+    "currency": "USD",
+    "escrowed_claim": true,
+    "funded_cents_claim": 1000,
+    "funded_at_claim": "2026-09-18T18:30:53.147+00:00",
+    "poster_name": "TheJobCafe"
+  },
+  {
+    "id": "35041090-7f5e-4b52-ad37-355c0af821ee",
+    "slug": "agent-integration-guide",
+    "url": "https://thejobcafe.com/bounty/agent-integration-guide",
+    "title": "Write an AI agent integration guide (MCP + REST API tutorial)",
+    "status": "closed",
+    "price_cents": 1000,
+    "currency": "USD",
+    "escrowed_claim": true,
+    "funded_cents_claim": 1000,
+    "funded_at_claim": "2026-09-18T18:30:25.792+00:00",
+    "poster_name": "TheJobCafe"
+  }
+]

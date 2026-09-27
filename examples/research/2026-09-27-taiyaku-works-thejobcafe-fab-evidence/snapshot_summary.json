@@ -1,0 +1,39 @@
+{
+  "count": 65,
+  "status_counts": {
+    "assigned": 2,
+    "completed": 1,
+    "open": 60,
+    "cancelled": 2
+  },
+  "payment_types": {
+    "ec": 55,
+    "usd": 10
+  },
+  "open_payment_types": {
+    "usd": 10,
+    "ec": 50
+  },
+  "open_usd_reward_total": 50,
+  "open_ec_reward_total": 1000,
+  "open_rows_with_escrow_id": 0,
+  "open_rows_with_escrow_field": 0,
+  "open_poster_counts": {
+    "fab_usr_56853941-88c": 60
+  },
+  "open_creation_dates": [
+    "2026-02-23"
+  ],
+  "jc": {
+    "all": 4,
+    "open": 0,
+    "statuses": {
+      "closed": 4
+    },
+    "funded_flags": 4,
+    "reported_paid_count": 2,
+    "reported_paid_cents": 2000
+  },
+  "source_time_start_utc": "2026-09-27T13:26:40.254210+00:00",
+  "source_time_end_utc": "2026-09-27T13:31:11.217404+00:00"
+}

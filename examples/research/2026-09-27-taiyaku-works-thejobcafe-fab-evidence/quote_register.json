@@ -1,0 +1,130 @@
+[
+  {
+    "source_id": "jc_agents",
+    "url": "https://thejobcafe.com/for-agents",
+    "retrieved_at_utc": "2026-09-27T13:26:40.254210+00:00",
+    "brief_quote_index_zero_based": 0,
+    "quote_sha256": "54e7b31ceed71aa1a19921ff1b9a1372dc573c5ac401354493bad50f6ccfc2e0",
+    "word_count": 10
+  },
+  {
+    "source_id": "jc_terms",
+    "url": "https://thejobcafe.com/terms",
+    "retrieved_at_utc": "2026-09-27T13:26:40.254210+00:00",
+    "brief_quote_index_zero_based": 1,
+    "quote_sha256": "5a011dbbe416c5bc68bfe140524383444bff2f5085840675ff85a69e986e5e84",
+    "word_count": 5
+  },
+  {
+    "source_id": "jc_terms",
+    "url": "https://thejobcafe.com/terms",
+    "retrieved_at_utc": "2026-09-27T13:26:40.254210+00:00",
+    "brief_quote_index_zero_based": 2,
+    "quote_sha256": "b02f32ad2ab022a229d0b1c75eade05f25461ed06e62fbdbb4f4e93cc2fd7e2d",
+    "word_count": 7
+  },
+  {
+    "source_id": "jc_docs",
+    "url": "https://thejobcafe.com/docs/mcp",
+    "retrieved_at_utc": "2026-09-27T13:26:40.254210+00:00",
+    "brief_quote_index_zero_based": 3,
+    "quote_sha256": "94da3c6aeead540fee9e8625da7dcdee6a7668f5fb9f36ddb1c7a09d8cdcadcf",
+    "word_count": 4
+  },
+  {
+    "source_id": "jc_llms",
+    "url": "https://thejobcafe.com/llms.txt",
+    "retrieved_at_utc": "2026-09-27T13:26:43.448788+00:00",
+    "brief_quote_index_zero_based": 4,
+    "quote_sha256": "6dc55788a6b68cc27a5e0e686b837505d4a6e8cfd05174c7ecb6e80fee1bc125",
+    "word_count": 3
+  },
+  {
+    "source_id": "jc_llms",
+    "url": "https://thejobcafe.com/llms.txt",
+    "retrieved_at_utc": "2026-09-27T13:26:43.448788+00:00",
+    "brief_quote_index_zero_based": 5,
+    "quote_sha256": "f36478bc73b57f37bba8985542b478569c7859ac6f5c46b5f9fbb393017f6b3f",
+    "word_count": 4
+  },
+  {
+    "source_id": "jc_llms",
+    "url": "https://thejobcafe.com/llms.txt",
+    "retrieved_at_utc": "2026-09-27T13:26:43.448788+00:00",
+    "brief_quote_index_zero_based": 6,
+    "quote_sha256": "c26ec19e7e8a226d812a6a16556c7fc5cc7f0926094c544fd25cf2211b264fbc",
+    "word_count": 4
+  },
+  {
+    "source_id": "fab_terms",
+    "url": "https://firstagentsbank.com/terms",
+    "retrieved_at_utc": "2026-09-27T13:26:44.178860+00:00",
+    "brief_quote_index_zero_based": 7,
+    "quote_sha256": "348ac2825e35ffc6c203e4199368e6def1b837b5fa10f84c22da8f5a988e0d45",
+    "word_count": 9
+  },
+  {
+    "source_id": "fab_terms",
+    "url": "https://firstagentsbank.com/terms",
+    "retrieved_at_utc": "2026-09-27T13:26:44.178860+00:00",
+    "brief_quote_index_zero_based": 11,
+    "quote_sha256": "486d27ad355097253109a0b48abfbcb289e1bfa1c80ac650f30986a72fb29eac",
+    "word_count": 3
+  },
+  {
+    "source_id": "fab_terms",
+    "url": "https://firstagentsbank.com/terms",
+    "retrieved_at_utc": "2026-09-27T13:26:44.178860+00:00",
+    "brief_quote_index_zero_based": 13,
+    "quote_sha256": "caf943ca2f65610b4d0497f21abe47665480cff79743ebc1e89ce0cb6a05ff1c",
+    "word_count": 4
+  },
+  {
+    "source_id": "fab_faq_asset",
+    "url": "https://cdn.firstagentsbank.com/_nuxt/CETs5qDY.js",
+    "retrieved_at_utc": "2026-09-27T13:31:11.217404+00:00",
+    "brief_quote_index_zero_based": 8,
+    "quote_sha256": "11ef829779768fc136d5019180da11c1254248a436afbb6e553e48b2f410a62a",
+    "word_count": 6
+  },
+  {
+    "source_id": "fab_faq_asset",
+    "url": "https://cdn.firstagentsbank.com/_nuxt/CETs5qDY.js",
+    "retrieved_at_utc": "2026-09-27T13:31:11.217404+00:00",
+    "brief_quote_index_zero_based": 9,
+    "quote_sha256": "e4eb71225c8d9ed699abd430e05ed2339649b7af8960ee23ee6fc51ca0868ac9",
+    "word_count": 2
+  },
+  {
+    "source_id": "fab_docs",
+    "url": "https://firstagentsbank.com/docs",
+    "retrieved_at_utc": "2026-09-27T13:26:44.107566+00:00",
+    "brief_quote_index_zero_based": 12,
+    "quote_sha256": "04bb1762d0bbbde249edb9d58c5a05ba34a0a5ce4ab40cd03128ebd6afe8512f",
+    "word_count": 7
+  },
+  {
+    "source_id": "fab_docs",
+    "url": "https://firstagentsbank.com/docs",
+    "retrieved_at_utc": "2026-09-27T13:26:44.107566+00:00",
+    "brief_quote_index_zero_based": 14,
+    "quote_sha256": "06e852375aa1e7e5859856538a7e2416fac10197963f2909bccab9b885257c14",
+    "word_count": 5
+  },
+  {
+    "source_id": "fab_docs",
+    "url": "https://firstagentsbank.com/docs",
+    "retrieved_at_utc": "2026-09-27T13:26:44.107566+00:00",
+    "brief_quote_index_zero_based": 10,
+    "quote_sha256": "5e122c3bbf92f26081e13241b09c46377a0ed6f5fd45a3650fc2129b89dd5103",
+    "word_count": 9
+  },
+  {
+    "source_id": "fab_usd_detail",
+    "url": "https://firstagentsbank.com/marketplace/bty_ac10d000-c42",
+    "retrieved_at_utc": "2026-09-27T13:30:59.204029+00:00",
+    "brief_quote_index_zero_based": 15,
+    "quote_sha256": "904f8742fef5204202a5701772588fcb0f0ef22e797be8056280c34a46fe4c1d",
+    "word_count": 5
+  }
+]

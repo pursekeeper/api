@@ -1,0 +1,383 @@
+[
+  {
+    "id": "jc_agents",
+    "url": "https://thejobcafe.com/for-agents",
+    "requested_at_utc": "2026-09-27T13:26:40.254210+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://thejobcafe.com/for-agents",
+    "content_type": "text/html; charset=utf-8",
+    "bytes": 12570,
+    "sha256": "cec29d7abb1968826991f32d0264a701fc0d204f523f985c046cab3a8c5471e7",
+    "response_headers": {
+      "Date": "Sun, 27 Sep 2026 13:26:43 GMT",
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-cache, must-revalidate, max-age=0"
+    },
+    "label": "J1"
+  },
+  {
+    "id": "jc_terms",
+    "url": "https://thejobcafe.com/terms",
+    "requested_at_utc": "2026-09-27T13:26:40.254210+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://thejobcafe.com/terms",
+    "content_type": "text/html; charset=utf-8",
+    "bytes": 7257,
+    "sha256": "03c9e46e37479d8a6dbfc27fcfc261d2d0149848f938462ef83fb917b0190a8e",
+    "response_headers": {
+      "Date": "Sun, 27 Sep 2026 13:26:43 GMT",
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-cache, must-revalidate, max-age=0"
+    },
+    "label": "J2"
+  },
+  {
+    "id": "jc_docs",
+    "url": "https://thejobcafe.com/docs/mcp",
+    "requested_at_utc": "2026-09-27T13:26:40.254210+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://thejobcafe.com/docs/mcp",
+    "content_type": "text/html; charset=utf-8",
+    "bytes": 28888,
+    "sha256": "8706474ff37c312633b93b36ef2c2986da7e2cfef8b28ee4147847ae166c8def",
+    "response_headers": {
+      "Date": "Sun, 27 Sep 2026 13:26:43 GMT",
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-cache, must-revalidate, max-age=0"
+    },
+    "label": "J3"
+  },
+  {
+    "id": "jc_llms",
+    "url": "https://thejobcafe.com/llms.txt",
+    "requested_at_utc": "2026-09-27T13:26:43.448788+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://thejobcafe.com/llms.txt",
+    "content_type": "text/plain; charset=utf-8",
+    "bytes": 11275,
+    "sha256": "f0a14ea6bb580e59e4f3bb8bba07786f225b2f9ca55eea13ddd7811bbe462204",
+    "response_headers": {
+      "Date": "Sun, 27 Sep 2026 13:26:44 GMT",
+      "Content-Type": "text/plain; charset=utf-8"
+    },
+    "label": "J4"
+  },
+  {
+    "id": "jc_wallet_page",
+    "url": "https://thejobcafe.com/agent-wallet",
+    "requested_at_utc": "2026-09-27T13:28:12.856905+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://thejobcafe.com/agent-wallet",
+    "content_type": "text/html; charset=utf-8",
+    "bytes": 7443,
+    "sha256": "94f7e75e546c7be45249dbd1a3a9f29ba60b9fb8116b6842ffdc3a53e28a690d",
+    "response_headers": {
+      "Date": "Sun, 27 Sep 2026 13:28:14 GMT",
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-cache, must-revalidate, max-age=0"
+    },
+    "label": "J5"
+  },
+  {
+    "id": "jc_bounties_open",
+    "url": "https://thejobcafe.com/api/public/bounties?status=open&limit=100",
+    "requested_at_utc": "2026-09-27T13:28:12.855905+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://thejobcafe.com/api/public/bounties?status=open&limit=100",
+    "content_type": "application/json; charset=utf-8",
+    "bytes": 323,
+    "sha256": "b3fcc660b6c1e445eae29d91c6de5195adfd88c3bf02d8e9c9d30c0b2ef363b3",
+    "response_headers": {
+      "Date": "Sun, 27 Sep 2026 13:28:14 GMT",
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "public, max-age=30"
+    },
+    "label": "J6"
+  },
+  {
+    "id": "jc_bounties_all",
+    "url": "https://thejobcafe.com/api/public/bounties?status=all&limit=100",
+    "requested_at_utc": "2026-09-27T13:28:12.855905+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://thejobcafe.com/api/public/bounties?status=all&limit=100",
+    "content_type": "application/json; charset=utf-8",
+    "bytes": 12513,
+    "sha256": "a5db9c0d9b3c5da3be6f7088a9fdb5f3f5f8a4ae8ab7581c8989309a54964e11",
+    "response_headers": {
+      "Date": "Sun, 27 Sep 2026 13:28:14 GMT",
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "public, max-age=30"
+    },
+    "label": "J7"
+  },
+  {
+    "id": "jc_payouts",
+    "url": "https://thejobcafe.com/api/public/payouts",
+    "requested_at_utc": "2026-09-27T13:26:44.102566+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://thejobcafe.com/api/public/payouts",
+    "content_type": "application/json; charset=utf-8",
+    "bytes": 1295,
+    "sha256": "00472a988b4805c864d07d05a1210245d14d63e76b97f9ea2e4cf8c31588a94e",
+    "response_headers": {
+      "Date": "Sun, 27 Sep 2026 13:26:45 GMT",
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "public, max-age=60"
+    },
+    "label": "J8"
+  },
+  {
+    "id": "jc_guide_detail",
+    "url": "https://thejobcafe.com/api/public/bounties/agent-integration-guide",
+    "requested_at_utc": "2026-09-27T13:30:59.203030+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://thejobcafe.com/api/public/bounties/agent-integration-guide",
+    "content_type": "application/json; charset=utf-8",
+    "bytes": 3541,
+    "sha256": "a570675531166935a97800c2749f092fd279c244734628807efb19e9ff01bfb9",
+    "response_headers": {
+      "Date": "Sun, 27 Sep 2026 13:31:01 GMT",
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "public, max-age=30"
+    },
+    "label": "J9"
+  },
+  {
+    "id": "jc_client_detail",
+    "url": "https://thejobcafe.com/api/public/bounties/open-source-demo-client",
+    "requested_at_utc": "2026-09-27T13:30:59.204029+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://thejobcafe.com/api/public/bounties/open-source-demo-client",
+    "content_type": "application/json; charset=utf-8",
+    "bytes": 3395,
+    "sha256": "5e0e705d337332ce26d060907a9791c08f45a7c44f803dc2d086040552a91d7d",
+    "response_headers": {
+      "Date": "Sun, 27 Sep 2026 13:31:01 GMT",
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "public, max-age=30"
+    },
+    "label": "J10"
+  },
+  {
+    "id": "jc_openapi",
+    "url": "https://thejobcafe.com/api/public/openapi.json",
+    "requested_at_utc": "2026-09-27T13:26:43.356077+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://thejobcafe.com/api/public/openapi.json",
+    "content_type": "application/json; charset=utf-8",
+    "bytes": 25924,
+    "sha256": "38d17851267ca25b557e46457565e4f89fb9ec8a9133e4c9d9e3fd94811067e1",
+    "response_headers": {
+      "Date": "Sun, 27 Sep 2026 13:26:44 GMT",
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "public, max-age=30"
+    },
+    "label": "J11"
+  },
+  {
+    "id": "jc_registration_contract",
+    "url": "https://thejobcafe.com/api/public/agent-keys/register",
+    "requested_at_utc": "2026-09-27T13:28:12.856905+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://thejobcafe.com/api/public/agent-keys/register",
+    "content_type": "application/json; charset=utf-8",
+    "bytes": 1750,
+    "sha256": "b4fbe9a1d780dc36a432a977c21a69f41aaf27de771ca40354de069b770211f8",
+    "response_headers": {
+      "Date": "Sun, 27 Sep 2026 13:28:14 GMT",
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "public, max-age=30"
+    },
+    "label": "J12"
+  },
+  {
+    "id": "fab_docs",
+    "url": "https://firstagentsbank.com/docs",
+    "requested_at_utc": "2026-09-27T13:26:44.107566+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://firstagentsbank.com/docs",
+    "content_type": "text/html;charset=utf-8",
+    "bytes": 172597,
+    "sha256": "13e05f120aeed4f98938286f0404969df85e193ada3d3a073fec48d841e44cd2",
+    "response_headers": {
+      "Content-Type": "text/html;charset=utf-8",
+      "Date": "Sun, 27 Sep 2026 13:26:45 GMT"
+    },
+    "label": "F1"
+  },
+  {
+    "id": "fab_terms",
+    "url": "https://firstagentsbank.com/terms",
+    "requested_at_utc": "2026-09-27T13:26:44.178860+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://firstagentsbank.com/terms",
+    "content_type": "text/html;charset=utf-8",
+    "bytes": 124036,
+    "sha256": "3e827d9510b5e464f7f7217432c71592e514f750176421225fe207a743c0878a",
+    "response_headers": {
+      "Content-Type": "text/html;charset=utf-8",
+      "Date": "Sun, 27 Sep 2026 13:26:44 GMT"
+    },
+    "label": "F2"
+  },
+  {
+    "id": "fab_pricing",
+    "url": "https://firstagentsbank.com/pricing",
+    "requested_at_utc": "2026-09-27T13:26:44.795697+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://firstagentsbank.com/pricing",
+    "content_type": "text/html;charset=utf-8",
+    "bytes": 128269,
+    "sha256": "55b36b7e0a0bc5772e1e212bb312cd652f9548b22b6cf7e735816e4b31bc496e",
+    "response_headers": {
+      "Content-Type": "text/html;charset=utf-8",
+      "Date": "Sun, 27 Sep 2026 13:26:45 GMT"
+    },
+    "label": "F3"
+  },
+  {
+    "id": "fab_faq",
+    "url": "https://firstagentsbank.com/faq",
+    "requested_at_utc": "2026-09-27T13:26:45.375748+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://firstagentsbank.com/faq",
+    "content_type": "text/html;charset=utf-8",
+    "bytes": 124454,
+    "sha256": "163509820c82f88ee16805deb8a2101b87ee036567ea353492dec4c3b56f970c",
+    "response_headers": {
+      "Content-Type": "text/html;charset=utf-8",
+      "Date": "Sun, 27 Sep 2026 13:26:46 GMT"
+    },
+    "label": "F4"
+  },
+  {
+    "id": "fab_faq_asset",
+    "url": "https://cdn.firstagentsbank.com/_nuxt/CETs5qDY.js",
+    "requested_at_utc": "2026-09-27T13:31:11.217404+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://cdn.firstagentsbank.com/_nuxt/CETs5qDY.js",
+    "content_type": "text/javascript",
+    "bytes": 10612,
+    "sha256": "c3299b90aee0a167151c29915d85a0e39d487b1c163e6d691c3597dafcbf1d3b",
+    "response_headers": {
+      "Content-Type": "text/javascript",
+      "Date": "Sun, 27 Sep 2026 13:31:12 GMT",
+      "Last-Modified": "Tue, 24 Feb 2026 01:10:35 GMT",
+      "ETag": "\"c14a259f5dcdd3e2d4b5174f80ba95f5\"",
+      "Cache-Control": "public, max-age=31536000, immutable"
+    },
+    "label": "F5"
+  },
+  {
+    "id": "fab_marketplace",
+    "url": "https://firstagentsbank.com/marketplace",
+    "requested_at_utc": "2026-09-27T13:26:45.482803+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://firstagentsbank.com/marketplace",
+    "content_type": "text/html;charset=utf-8",
+    "bytes": 274675,
+    "sha256": "38ff24b95b7d42f07cf5eece5b9f0baf288e3ba951325014815ee0ee52114b8c",
+    "response_headers": {
+      "Content-Type": "text/html;charset=utf-8",
+      "Date": "Sun, 27 Sep 2026 13:26:47 GMT"
+    },
+    "label": "F6"
+  },
+  {
+    "id": "fab_usd_detail",
+    "url": "https://firstagentsbank.com/marketplace/bty_ac10d000-c42",
+    "requested_at_utc": "2026-09-27T13:30:59.204029+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://firstagentsbank.com/marketplace/bty_ac10d000-c42",
+    "content_type": "text/html;charset=utf-8",
+    "bytes": 124822,
+    "sha256": "eff3615ad1026cb97a035dea06122aeadd88c1cb90ed76a1e79ba946c6a4cd7a",
+    "response_headers": {
+      "Content-Type": "text/html;charset=utf-8",
+      "Date": "Sun, 27 Sep 2026 13:31:01 GMT"
+    },
+    "label": "F7"
+  },
+  {
+    "id": "fab_ec_detail",
+    "url": "https://firstagentsbank.com/marketplace/bty_a7292987-c3c",
+    "requested_at_utc": "2026-09-27T13:30:59.205029+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://firstagentsbank.com/marketplace/bty_a7292987-c3c",
+    "content_type": "text/html;charset=utf-8",
+    "bytes": 124635,
+    "sha256": "708f6b5829a10ed596b7886c3af1569d9f5fa93d2a509711ffec81fcfe240383",
+    "response_headers": {
+      "Content-Type": "text/html;charset=utf-8",
+      "Date": "Sun, 27 Sep 2026 13:31:00 GMT"
+    },
+    "label": "F8"
+  },
+  {
+    "id": "fab_completed_detail",
+    "url": "https://firstagentsbank.com/marketplace/bty_79fa422d-7db",
+    "requested_at_utc": "2026-09-27T13:31:00.476162+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 200,
+    "final_url": "https://firstagentsbank.com/marketplace/bty_79fa422d-7db",
+    "content_type": "text/html;charset=utf-8",
+    "bytes": 124889,
+    "sha256": "d3414a458e3c31a6b6b4f4df26f2f2853b97687696ac2507ac245b5eba142294",
+    "response_headers": {
+      "Content-Type": "text/html;charset=utf-8",
+      "Date": "Sun, 27 Sep 2026 13:31:01 GMT"
+    },
+    "label": "F9"
+  },
+  {
+    "id": "fab_public_market_api",
+    "url": "https://firstagentsbank.com/api/fab/marketplace?limit=100",
+    "requested_at_utc": "2026-09-27T13:28:14.684489+00:00",
+    "method": "GET",
+    "authenticated": false,
+    "status": 404,
+    "error": "HTTPError: HTTP Error 404: Not Found",
+    "label": "F10"
+  }
+]

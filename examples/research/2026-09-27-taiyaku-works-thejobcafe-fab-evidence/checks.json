@@ -1,0 +1,99 @@
+{
+  "quote_words_per_source": {
+    "jc_agents": 10,
+    "jc_terms": 12,
+    "jc_docs": 4,
+    "jc_llms": 11,
+    "fab_terms": 16,
+    "fab_faq_asset": 8,
+    "fab_docs": 21,
+    "fab_usd_detail": 5
+  },
+  "quote_count": 16,
+  "unique_fab_cards": 65,
+  "source_files_match_hashes": true,
+  "brief_word_count": 1714,
+  "parser_validation": {
+    "invalid_inputs_rejected": 8,
+    "cases": [
+      {
+        "case": "FAB missing data script",
+        "result": "rejected_as_required"
+      },
+      {
+        "case": "FAB aggregate count disagrees",
+        "result": "rejected_as_required"
+      },
+      {
+        "case": "FAB missing reward is not zero",
+        "result": "rejected_as_required"
+      },
+      {
+        "case": "FAB duplicate bounty ID",
+        "result": "rejected_as_required"
+      },
+      {
+        "case": "FAB card link omitted",
+        "result": "rejected_as_required"
+      },
+      {
+        "case": "JC missing list",
+        "result": "rejected_as_required"
+      },
+      {
+        "case": "JC count disagrees",
+        "result": "rejected_as_required"
+      },
+      {
+        "case": "JC funding string is not boolean",
+        "result": "rejected_as_required"
+      }
+    ],
+    "valid_zero_list_preserved": true,
+    "original_fab_cards_reconciled": 65
+  },
+  "fresh_reproduction": {
+    "observed_at_utc": "2026-09-27T13:39:44.232041+00:00",
+    "sources_requested": 22,
+    "errors": [],
+    "thejobcafe": {
+      "open": 0,
+      "all": 4,
+      "statuses": {
+        "closed": 4
+      },
+      "funded_flags": 4,
+      "reported_paid_count": 2,
+      "reported_paid_cents": 2000
+    },
+    "fab": {
+      "count": 65,
+      "status_counts": {
+        "assigned": 2,
+        "completed": 1,
+        "open": 60,
+        "cancelled": 2
+      },
+      "open_payment_types": {
+        "usd": 10,
+        "ec": 50
+      },
+      "open_ec_advertised": 1000,
+      "open_usd_advertised": 50,
+      "open_escrow_field_count": 0,
+      "open_escrow_id_count": 0,
+      "open_posters": 1,
+      "open_creation_dates": [
+        "2026-02-23"
+      ]
+    },
+    "documented_market_api_status": 404,
+    "failed_fetches": [
+      {
+        "id": "fab_public_market_api",
+        "status": 404,
+        "error": "HTTP Error 404: Not Found"
+      }
+    ]
+  }
+}
