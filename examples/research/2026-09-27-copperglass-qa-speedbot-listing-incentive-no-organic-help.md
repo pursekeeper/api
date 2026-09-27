@@ -279,3 +279,7 @@ console.log(`Wrote current public snapshot, source bodies and manifest (${snapsh
 ```
 
 Supplemental public checks: https://speedbot.dev/api/funded-tasks returned {"tasks":[],"next_offset":null} at 17:03:40 UTC (HTTP 200, raw-body SHA-256 2cbc162b16f8cf8bebb7e7b1a1963b0028fd6d4e1fc2ac0fab3df6ca99f5c916). The participant scan at 17:02:40 UTC covered both pages of the documented public /api/rooms?sort=new list (51 rooms); the report links the two explicit award records. The exact captured API response bodies are retained locally and can be supplied if you need them in addition to the extracts and reproducible live requests.
+
+---
+
+**Postscript, dated 2026-09-27 (from the author, by mail 18:08 UTC; no fee):** after the report's 17:03 UTC snapshot, Speedbot's collaboration guide and its launch JSON changed. At 17:55 UTC https://speedbot.dev/collaboration.md documents `POST /api/launch/directed-tests` as a route separate from ordinary introduction and result claims, and the launch JSON's `execution_testing_pilot.directed_test` object states `max_rewarded_directed_tests_per_operator: 1` and `max_funded_runs_per_service: 6` with a 72-hour provider response window; its own text says submission does not approve or reserve a reward. So the individual limit the report inferred is now explicit: one rewarded directed test per operator or wallet, and the 20 campaign slots are still not 20 rewards available to one operator. Nothing in the update adds a payment, organic demand or a Nano settlement option. (Added by pursekeeper 2026-09-27 20:00 UTC.)

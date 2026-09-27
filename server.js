@@ -618,8 +618,10 @@ x402
   and broadcasts it; the reply carries PAYMENT-RESPONSE with the block hash. No
   external facilitator, no account. The block pays for one call and is not otherwise
   usable as X-Nano-Payment credit; the one exception is /v1/fetch handing a call back
-  because a redirect target was refused, when the price goes on the block's hash as
-  X-Nano-Payment credit and the 400 reply names that hash to retry with. Work is optional here: the requirements carry
+  because a redirect could not be followed (the next target failed the same address
+  check as the first URL, the redirect had no Location header, or there were more than
+  five hops), when the price goes on the block's hash as X-Nano-Payment credit and the
+  400 reply names that hash to retry with. Work is optional here: the requirements carry
   extra.work = "optional", so omit it or send "0" and this server computes it before
   broadcasting; if you include work it must be valid at the send threshold. Other
   sellers may require it: check their extra.work before generating. Requirements:
@@ -779,8 +781,8 @@ const server = http.createServer(async (req, res) => {
             return credits[h];
           });
           res.setHeader('x-nano-credit-remaining-raw', left);
-          note = 'the redirect target was refused before any fetch; the price of this call is back on hash ' + h + ' as X-Nano-Payment credit (' + nano(left) + ' NANO remaining), so retry with X-Nano-Payment: ' + h + (req.headers['x-nano-payment'] ? '' : '; the x402 payment block itself is on the chain and is not reversed');
-        } else if (e.unpaid) note = 'the redirect target was refused before any fetch; nothing was charged';
+          note = 'the redirect could not be followed (' + e.message + ') before any fetch from the new host; the price of this call is back on hash ' + h + ' as X-Nano-Payment credit (' + nano(left) + ' NANO remaining), so retry with X-Nano-Payment: ' + h + (req.headers['x-nano-payment'] ? '' : '; the x402 payment block itself is on the chain and is not reversed');
+        } else if (e.unpaid) note = 'the redirect could not be followed (' + e.message + ') before any fetch from the new host; nothing was charged';
         return send(res, 400, { error: e.message, ...(note ? { note } : {}) });
       }
     }

@@ -50,15 +50,34 @@ HTTP/1.1 402 Payment Required
   "accepted":[{"scheme":"nano","network":"nano-mainnet","amount":"21188960000000000000000000000","payTo":"nano_114f...", ...}]}}
 ```
 
-x402nano `exact` (fixed account, the buyer sends and puts the signed block or its hash
-in a payment header; what pyfile-toolkit and the x402nano facilitator speak; wire
-format in github.com/x402nano/schemes/blob/main/exact.md, which is the only scheme that
-repository defines; there is no "v2"):
+x402nano `exact` (fixed account; what pyfile-toolkit, feeless402, this API and the
+x402nano facilitator speak; wire format in github.com/x402nano/schemes/blob/main/exact.md,
+the one Nano scheme that repository defines, written against x402 v2): the 402 carries a
+base64 `PAYMENT-REQUIRED` header, and the buyer retries with a base64 `PAYMENT-SIGNATURE`
+header carrying the whole signed send block, never a bare hash. A JSON body may repeat
+the requirements, but the header is the contract. Decoded, from pursekeeper.dev/v1/hash:
 
 ```
 HTTP/1.1 402 Payment Required
-{"type":"payment_required","pay_to":"nano_3uoj...","price_raw":"1000000000000000000000000000","asset":"XNO","network":"nano:mainnet","scheme":"exact","quote":"e847..."}
+PAYMENT-REQUIRED: base64 of
+{"x402Version":2,"resource":{"url":"https://pursekeeper.dev/v1/hash","description":"...","mimeType":"application/json"},
+ "accepts":[{"scheme":"exact","network":"nano:mainnet","amount":"1000000000000000000000000000","asset":"XNO",
+   "payTo":"nano_1xug...","maxTimeoutSeconds":60,"extra":{"work":"optional"}}],"error":"payment required"}
+
+retry, same request plus:
+PAYMENT-SIGNATURE: base64 of
+{"x402Version":2,"resource":{...},"accepted":{...the accepts entry you chose...},
+ "payload":{"block":{"type":"state","account":"nano_1buy...","previous":"<your frontier>","representative":"nano_...",
+   "balance":"<balance minus amount, raw>","link":"<payTo as a public key>","signature":"...","work":"..."}}}
 ```
+
+The seller (or its facilitator) checks the block's account balance, that the balance
+drop equals `amount`, that `link` is `payTo`, and the signature and work, then broadcasts
+it; the reply carries `PAYMENT-RESPONSE`. Sending a send-block hash instead is a different
+flow (`X-Nano-Payment: <hash>` on this API, `X-PAYMENT: <hash>` at Vend), not x402 exact.
+(Until 2026-09-27 this paragraph said there was "no v2", showed a flat JSON 402 with
+`pay_to`/`price_raw`, and said the hash could go in the header; all three were wrong from
+the day they were written on 2026-09-10 and were reported by Ops Control HQ under item 5.)
 
 If you use one address per order and deliver when the balance reaches the price, also
 check that the confirming send came from the buyer (or that one block carries the whole
@@ -149,3 +168,11 @@ failing command captured, was done on 2026-09-10 by llmrt, an agent, for Ӿ8:
 frontier moves), F3 (work-rate message) and F6 (address error) were fixed the same
 day; F4 and F7 are the two paragraphs above. Its F5 misstates the vanilla work
 convention; see the paragraph on work.
+
+Corrections since, all paid under item 5 of [/examples/research](research/): the limits
+sentence (uknwplayer, 2026-09-25, 2026-09-27 twice), and on 2026-09-27 Ops Control HQ's
+five reports on the 2026-09-10 fix itself: the x402nano paragraph above (three wrong
+statements, rewritten), and two gaps in `no-node.js`'s retry (the open/receive subtype
+was fixed before the retry could turn an open into a receive; a pending send was not
+re-checked after a refresh, so a retry could try to receive a send another process had
+just pocketed). Both are fixed in the script.
