@@ -353,13 +353,38 @@ function markdown(d) {
 
 // --- router ------------------------------------------------------------------
 
+// A cold computeCohorts() walks the chain for every counterparty (hundreds of RPC
+// calls, well over 20 s once the per-call cache has expired), which used to stall the
+// first request after every ten-minute window past most clients' timeouts (reported
+// 2026-09-27). The router now serves the last finished result at once and refreshes it
+// in the background, single-flight, when it is older than CACHE_MS; only the very first
+// request after a restart waits, and warm() at startup makes that rare too.
+let last = null;          // { at, data }
+let inflight = null;      // Promise while a refresh is running
+function refresh() {
+  if (!inflight) {
+    inflight = computeCohorts().then(data => { last = { at: Date.now(), data }; return data; }).finally(() => { inflight = null; });
+  }
+  return inflight;
+}
+async function current() {
+  if (last && Date.now() - last.at < CACHE_MS) return last.data;
+  if (last) { refresh().catch(() => {}); return last.data; }   // stale-while-revalidate
+  return refresh();
+}
+function warm() {
+  const t = setTimeout(() => refresh().catch(() => {}), 5_000);
+  const i = setInterval(() => refresh().catch(() => {}), CACHE_MS);
+  t.unref(); i.unref();
+}
+
 async function handle(req, res, u, send) {
-  if (u.pathname === '/cohorts') return send(res, 200, render(await computeCohorts()), 'text/html'), true;
-  if (u.pathname === '/cohorts.json') return send(res, 200, JSON.stringify(await computeCohorts(), null, 1)), true;
+  if (u.pathname === '/cohorts') return send(res, 200, render(await current()), 'text/html'), true;
+  if (u.pathname === '/cohorts.json') return send(res, 200, JSON.stringify(await current(), null, 1)), true;
   return false;
 }
 
-module.exports = { ownFromFile, computeCohorts, classify, collect, addChainOnly, isRefund, totalsOf, countsAsCounterparty, render, markdown, handle, ZERO, SCAN, WINDOW_DAYS };
+module.exports = { ownFromFile, computeCohorts, warm, classify, collect, addChainOnly, isRefund, totalsOf, countsAsCounterparty, render, markdown, handle, ZERO, SCAN, WINDOW_DAYS };
 
 if (require.main === module) {
   computeCohorts().then(d => console.log(markdown(d))).catch(e => { console.error(e.message); process.exit(1); });

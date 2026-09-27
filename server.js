@@ -5,6 +5,7 @@
 // PAYMENT-REQUIRED header, the client retries with PAYMENT-SIGNATURE carrying a signed
 // send block, and this process verifies and broadcasts it itself (see x402.js).
 'use strict';
+const zlib = require('node:zlib');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -211,9 +212,16 @@ function send(res, code, body, type = 'application/json') {
     'access-control-expose-headers': 'PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-Nano-Credit-Remaining-Raw, X-Nano-Payment-Hash' };
   // Declared length since 2026-09-26: a body cut by any proxy or sandbox between here and the reader is then an
   // HTTP error at the client, not a 200 with unparseable JSON (a reporter saw 16 KiB bodies on their own egress).
-  if (code !== 204 && code !== 304) headers['content-length'] = Buffer.byteLength(data);
+  // Compressed here, not by the proxy, since 2026-09-27: the proxy's encoder answered HEAD with Content-Length: 20
+  // (the length of an empty gzip stream) on every route, so a HEAD then GET pair disagreed (pyfile-toolkit). With the
+  // encoding done in-process the proxy passes the response through and HEAD and GET carry the same true length.
+  let out = data;
+  if (res.acceptsGzip && code !== 204 && code !== 304 && Buffer.byteLength(data) >= 1024) {
+    out = zlib.gzipSync(data); headers['content-encoding'] = 'gzip'; headers['vary'] = 'Accept-Encoding';
+  }
+  if (code !== 204 && code !== 304) headers['content-length'] = Buffer.byteLength(out);
   res.writeHead(code, headers);
-  res.end(data);
+  res.end(out);
 }
 
 const DESCRIPTIONS = { '/v1/echo': 'returns what you sent', '/v1/fetch': 'fetches a URL and returns the page as plain text', '/v1/hash': 'sha256 of the request body, with server time' };
@@ -479,15 +487,29 @@ async function charge(req, res) {
     const ph = x402.paymentHeader(req.headers);
     return ph ? chargeX402(req, res, ph) : (paymentRequired(res, undefined, req), false);
   }
-  const c = await creditFor(hash);
-  if (c.error) return paymentRequired(res, c.error, req), false;
-  if (c.remaining < PRICE_RAW) return paymentRequired(res, 'credit on this hash is used up', req), false;
-  const left = c.remaining - PRICE_RAW;
-  credits[hash.toUpperCase()] = left.toString();
-  save();
-  stats.calls_paid++;
-  res.setHeader('x-nano-credit-remaining-raw', left.toString());
-  return true;
+  // Check and debit run under a per-hash lock: creditFor() awaits the node for a hash it has not seen, and without
+  // the lock several simultaneous first requests on one hash each read the full amount and each wrote the same
+  // post-debit balance, so N requests could be served for one price (uknwplayer, 2026-09-27, from the source).
+  return withHashLock(String(hash).toUpperCase(), async () => {
+    const c = await creditFor(hash);
+    if (c.error) return paymentRequired(res, c.error, req), false;
+    if (c.remaining < PRICE_RAW) return paymentRequired(res, 'credit on this hash is used up', req), false;
+    const left = c.remaining - PRICE_RAW;
+    credits[hash.toUpperCase()] = left.toString();
+    save();
+    stats.calls_paid++;
+    res.setHeader('x-nano-credit-remaining-raw', left.toString());
+    return true;
+  });
+}
+const hashLocks = new Map();
+function withHashLock(key, fn) {
+  const prev = hashLocks.get(key) || Promise.resolve();
+  const run = prev.catch(() => {}).then(fn);
+  const tail = run.catch(() => {});
+  hashLocks.set(key, tail);
+  tail.then(() => { if (hashLocks.get(key) === tail) hashLocks.delete(key); });
+  return run;
 }
 
 // --- endpoints ---------------------------------------------------------------
@@ -507,10 +529,25 @@ async function checkFetchUrl(urlStr) {
   return u;
 }
 async function fetchText(urlStr) {
-  const u = await checkFetchUrl(urlStr);
+  let u = await checkFetchUrl(urlStr);
   const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 15000);
-  const r = await fetch(u, { signal: ctl.signal, redirect: 'follow',
-    headers: { 'user-agent': 'nano-paid-api/0.1 (+pay-per-call fetch)' } }).finally(() => clearTimeout(t));
+  let r;
+  try {
+    // Redirects are followed by hand and every hop goes through checkFetchUrl, so a public URL cannot bounce the
+    // paid fetch to a private or link-local address (uknwplayer, 2026-09-27; redirect: 'follow' skipped the check).
+    for (let hop = 0; ; hop++) {
+      r = await fetch(u, { signal: ctl.signal, redirect: 'manual', headers: { 'user-agent': 'nano-paid-api/0.1 (+pay-per-call fetch)' } });
+      if (![301, 302, 303, 307, 308].includes(r.status)) break;
+      const loc = r.headers.get('location');
+      let next;
+      try {
+        if (!loc) throw new Error('redirect without a location');
+        if (hop >= 5) throw new Error('too many redirects');
+        next = await checkFetchUrl(new URL(loc, u).href);
+      } catch (e) { e.unpaid = true; throw e; }   // refused before anything was fetched from the new host: the call is handed back
+      u = next;
+    }
+  } finally { clearTimeout(t); }
   const ct = r.headers.get('content-type') || '';
   let body = await r.text();
   if (body.length > 2_000_000) body = body.slice(0, 2_000_000);
@@ -522,7 +559,7 @@ async function fetchText(urlStr) {
       .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
       .replace(/[ \t]+/g, ' ').replace(/\s*\n\s*/g, '\n').trim();
   }
-  return { status: r.status, content_type: ct, url: r.url, text: body.slice(0, 200_000) };
+  return { status: r.status, content_type: ct, url: u.href, text: body.slice(0, 200_000) };
 }
 
 function readBody(req, limit = 1_000_000) {
@@ -615,6 +652,7 @@ function redirectOldHost(req, res) {
 const server = http.createServer(async (req, res) => {
   try {
     const u = new URL(req.url, 'http://x');
+    res.acceptsGzip = /\bgzip\b/i.test(String(req.headers['accept-encoding'] || ''));
     if (redirectOldHost(req, res)) return;
     if (req.method === 'OPTIONS') return send(res, 204, '');
     if (await site.handle(req, res, u, send)) return;
@@ -699,11 +737,18 @@ const server = http.createServer(async (req, res) => {
       catch (e) { return send(res, 400, { error: e.message, note: 'url must be an absolute http(s) URL to a public host; this check runs before any payment is taken' }); }
       if (!await charge(req, res)) return;
       try { return send(res, 200, await fetchText(target)); }
-      catch (e) { return send(res, 400, { error: e.message }); }
+      catch (e) {
+        // A redirect to a refused host is the target's doing, not the buyer's, and nothing was fetched: hand the call back.
+        const h = String(req.headers['x-nano-payment'] || '').toUpperCase();
+        if (e.unpaid && h && h in credits) { credits[h] = (BigInt(credits[h]) + PRICE_RAW).toString(); save(); }
+        return send(res, 400, { error: e.message, ...(e.unpaid ? { note: 'the redirect target was refused before any fetch; this call was not charged' } : {}) });
+      }
     }
     if (u.pathname === '/v1/hash' && req.method === 'POST') {
+      // Body before charge (uknwplayer, 2026-09-27): a body over the limit used to be charged and then answered 500.
+      if (Number(req.headers['content-length'] || 0) > 1_000_000) return send(res, 413, { error: 'body too large (1 MB max); nothing charged' });
+      let body; try { body = await readBody(req); } catch (e) { return send(res, 413, { error: e.message + ' (1 MB max); nothing charged' }); }
       if (!await charge(req, res)) return;
-      const body = await readBody(req);
       return send(res, 200, { sha256: crypto.createHash('sha256').update(body).digest('hex'), bytes: body.length, at: new Date().toISOString() });
     }
     send(res, 404, { error: 'no such endpoint', docs: '/' });
@@ -714,5 +759,6 @@ const server = http.createServer(async (req, res) => {
 if (require.main === module) {
   server.listen(PORT, '127.0.0.1', () => console.log('listening on', PORT));
   markFeePassthroughs(); setInterval(markFeePassthroughs, 600_000).unref();
+  cohorts.warm();
 }
 module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS, checkoutWallet };

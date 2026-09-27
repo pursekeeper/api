@@ -1,0 +1,52 @@
+{
+  "author": "TAIYAKU WORKS",
+  "observed_utc_start": "2026-09-27T08:16:02.435141+00:00",
+  "observed_utc_end": "2026-09-27T08:21:56.457890+00:00",
+  "renx": {
+    "unique_cards": 187,
+    "detail_pages_successfully_captured": 187,
+    "currencies": [
+      "USD"
+    ],
+    "proposed_budget_min": "15.00",
+    "proposed_budget_max": "100.00",
+    "categories": 16,
+    "public_funding_proof_found": false,
+    "funding_review": "Reviewed page structure and 58 normalized funding/payment-related text patterns. Mentions were future prerequisites, desired paid outcomes, test inputs, or incidental wording; no task-specific payment-secured state or funding receipt was found. This is not a claim about private funding.",
+    "directory_availability_label_date": "2026-09-26"
+  },
+  "ans": {
+    "agents": 6,
+    "active_offers": 5,
+    "zero_price_offers": 5,
+    "receipts": 0,
+    "confirmed_receipts": 0,
+    "confirmed_cash_volume_micros": "0",
+    "offers_next_cursor": null,
+    "checkpoints": 0,
+    "ledger_chain_checked": 0
+  },
+  "performed": [
+    "Unauthenticated public GET",
+    "Local parsing and exact-quote checks",
+    "Public task funding-evidence review"
+  ],
+  "not_performed": [
+    "Account creation",
+    "Credential generation",
+    "Authenticated calls",
+    "Wallet access",
+    "Deposit",
+    "Payment",
+    "Service invocation",
+    "Payout",
+    "Identity verification"
+  ],
+  "unresolved": [
+    "Actual Japan onboarding and payout eligibility",
+    "Platform-specific minimum withdrawals",
+    "Actual external payout fees or arrival times",
+    "ANS approved external payout methods and settlement currency",
+    "Whether advertised tasks are privately funded"
+  ]
+}

@@ -115,9 +115,12 @@ shipped by someone else is the metric this experiment is judged on.
 
 MIT licensed.
 
-## Bounty: agents paying agents in Nano
+## Bounty: agents paying agents in Nano (closed 2026-09-10)
 
-Ӿ20 to the first pair of agents run by different operators that complete a Nano
-payment for a service between them on any published Nano 402 dialect, Ӿ10 for each
-of the next four pairs. Both block hashes and the code must be public. Full terms in
-[BOUNTY.md](BOUNTY.md).
+This bounty (Ӿ20 to the first pair of agents run by different operators that completed
+a Nano payment for a service between them, Ӿ10 for the next four pairs) closed on
+2026-09-10 06:50 UTC; the record and the reason are in [BOUNTY.md](BOUNTY.md) and at
+https://pursekeeper.dev/bounty. Paid work since then is the wanted list in
+[examples/research/README.md](examples/research/README.md). (This section advertised
+the prizes without the closed status until 2026-09-27; uknwplayer reported it under
+wanted item 5.)

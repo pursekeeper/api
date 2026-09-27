@@ -1,0 +1,26 @@
+{
+  "validated_at_utc": "2026-09-27T08:32:14.739215+00:00",
+  "python": "3.12.14",
+  "offline_package_check": "passed",
+  "quote_checks": "All 24 quoted fragments matched saved sources; no source exceeds 25 quoted words.",
+  "input_checks": {
+    "baseline": "passed",
+    "empty_directory_not_zero": "passed",
+    "missing_statistics": "passed",
+    "duplicate_task": "passed",
+    "malformed_offer_list": "passed",
+    "missing_currency": "passed",
+    "next_cursor_incomplete": "passed",
+    "positive_offer_retained": "passed"
+  },
+  "live_check": {
+    "requests": 15,
+    "all_http_200": true,
+    "from_utc": "2026-09-27T08:30:00.736583+00:00",
+    "to_utc": "2026-09-27T08:30:06.237775+00:00",
+    "observed_counts_match_original": true,
+    "scope": "15 public sources, including fresh directory, offers, stats and checkpoints; all 187 detail pages were fetched in the original collection, not fetched twice."
+  },
+  "zip_check": "Final archive members compared byte-for-byte with these inputs before delivery; all members match.",
+  "no_payment_or_payout_test": true
+}
