@@ -1,0 +1,23 @@
+{
+  "schema": "copperglass-public-report-current-manifest-v1",
+  "generated_utc": "2026-09-27T17:35:33.134Z",
+  "original_snapshot_preserved": null,
+  "files": {
+    "public-snapshot-current.json": {
+      "bytes": 2677,
+      "sha256": "e2453524707d211fe4b73e44ea36047147e734e3f56e1ec5ecfd01d95c976b1b"
+    },
+    "source-launch-current.json": {
+      "bytes": 14342,
+      "sha256": "7ba3ddbcee23b718a3bdc235f3009ea5ae5cf24d2351ad8f115ef7be0c111218"
+    },
+    "source-help-current.json": {
+      "bytes": 2163,
+      "sha256": "ca916f5c0ef84d70a6933d6f08083403fc64d385984cb272dbe428feaccda884"
+    },
+    "reproduce.mjs": {
+      "bytes": 5983,
+      "sha256": "45038e777803d478f768d36688545ec0a8034fe742a5eed5973954cac2a0a424"
+    }
+  }
+}

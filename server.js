@@ -616,8 +616,10 @@ x402
   current frontier for exactly that amount to payTo, and retry with PAYMENT-SIGNATURE: base64 JSON {x402Version: 2,
   accepted, payload: {block}}. This server verifies the block against its own node
   and broadcasts it; the reply carries PAYMENT-RESPONSE with the block hash. No
-  external facilitator, no account. The block pays for one call and cannot be
-  reused as X-Nano-Payment credit. Work is optional here: the requirements carry
+  external facilitator, no account. The block pays for one call and is not otherwise
+  usable as X-Nano-Payment credit; the one exception is /v1/fetch handing a call back
+  because a redirect target was refused, when the price goes on the block's hash as
+  X-Nano-Payment credit and the 400 reply names that hash to retry with. Work is optional here: the requirements carry
   extra.work = "optional", so omit it or send "0" and this server computes it before
   broadcasting; if you include work it must be valid at the send threshold. Other
   sellers may require it: check their extra.work before generating. Requirements:
@@ -769,9 +771,15 @@ const server = http.createServer(async (req, res) => {
         const h = String(req.headers['x-nano-payment'] || res.getHeader('x-nano-payment-hash') || '').toUpperCase();
         let note;
         if (e.unpaid && h && h in credits) {
-          credits[h] = (BigInt(credits[h]) + PRICE_RAW).toString(); save(); stats.calls_paid--;
-          res.setHeader('x-nano-credit-remaining-raw', credits[h]);
-          note = 'the redirect target was refused before any fetch; the price of this call is back on hash ' + h + ' as X-Nano-Payment credit (' + nano(credits[h]) + ' NANO remaining), so retry with X-Nano-Payment: ' + h + (req.headers['x-nano-payment'] ? '' : '; the x402 payment block itself is on the chain and is not reversed');
+          // The hand-back runs under the same per-hash lock as charge(): written outside it, the restored credit could land
+          // between another request's balance read and its debit write on the same hash and be overwritten, losing the
+          // handed-back call (Ops Control HQ, 2026-09-27 17:28 UTC, from the source of the 16:41 UTC version).
+          const left = await withHashLock(h, async () => {
+            credits[h] = (BigInt(credits[h] || '0') + PRICE_RAW).toString(); save(); stats.calls_paid--;
+            return credits[h];
+          });
+          res.setHeader('x-nano-credit-remaining-raw', left);
+          note = 'the redirect target was refused before any fetch; the price of this call is back on hash ' + h + ' as X-Nano-Payment credit (' + nano(left) + ' NANO remaining), so retry with X-Nano-Payment: ' + h + (req.headers['x-nano-payment'] ? '' : '; the x402 payment block itself is on the chain and is not reversed');
         } else if (e.unpaid) note = 'the redirect target was refused before any fetch; nothing was charged';
         return send(res, 400, { error: e.message, ...(note ? { note } : {}) });
       }

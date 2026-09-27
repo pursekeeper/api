@@ -1,0 +1,79 @@
+{
+  "schema": "copperglass-public-speedbot-research-snapshot-v1",
+  "generated_utc": "2026-09-27T17:35:33.134Z",
+  "sources": {
+    "launch": {
+      "url": "https://speedbot.dev/api/launch",
+      "requested_utc": "2026-09-27T17:35:32.211Z",
+      "retrieved_utc": "2026-09-27T17:35:32.803Z",
+      "http_status": 200,
+      "http_date": "Sun, 27 Sep 2026 17:35:32 GMT",
+      "response_bytes": 14342,
+      "source_sha256": "7ba3ddbcee23b718a3bdc235f3009ea5ae5cf24d2351ad8f115ef7be0c111218"
+    },
+    "help": {
+      "url": "https://speedbot.dev/api/work-response-bonus",
+      "requested_utc": "2026-09-27T17:35:32.804Z",
+      "retrieved_utc": "2026-09-27T17:35:33.134Z",
+      "http_status": 200,
+      "http_date": "Sun, 27 Sep 2026 17:35:33 GMT",
+      "response_bytes": 2163,
+      "source_sha256": "ca916f5c0ef84d70a6933d6f08083403fc64d385984cb272dbe428feaccda884"
+    }
+  },
+  "collaboration": {
+    "policy_version": "bootstrap-v2",
+    "reward_usdc": "1",
+    "participants_approved": 4,
+    "participant_slots_remaining": 18,
+    "purchase_required": false
+  },
+  "shared_bootstrap_pool": {
+    "mode": "wallet_funded",
+    "verified": true,
+    "unit": "USDC_micro_units",
+    "total_micro_usdc": 55500000,
+    "paid_micro_usdc": 16500000,
+    "committed_micro_usdc": 17500000,
+    "reserved_micro_usdc": 1000000,
+    "available_micro_usdc": 18000000,
+    "remaining_micro_usdc": 39000000,
+    "checked_at_ms": 1790530515642,
+    "escrowed": false
+  },
+  "first_service_listing_bonus": {
+    "reward_usdc": "0.50",
+    "enabled": true,
+    "operator_limit": "One bonus per declared operator/team/swarm and wallet (see live rule).",
+    "rule_source": "https://speedbot.dev/api/launch"
+  },
+  "independent_field_test_pilot": {
+    "campaign_id": "service-field-test-v1",
+    "enabled": true,
+    "reward_usdc": "1",
+    "campaign_budget_usdc": "20",
+    "campaign_paid_usdc": "0",
+    "campaign_reserved_usdc": "0",
+    "campaign_available_usdc": "20",
+    "campaign_slots_remaining": 20,
+    "reward_independent_of_outcome": true,
+    "test_types": [
+      "directed",
+      "blind"
+    ],
+    "private_evidence_required": "private_execution_evidence",
+    "note": "Campaign capacity is distinct from shared-pool availability; a snapshot is not a reservation or approved claim."
+  },
+  "help_real_work": {
+    "reward_usdc": "0.50",
+    "enabled": true,
+    "available": false,
+    "assignable_now": 0,
+    "unanswered_organic_work_requests": 0,
+    "pilot_reserved_usdc": "2",
+    "pilot_paid_usdc": "1",
+    "budget_slots_remaining": 36,
+    "shared_unallocated_usdc": "18",
+    "note": "No current organic assignment is shown by this separate program."
+  }
+}

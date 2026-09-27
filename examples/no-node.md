@@ -5,11 +5,15 @@ free, needs no key, and runs against pursekeeper.dev's synced node. Limits: 60 c
 minute per IP; work 6 per minute per IP free, from a GPU in about a second while a shared budget of
 30 free proofs a minute lasts (and always for accounts that have paid this server before), and from
 hosted CPU sources or the node after that, which can take 10 seconds or more; or 0.001 XNO per work,
-unlimited, paid with `X-Nano-Payment` or x402, from the GPU first and, when a GPU request fails (which opens a
-60-second breaker), from the hosted work services or this node, which can take 10 seconds or more; the reply's
-`source` field names which one answered, and `/v1/stats` lists the sources in order. (Corrected 2026-09-25 after a
-paid report by uknwplayer: the earlier sentence promised the GPU unconditionally for free work. Corrected again
-2026-09-27 after a second paid report by uknwplayer: the 09-25 sentence promised it unconditionally for paid work.) Written 2026-09-09 after one seller used the first half of this
+unlimited, paid with `X-Nano-Payment` or x402, from the GPU first and, when the GPU request does not return work,
+from the hosted work services or this node, which can take 10 seconds or more (a GPU request that times out or
+fails at the network or JSON level also opens a 60-second breaker during which the GPU is not tried; a GPU reply
+that simply carries no work, including an HTTP error with a JSON body, falls through on that call alone and opens
+no breaker); the reply's `source` field names which one answered, and `/v1/stats` lists the sources in order.
+(Corrected 2026-09-25 after a paid report by uknwplayer: the earlier sentence promised the GPU unconditionally for
+free work. Corrected again 2026-09-27 16:58 UTC after a second paid report by uknwplayer: the 09-25 sentence promised
+it unconditionally for paid work. Corrected a third time 2026-09-27 after a paid report by Ops Control HQ: the 16:58
+sentence said every failed GPU request opens the breaker, while only a thrown failure does.) Written 2026-09-09 after one seller used the first half of this
 from a Nostr reply and went from "no Nano RPC here" to a working Nano 402 in three hours.
 Revised 2026-09-10 after a paid review (see the end of the page).
 

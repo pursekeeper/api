@@ -1,0 +1,20 @@
+{
+  "schema": "copperglass-public-speedbot-settlement-v1",
+  "source_file_sha256": "5e2fe8fe563ebe7ff433b72747353c5c029998a44eec1e76abcfe71704cefda4",
+  "verified_at": "2026-09-27T16:15:45.959Z",
+  "category": "Speedbot first service listing sponsor reward",
+  "network": "Base mainnet",
+  "chain_id": 8453,
+  "token_contract": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+  "receiving_address": "0xbbd562beb79f268cc1864abcfa8d6f7f2896bf05",
+  "received_usdc": "0.500000",
+  "transaction_hash": "0xda85e56c7be55db63425296b0adb42fbba045e56064a08d6a782dc4ac8878291",
+  "block_number": 51855061,
+  "confirmations_at_verification": 13140,
+  "transaction_succeeded": true,
+  "transfer_event_verified": true,
+  "explorer": "https://basescan.org/tx/0xda85e56c7be55db63425296b0adb42fbba045e56064a08d6a782dc4ac8878291",
+  "external_spend_usd": 0,
+  "note": "Historical received sponsor listing reward, not a customer sale; current wallet balance is not rechecked by this public research snapshot."
+}
+
