@@ -497,11 +497,17 @@ function isPrivate(ip) {
   return /^(10\.|127\.|0\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(ip);
 }
 
-async function fetchText(urlStr) {
+// Everything that can refuse a fetch target is checked here, and the /v1/fetch handler runs it before charge(),
+// so a missing, malformed, non-http or private-address url answers 400 with nothing paid (uknwplayer, 2026-09-27).
+async function checkFetchUrl(urlStr) {
   let u; try { u = new URL(urlStr); } catch { throw new Error('bad url'); }
   if (!/^https?:$/.test(u.protocol)) throw new Error('http(s) only');
   const addrs = await dns.lookup(u.hostname, { all: true });
   if (addrs.some(a => isPrivate(a.address))) throw new Error('private address refused');
+  return u;
+}
+async function fetchText(urlStr) {
+  const u = await checkFetchUrl(urlStr);
   const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 15000);
   const r = await fetch(u, { signal: ctl.signal, redirect: 'follow',
     headers: { 'user-agent': 'nano-paid-api/0.1 (+pay-per-call fetch)' } }).finally(() => clearTimeout(t));
@@ -575,10 +581,10 @@ Endpoints
                               confirmation_height (null if the node gives none) (free, 60/min);
                               found:false with the open-block rule if the account has no blocks
   POST /v1/process {"block":{...state block...},"subtype":"send|receive|open|change"}
-  GET  /v1/requests?hash=H   was H (or a block with previous H) worked or broadcast through here? {found, entries}. Free, 60/min
                               broadcast a signed state block through this node (free, 60/min).
                               With /v1/work, /v1/receivable and /v1/verify this is enough to
                               pocket and spend from a seed with no node: /examples/no-node.md
+  GET  /v1/requests?hash=H   was H (or a block with previous H) worked or broadcast through here? {found, entries}. Free, 60/min
   POST /v1/work  {"hash":H}   work_generate at the send threshold for any hash. Free: 6 per
                               minute per IP, from a GPU (about a second) while a shared budget
                               of 30 free proofs a minute lasts, then CPU sources (10 s or more);
@@ -649,7 +655,7 @@ const server = http.createServer(async (req, res) => {
         homepage: base, docs: base + '/', llms: base + '/llms.txt', contact: 'agent@pursekeeper.dev', log: base + '/log.json', sellers: base + '/sellers.json',
         payment: pay, payments: [pay],
         resources: [
-          r('/v1/fetch?url=', 'GET', 'fetches a URL and returns the page as plain text'),
+          r('/v1/fetch?url=', 'GET', 'fetches the absolute http(s) URL given in the required url query parameter and returns the page as plain text; a request whose url is missing, malformed, non-http or on a private host is refused with 400 before any payment is taken'),
           r('/v1/echo?msg=', 'GET', 'returns what you sent (test your payment client)'),
           r('/v1/hash', 'POST', 'sha256 of the request body, with server time'),
           r('/v1/work', 'POST', 'Nano proof of work for {"hash": H} at the send threshold, from a GPU in about a second; 6 per minute per IP free, paid calls unlimited'),
@@ -688,8 +694,11 @@ const server = http.createServer(async (req, res) => {
         notice: 'This endpoint is run by an AI agent (pursekeeper). Paying it regularly? Say who you are at agent@pursekeeper.dev or github.com/pursekeeper/api/issues/1; every payment is public at /log.' });
     }
     if (u.pathname === '/v1/fetch') {
+      const target = u.searchParams.get('url') || '';
+      try { await checkFetchUrl(target); }
+      catch (e) { return send(res, 400, { error: e.message, note: 'url must be an absolute http(s) URL to a public host; this check runs before any payment is taken' }); }
       if (!await charge(req, res)) return;
-      try { return send(res, 200, await fetchText(u.searchParams.get('url') || '')); }
+      try { return send(res, 200, await fetchText(target)); }
       catch (e) { return send(res, 400, { error: e.message }); }
     }
     if (u.pathname === '/v1/hash' && req.method === 'POST') {
