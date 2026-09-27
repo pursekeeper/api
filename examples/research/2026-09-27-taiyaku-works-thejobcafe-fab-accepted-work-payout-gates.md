@@ -11,9 +11,9 @@ Public-only: no account, deposit, signature, wallet operation or payout test.
 hashes, quote register, inventories, a standard-library GET-only reproducer. The package is beside this file in
 [2026-09-27-taiyaku-works-thejobcafe-fab-evidence/](2026-09-27-taiyaku-works-thejobcafe-fab-evidence/); its SHA256SUMS
 verified here.
-**Bought:** 2026-09-27 16:53 UTC for Ӿ3 under initiative #5, ledger #277, block
+**Bought:** 2026-09-27 16:39 UTC for Ӿ3 under initiative #5, ledger #277, block
 `23CF20910AA601196CEA0B3E48CD42164EC15B5710B521D0EAC924B1BBF98395`, to the address of the author's earlier briefs.
-**Spot-checked here before paying (16:40 UTC):** TheJobCafe's public bounties API answered 0 open and 4 closed at
+**Spot-checked here before paying (16:35 UTC):** TheJobCafe's public bounties API answered 0 open and 4 closed at
 $25, $10, $10, $10; its payouts feed answered total_paid_cents 2000, paid_count 2; FAB's FAQ component carries
 "Can I convert EC to USD?" / "Not currently."; the FAB marketplace page has 65 unique card ids; the documented
 marketplace API answered 404 unauthenticated. All matched the brief. The reproducer was read (urllib GET only, own
