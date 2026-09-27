@@ -176,6 +176,9 @@ function rollup(s) {
     sellers, payers, settled_last_20: settled.slice(-20) };
 }
 function publicStats() { return rollup(stats); }
+// The payTo of a settlement this facilitator made, by block hash; lets the site name a payTo from a seller
+// listing's verified block instead of a hand-kept file (uknwplayer's item 5 report, 2026-09-27).
+function settledPayTo(hash) { const h = String(hash || '').toUpperCase(); const e = (stats.settled || []).find(x => String(x.hash || '').toUpperCase() === h); return e ? e.pay_to : null; }
 
 // Over the limit: reject at once (the caller answers 400 with Connection: close) and keep draining
 // the rest of the request so the answer can be written; only a body ten times over the limit
@@ -321,4 +324,4 @@ Reference client/server code for the same block shape: https://github.com/x402na
 A seller recipe with no node at all: https://pursekeeper.dev/examples/no-node.md
 `;
 
-module.exports = { handle, verifyRequest, settleRequest, checkRequirements, codeFor, rollup, publicStats, SUPPORTED, HOST, PREFIX, LIMITS, MAX_POLL_S };
+module.exports = { handle, verifyRequest, settleRequest, checkRequirements, codeFor, rollup, publicStats, settledPayTo, SUPPORTED, HOST, PREFIX, LIMITS, MAX_POLL_S };

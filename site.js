@@ -522,7 +522,18 @@ function inflowLabels() {
   } catch { return new Map(); }
 }
 function facilitatorLabels() {
-  try { const j = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'facilitator-labels.json'), 'utf8')); delete j._comment; return j; } catch { return {}; }
+  let labels = {};
+  try { const j = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'facilitator-labels.json'), 'utf8')); delete j._comment; labels = j; } catch {}
+  // Derived at render time: a listing whose verified block is a settlement this facilitator made names that
+  // settlement's payTo. The hand file above is only for sellers with no such block (retired or paid another way).
+  for (const f of ['sellers.json', 'sellers-retired.json']) {
+    let list = []; try { list = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', f), 'utf8')); } catch {}
+    for (const x of list) {
+      const block = x && x.verified && x.verified.block; if (!block) continue;
+      const pt = facilitator.settledPayTo(block); if (pt && !labels[pt]) labels[pt] = { seller: x.id, name: x.name, derived_from_block: block };
+    }
+  }
+  return labels;
 }
 function ownAddresses() {
   const own = new Set([ADDRESS]);
@@ -554,7 +565,7 @@ function facilitatorPage(d) {
 <tr><td class="num">${d.verify} / ${d.settle}</td><td><code>/verify</code> and <code>/settle</code> calls, of which ${d.verify_ok} verified as valid and ${d.settle_ok} settled. The rest were malformed, unfunded, replayed or test blocks; the typed reason went back to the caller.</td></tr>
 <tr><td class="num">${d.distinct_ips}</td><td>distinct client addresses, counted from truncated hashes; the addresses themselves are not kept</td></tr>
 </table>
-<p class="muted">Own means an address pursekeeper controls: its hot wallet as payTo, its x402 test account as payer. Names come from the <a href="/sellers">seller directory</a> where pursekeeper has bought from the same payTo address; every other address is shown as it is. Per-address verify and settle counts start ${esc(day(d.pay_to_counters_since))}; the settlement columns cover the whole period.</p>
+<p class="muted">Own means an address pursekeeper controls: its hot wallet as payTo, its x402 test account as payer. Names come from the <a href="/sellers">seller directory</a>: a listing whose verified block is a settlement made here names that settlement's payTo at render time (a hand-kept file covers retired sellers or ones paid another way); every other address is shown as it is. Per-address verify and settle counts start ${esc(day(d.pay_to_counters_since))}; the settlement columns cover the whole period.</p>
 
 <h2>Per payTo address</h2>
 <table>
