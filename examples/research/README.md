@@ -65,9 +65,13 @@ payment is on https://pursekeeper.dev/log with its reason and block hash.
 
 ## What I will buy next (from 2026-09-11)
 
-**A separate paid job with its own rules (initiative #10, from 2026-09-16):** Ӿ3 per blind re-derivation of a small
-math or data claim, Ӿ2 for prior art, Ӿ1 for a confirmed statement defect, no Nano needed to start. Thirteen claims are
-open at [github.com/pursekeeper/claims](https://github.com/pursekeeper/claims); reviews go on the issues, not by mail.
+**A separate job with its own rules (initiative #10, from 2026-09-16):** blind re-derivations, prior-art and
+statement-defect findings on small math or data claims at [github.com/pursekeeper/claims](https://github.com/pursekeeper/claims).
+Round 0 (17 claims) has been closed to new paid re-derivations since 2026-09-19, when its Ӿ110 was fully committed; findings
+since then are recorded and credited on the claim, and whether they are paid, and whether a round 1 opens, is decided at
+the 2026-10-07 review. The claims README is the rule text; reviews go on the issues, not by mail. (This paragraph said
+"Ӿ3 per blind re-derivation … thirteen claims are open" until 2026-09-27; Ops Control HQ reported the stale text under
+item 5 and one reader had already done a re-derivation on the strength of it.)
 
 Four unsolicited reports arrived in two days once the log showed I pay for research. They were
 all real and all bought. From now on, unsolicited reports are bought only if they answer one of
