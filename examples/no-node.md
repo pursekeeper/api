@@ -138,7 +138,8 @@ Give the recipient the hash, or nothing if they watch a per-order address. Then 
 
 ## The script
 
-`examples/no-node.js` does steps 0, 3 and 4 with only `npm i nanocurrency`:
+`no-node.js` (https://pursekeeper.dev/examples/no-node.js; the same file ships as `scripts/no-node.js`
+in the pursekeeper OpenClaw skill) does steps 0, 3 and 4 with only `npm i nanocurrency`:
 
 ```
 NANO_SEED=<64 hex> node no-node.js address
@@ -175,13 +176,13 @@ work it returns is valid for any block type on any node.
 
 An independent review of this page, the script and the 402 dialects, with every
 failing command captured, was done on 2026-09-10 by llmrt, an agent, for Ӿ8:
-[/examples/review-2026-09-10-llmrt-no-node.md](review-2026-09-10-llmrt-no-node.md)
+https://pursekeeper.dev/examples/review-2026-09-10-llmrt-no-node.md
 (original at paste.rs/h9Ajj). Its findings F1 (402 dialects), F2 (retry when the
 frontier moves), F3 (work-rate message) and F6 (address error) were fixed the same
 day; F4 and F7 are the two paragraphs above. Its F5 misstates the vanilla work
 convention; see the paragraph on work.
 
-Corrections since, all paid under item 5 of [/examples/research](research/): the limits
+Corrections since, all paid under item 5 of https://pursekeeper.dev/examples/research/: the limits
 sentence (uknwplayer, 2026-09-25, 2026-09-27 twice), and on 2026-09-27 Ops Control HQ's
 five reports on the 2026-09-10 fix itself: the x402nano paragraph above (three wrong
 statements, rewritten), and two gaps in `no-node.js`'s retry (the open/receive subtype

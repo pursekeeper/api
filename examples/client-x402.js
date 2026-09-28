@@ -5,6 +5,7 @@
 //   NANO_SEED=<64 hex> node client-x402.js [url]      (default: pursekeeper.dev/v1/echo?msg=hello)
 //
 // Env: NANO_SEED (required), NANO_INDEX (account index, default 0),
+//      NANO_MAX_PAY (spending cap in NANO as decimal text, default 0.01; a 402 quote above it is refused, nothing signed, exit 3),
 //      NANO_RPC (optional node RPC override for account_info),
 //      API (no-node account-info service, default https://pursekeeper.dev),
 //      WORK_URL (optional RPC-style work_generate endpoint),
@@ -62,7 +63,7 @@ async function work(hash, origin) {
   console.error('paying from', account);
 
   const extraHeaders = process.env.HEADERS ? JSON.parse(process.env.HEADERS) : {}; // e.g. HEADERS='{"authorization":"Bearer ..."}'
-const reqInit = () => ({ method: process.env.METHOD || 'GET', body: process.env.BODY, headers: { ...(process.env.BODY ? { 'content-type': 'application/json' } : {}), ...extraHeaders } });
+  const reqInit = () => ({ method: process.env.METHOD || 'GET', body: process.env.BODY, headers: { ...(process.env.BODY ? { 'content-type': 'application/json' } : {}), ...extraHeaders } });
   const first = await fetch(url, reqInit());
   if (first.status !== 402) { console.log(first.status, await first.text()); return; }
   const hdr = first.headers.get('payment-required');
@@ -71,6 +72,23 @@ const reqInit = () => ({ method: process.env.METHOD || 'GET', body: process.env.
   const accepted = pr.accepts.find(a => a.scheme === 'exact' && a.network === 'nano:mainnet');
   if (!accepted) throw new Error('seller does not accept exact on nano:mainnet: ' + JSON.stringify(pr.accepts));
   console.error(`seller wants ${accepted.amount} raw (${Number(accepted.amount) / 1e30} NANO) to ${accepted.payTo}`);
+  // Spending cap. A 402 is a stranger's quote; never sign for more than you decided beforehand.
+  // NANO_MAX_PAY is in NANO (default 0.01). Set it higher on purpose, per run, when you mean it.
+  // Parsed as decimal text straight to raw, the way no-node.js parses amounts, never through a float:
+  // 0.1.1 rounded the cap to millionths, so a cap below 0.000001 became zero and refused everything,
+  // and a value that was not a number threw a BigInt RangeError instead of using the default
+  // (both reported by pyfile-toolkit, pursekeeper/skill#1, 2026-09-26).
+  const toRaw = s => { const m = /^(\d+)(?:\.(\d{1,30}))?$/.exec(s); return m ? BigInt(m[1]) * 10n ** 30n + BigInt((m[2] || '').padEnd(30, '0')) : null; };
+  const capText = (process.env.NANO_MAX_PAY || '').trim();
+  let capShown = capText, maxRaw = capText ? toRaw(capText) : null;
+  if (maxRaw === null) {
+    if (capText) console.error(`NANO_MAX_PAY=${JSON.stringify(capText)} is not a decimal NANO amount (digits, optionally a point and up to 30 decimals); using the default 0.01`);
+    capShown = '0.01'; maxRaw = toRaw(capShown);
+  }
+  if (BigInt(accepted.amount) > maxRaw) {
+    console.error(`refusing: quote ${Number(accepted.amount) / 1e30} NANO (${accepted.amount} raw) is above NANO_MAX_PAY (${capShown} NANO = ${maxRaw} raw). Nothing signed.`);
+    process.exit(3);
+  }
 
   const info = await accountInfo(account);
   if (info.error) throw new Error('account_info: ' + info.error + ' (is the account opened and funded?)');
