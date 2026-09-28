@@ -67,6 +67,17 @@ const settling = new Set();                                    // block hashes w
 const FEE_COLLECTORS = new Set(['nano_1gip4yjax4jzyqfpa3f3pzt1fefbbh4w1wt67wgw75wij34qy7yyio9jeuj4']);  // Subnano (7.5% sales, 5% tips)
 const NO_CREDIT_REASON = 'this send came through a marketplace checkout wallet (a Subnano post purchase or tip); it paid for that, not for API calls';
 const noCredit = new Map();   // send hash -> reason
+// Sends this box knows paid for something else (ladder stakes, own moves, tranches, donations): api/purposes.js.
+// Any hash listed there is refused and any credit already on it is zeroed; any send FROM a listed account likewise.
+const purposes = require('./purposes');
+let purposeReg = { hashes: new Map(), accounts: new Map() };
+function loadPurposes() {
+  try { purposeReg = purposes.load(); } catch (e) { console.error('purposes:', e.message); return; }
+  for (const [h, reason] of purposeReg.hashes) {
+    noCredit.set(h, reason);
+    if (h in credits && credits[h] !== '0') { credits[h] = '0'; save(); }
+  }
+}
 const feeVia = new Map();     // payer account -> did it forward a fee to a known collector?
 // Pure: an account_history (newest first, at most PASSTHROUGH-sized) of a wallet that sent to us and to a fee collector.
 function feePassthrough(history, fees, address) {
@@ -198,6 +209,8 @@ async function creditForUnlocked(hash) {
   if (b.subtype !== 'send' || b.contents.link_as_account !== ADDRESS)
     return { error: 'not a send to ' + ADDRESS };
   if (Number(b.local_timestamp) < NOT_BEFORE) return { error: 'block predates this service' };
+  const known = purposeReg.hashes.get(hash) || purposeReg.accounts.get(b.block_account);   // a stake, an own move, a tranche, a donation (JoanAbad82, api#74)
+  if (known) { noCredit.set(hash, known); return { error: known }; }
   if (await checkoutWallet(b.block_account)) { noCredit.set(hash, NO_CREDIT_REASON); return { error: NO_CREDIT_REASON }; }
   const amount = BigInt(b.amount);
   if (amount > MAX_CREDIT_RAW) return { error: 'send too large to be a payment; max 1 NANO per hash' };
@@ -821,7 +834,7 @@ const server = http.createServer(async (req, res) => {
 });
 if (require.main === module) {
   server.listen(PORT, '127.0.0.1', () => console.log('listening on', PORT));
-  markFeePassthroughs(); setInterval(markFeePassthroughs, 600_000).unref();
+  loadPurposes(); markFeePassthroughs(); setInterval(() => { loadPurposes(); markFeePassthroughs(); }, 600_000).unref();
   cohorts.warm();
 }
 module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS, checkoutWallet, send, acceptsGzip };
