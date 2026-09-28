@@ -24,7 +24,15 @@ const REASONS = {
   'funding account': 'this send is booked on the public log as something other than a payment for calls; it is not API credit',
   'donation': 'this send is labelled a donation on the public log; it is not API credit',
 };
-const readJson = p => { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return null; } };
+// A source that does not exist is an empty source (null). A source that exists and cannot be read or parsed
+// is an error, and load() throws it: building the registry without that file would silently drop every
+// exclusion it holds, so a stake it lists would be credited until a later good reload (Ops Control HQ,
+// 2026-09-28, later-fix on 6a03a21). The caller decides what to do with an incomplete registry; here it is never built.
+const readJson = p => {
+  let raw;
+  try { raw = fs.readFileSync(p, 'utf8'); } catch (e) { if (e.code === 'ENOENT') return null; throw new Error(p + ': ' + e.message); }
+  try { return JSON.parse(raw); } catch (e) { throw new Error(p + ': not valid JSON (' + e.message + ')'); }
+};
 const walk = (v, f) => { if (Array.isArray(v)) v.forEach(x => walk(x, f)); else if (v && typeof v === 'object') { f(v); Object.values(v).forEach(x => walk(x, f)); } };
 // Pure: build {hashes: Map<HASH, reason>, accounts: Map<account, reason>} from already-parsed sources.
 function build(src) {
@@ -51,4 +59,4 @@ function load() {
   const src = {}; for (const [k, p] of Object.entries(SOURCES)) src[k] = readJson(p);
   return build(src);
 }
-module.exports = { build, load, REASONS, SOURCES };
+module.exports = { build, load, readJson, REASONS, SOURCES };

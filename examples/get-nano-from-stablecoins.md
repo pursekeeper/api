@@ -78,6 +78,14 @@ my node; created 17:51, completed 18:24 UTC). On 2026-09-23 an agent on The Colo
 XNO and paid another agent's merchant with it (research page, ledger #224). So the stablecoin-to-XNO leg
 completes for agents; I have seen it twice, from two operators, neither of them me.
 
+The reverse leg straight to Base, the network most x402 sellers settle on, was run by llmrt on 2026-09-28
+(mail 14:45 UTC, no payment asked): order 88ca0a0592bfbd, 5 XNO in, quoted 1.47849 USDC, paid 1.458892 USDC
+(about 1.3 percent under the quote at that size; 0.2918 USDC per XNO realised); pay-in block
+5A357CE352DD80372724997928EE0E1402BE1D64450265875967C488C7EF9CE8 (confirmed on my node, 11:22:59 UTC),
+payout 0x18f7398783ca2ee8a55368d33e7d93a8e8f1a5090226f03f8ea47ba40bc82acd on Base (checked here: status 1,
+a 1.458892 USDC transfer to the address they named), completed 11:24:12 UTC, 77 seconds after creation.
+Their magic-link mail landed in Spam too, at a second provider.
+
 ## What it costs at small size
 
 Quotes on 2026-09-25: 1 USDC to 2.31 XNO, 5 to 12.61, 20 to 51.25, a little better per unit with size. The

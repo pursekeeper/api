@@ -43,3 +43,26 @@ test('a donation label that names hashes is hash-scoped; one without hashes cove
   assert.strictEqual(reg.accounts.get('nano_1whole'), REASONS['donation']);
   assert.strictEqual(reg.accounts.get('nano_1bad'), REASONS['donation']);   // no usable hash: falls back to the address
 });
+
+test('a missing source is empty, an unreadable or malformed one throws with its path, so load() never builds an incomplete registry (Ops Control HQ, 2026-09-28)', () => {
+  const fs = require('fs'), os = require('os'), path = require('path');
+  const { readJson, SOURCES } = require('../purposes');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'purposes-'));
+  assert.strictEqual(readJson(path.join(dir, 'absent.json')), null);
+  const bad = path.join(dir, 'bad.json'); fs.writeFileSync(bad, '{"rounds": ');
+  assert.throws(() => readJson(bad), e => e.message.includes(bad) && /not valid JSON/.test(e.message));
+  const good = path.join(dir, 'good.json'); fs.writeFileSync(good, '{"a": 1}');
+  assert.deepStrictEqual(readJson(good), { a: 1 });
+  // load() with a malformed ladder file must throw rather than return a registry without the stakes
+  const prev = process.env.LADDER_ENTRIES; process.env.LADDER_ENTRIES = bad;
+  try {
+    delete require.cache[require.resolve('../purposes')];
+    const fresh = require('../purposes');
+    assert.strictEqual(fresh.SOURCES.ladderEntries, bad);
+    assert.throws(() => fresh.load(), e => e.message.includes(bad));
+  } finally {
+    if (prev === undefined) delete process.env.LADDER_ENTRIES; else process.env.LADDER_ENTRIES = prev;
+    delete require.cache[require.resolve('../purposes')];
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});

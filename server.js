@@ -77,10 +77,17 @@ const noCredit = new Map();   // send hash -> reason
 // Any hash listed there is refused and any credit already on it is zeroed; any send FROM a listed account likewise.
 const purposes = require('./purposes');
 let purposeReg = { hashes: new Map(), accounts: new Map() };
+// purposeRegOk: the registry in memory was built from every source, read and parsed. Until then no bearer
+// hash is credited (creditFor answers "retry shortly"): an unreadable or malformed source used to load as
+// "absent", so a stake it listed would have been accepted until a later successful reload (Ops Control HQ,
+// 2026-09-28, later-fix on 6a03a21). A failed reload after a good one keeps the last complete registry and
+// says so in the log; the next round retries. x402 payments are fresh signed blocks and never consult this.
+let purposeRegOk = false;
 let reloading = null;   // one reload at a time; startup awaits the first (Ops Control HQ, 2026-09-28: the async reload raced the first requests)
 function loadPurposes() { return reloading || (reloading = loadPurposesNow().finally(() => { reloading = null; })); }
 async function loadPurposesNow() {
-  try { purposeReg = purposes.load(); } catch (e) { console.error('purposes:', e.message); return; }
+  try { purposeReg = purposes.load(); purposeRegOk = true; }
+  catch (e) { console.error('purposes: registry NOT reloaded (' + e.message + '); ' + (purposeRegOk ? 'keeping the last complete one' : 'bearer credit stays refused until a load succeeds')); if (!purposeRegOk) setTimeout(loadPurposes, 30_000).unref(); return; }
   for (const [h, reason] of purposeReg.hashes) {
     noCredit.set(h, reason);
     if (h in credits && credits[h] !== '0') { credits[h] = '0'; save(); }
@@ -88,10 +95,14 @@ async function loadPurposesNow() {
   // A credit whose source account is now excluded is revoked as well, not only one whose hash is listed
   // (the first version zeroed by hash only, so an account exclusion held from the next presentation on, never
   // retroactively; Ops Control HQ, 2026-09-28). The account is looked up once per hash and remembered.
+  // The lookups are best effort and bounded: the first failure ends them for this round (one RPC timeout at
+  // most, not one per credit), and a credit whose account is still unknown is looked up, or refused, when it
+  // is presented (creditForUnlocked), so the barrier cannot hang startup on a stalled node (Ops Control HQ, 2026-09-28).
+  let nodeDown = false;
   for (const [h, v] of Object.entries(credits)) {
     if (v === '0' || noCredit.has(h)) continue;
     let acct = creditAccounts[h];
-    if (!acct) { try { const b = await rpc({ action: 'block_info', json_block: 'true', hash: h }); acct = b && b.block_account; } catch { /* node unavailable: next round */ } if (acct) { creditAccounts[h] = acct; saveCreditAccounts(); } }
+    if (!acct && !nodeDown) { try { const b = await rpc({ action: 'block_info', json_block: 'true', hash: h }); acct = b && b.block_account; } catch { nodeDown = true; console.error('purposes: node unavailable, remaining account lookups left to presentation time'); } if (acct) { creditAccounts[h] = acct; saveCreditAccounts(); } }
     const reason = acct && purposeReg.accounts.get(acct);
     if (reason) { noCredit.set(h, reason); credits[h] = '0'; save(); }
   }
@@ -149,8 +160,12 @@ const stats = { calls_paid: 0, calls_x402: 0, calls_402: 0, started: new Date().
 let x402Log = [];
 try { x402Log = JSON.parse(fs.readFileSync(X402_LOG, 'utf8')); } catch {}
 
+// Every node call is bounded: a node that accepts the connection and never answers would otherwise hold
+// whatever awaited it forever, and since 6a03a21 the startup barrier awaits a block_info per unrecorded
+// credit (Ops Control HQ, 2026-09-28). A local node answers these in milliseconds; 15 s is generous.
+const RPC_TIMEOUT_MS = Number(process.env.RPC_TIMEOUT_MS || 15_000);
 async function rpc(body) {
-  const r = await fetch(RPC, { method: 'POST', body: JSON.stringify(body) });
+  const r = await fetch(RPC, { method: 'POST', body: JSON.stringify(body), signal: AbortSignal.timeout(RPC_TIMEOUT_MS) });
   return r.json();
 }
 
@@ -220,6 +235,7 @@ async function creditForUnlocked(hash) {
   if (!/^[0-9A-F]{64}$/i.test(hash)) return { error: 'bad hash' };
   hash = hash.toUpperCase();
   if (noCredit.has(hash)) return { error: noCredit.get(hash) };
+  if (!purposeRegOk) return { error: 'the list of sends that are not API credit could not be loaded; bearer credit is refused until it is, retry shortly (x402 payments are unaffected)' };
   if (hash in credits) {
     if (!creditAccounts[hash] && credits[hash] !== '0') {   // stored before accounts were kept: look it up now rather than trust the reload to have finished
       try { const b = await rpc({ action: 'block_info', json_block: 'true', hash }); if (b && b.block_account) { creditAccounts[hash] = b.block_account; saveCreditAccounts(); } } catch { /* node unavailable */ }
