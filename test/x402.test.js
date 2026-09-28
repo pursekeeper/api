@@ -147,6 +147,52 @@ test('settle: process success and failure', async () => {
   assert.equal(hdr.transaction, 'ABC');
 });
 
+// A lost /process reply: the block may be on the node anyway. With deps.hash and deps.landed the outcome is taken
+// from the node; without deps.landed the plain failure stands (Ops Control HQ, 2026-09-28).
+test('settle: a lost or failed process reply is settled from the node when the block landed', async () => {
+  const b = makeBlock();
+  const H = 'C'.repeat(64);
+  const thrown = await x.settle(b, payer, { hash: H, process: async () => { throw new Error('socket hang up'); }, landed: async h => { assert.equal(h, H); return true; } });
+  assert.deepEqual(thrown, { success: true, network: 'nano:mainnet', transaction: H, payer });
+  const errored = await x.settle(b, payer, { hash: H, process: async () => ({ error: 'Old block' }), landed: async () => true });
+  assert.deepEqual(errored, { success: true, network: 'nano:mainnet', transaction: H, payer });
+  assert.equal(decodePaymentResponseHeader(x.settleHeader(thrown)).transaction, H);
+});
+
+test('settle: landed false says a rebuilt payment is safe, null says to check the hash first', async () => {
+  const b = makeBlock();
+  const H = 'D'.repeat(64);
+  const no = await x.settle(b, payer, { hash: H, process: async () => { throw new Error('down'); }, landed: async () => false });
+  assert.equal(no.success, false); assert.equal(no.transaction, '');
+  assert.match(no.errorReason, /^node rpc failed: down; the block did not land, a rebuilt payment is safe$/);
+  const unknown = await x.settle(b, payer, { hash: H, process: async () => ({ error: 'Gap previous' }), landed: async () => null });
+  assert.equal(unknown.success, false);
+  assert.equal(unknown.errorReason, 'process rejected the block: Gap previous; the block may have landed, check hash ' + H + ' before paying again');
+  const threw = await x.settle(b, payer, { hash: H, process: async () => { throw new Error('down'); }, landed: async () => { throw new Error('node down too'); } });
+  assert.equal(threw.success, false); assert.match(threw.errorReason, /may have landed, check hash D{64} before paying again$/);
+  const plain = await x.settle(b, payer, { hash: H, process: async () => { throw new Error('down'); } });   // no landed dep: as before
+  assert.equal(plain.success, false); assert.equal(plain.errorReason, 'node rpc failed: down');
+});
+
+// A resend of a payment whose settle reply was lost: the block is already the payer's frontier. verify() answers ok
+// with alreadyLanded when blockInfo shows the landed block sent exactly the amount; seen() still refuses a hash served.
+test('verify: a block that is already the frontier is ok with alreadyLanded when it sent the right amount', async () => {
+  const b = makeBlock();
+  const hash = N.hashBlock({ account: payer, previous: FRONTIER, representative: payer, balance: b.balance, link: PAY_TO });
+  const landedInfo = () => info({ frontier: hash, confirmation_height_frontier: hash, balance: (BALANCE - AMOUNT).toString() });
+  let asked = null;
+  const r = await x.verify(payload(b), REQ, deps({ accountInfo: async () => landedInfo(), blockInfo: async h => { asked = h; return { subtype: 'send', amount: AMOUNT.toString(), contents: {} }; } }));
+  assert.equal(r.ok, true, r.reason); assert.equal(r.alreadyLanded, true); assert.equal(r.hash, hash); assert.equal(r.payer, payer); assert.equal(asked, hash);
+  const wrongAmount = await x.verify(payload(b), REQ, deps({ accountInfo: async () => landedInfo(), blockInfo: async () => ({ subtype: 'send', amount: '1' }) }));
+  assert.equal(wrongAmount.ok, false); assert.match(wrongAmount.reason, /sends 1 raw; exactly/);
+  const noDep = await x.verify(payload(b), REQ, deps({ accountInfo: async () => landedInfo() }));
+  assert.equal(noDep.ok, false); assert.match(noDep.reason, /previous/);
+  const served = await x.verify(payload(b), REQ, deps({ accountInfo: async () => landedInfo(), seen: async () => true, blockInfo: async () => ({ subtype: 'send', amount: AMOUNT.toString() }) }));
+  assert.equal(served.ok, false); assert.match(served.reason, /already used/);
+  const plainStale = await x.verify(payload(b), REQ, deps({ accountInfo: async () => info({ frontier: 'A'.repeat(64), confirmation_height_frontier: 'A'.repeat(64) }), blockInfo: async () => ({ subtype: 'send', amount: AMOUNT.toString() }) }));
+  assert.equal(plainStale.ok, false); assert.match(plainStale.reason, /previous/);
+});
+
 test('402 header round-trips through @x402/core and matches the v2 schema', () => {
   const pr = x.paymentRequired({ requirements: REQ, url: 'https://pursekeeper.dev/v1/echo?msg=hi', description: 'echo', error: 'payment required' });
   const back = decodePaymentRequiredHeader(pr.header);

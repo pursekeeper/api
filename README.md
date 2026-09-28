@@ -43,7 +43,7 @@ the credit. Fine at 0.001 NANO per call; not a design for anything larger.
 | GET    | `/v1/requests?hash=H` | no | was H (a block hash, or a frontier that work was asked for) worked or broadcast through this server? `{found, entries}` from a per-call log kept since 2026-09-16, no raw IPs. For checking a report that says "I did not use pursekeeper.dev". 60 per minute per IP |
 | GET/POST | `https://facilitator.pursekeeper.dev/{supported,verify,settle,stats}` | no | a public x402 **facilitator** for scheme `exact` on `nano:mainnet` (also under `/facilitator/*` on pursekeeper.dev): the nine checks of the scheme text in x402-foundation/x402#3432 plus a confirmed-frontier check and a requirements match; distinct failure codes (`frontier_moved`, `amount_mismatch`, `invalid_work`, `block_already_exists`, ...). Holds no funds, needs no key. Docs at its `/`; code in `facilitator.js`. 120 verify / 60 settle per minute per IP |
 | POST   | `/v1/process`         | no   | `{"block": {…signed state block with work…}, "subtype": "send\|receive\|open\|change"}` -> broadcast through this node, returns `{ok, hash}` or the node's error with a hint. With `/v1/work`, `/v1/receivable` and `/v1/verify` this is enough to pocket and spend from a seed with no node: [examples/no-node.md](examples/no-node.md). 60 per minute per IP |
-| POST   | `/v1/work`            | no*  | `{"hash": H}` -> work_generate at the send threshold; 6 per minute per IP free, or with `X-Nano-Payment` credit / x402 `PAYMENT-SIGNATURE` at the standard price per work with no limit (*paid calls skip the limit). Work comes from a GPU and takes about a second: always for paid calls and for accounts that have paid this server before, and for other free calls while a shared budget of 30 free proofs a minute lasts; past that, free work comes from hosted CPU sources or the local node and can take 10 seconds or more. The reply's `source`, `ms` and `tier` say which path answered |
+| POST   | `/v1/work`            | no*  | `{"hash": H}` -> work_generate at the send threshold; 6 per minute per IP free, or with `X-Nano-Payment` credit / x402 `PAYMENT-SIGNATURE` at the standard price per work with no per-minute limit (*paid calls skip the per-IP limit; at most four proofs are generated at once and a fifth call answers 503 with nothing charged). Work comes from a GPU and takes about a second: always for paid calls and for accounts that have paid this server before, and for other free calls while a shared budget of 30 free proofs a minute lasts; past that, free work comes from hosted CPU sources or the local node and can take 10 seconds or more. The reply's `source`, `ms` and `tier` say which path answered |
 
 ```sh
 curl -s 'https://pursekeeper.dev/v1/fetch?url=https://example.com' \
@@ -67,10 +67,12 @@ payTo's key, previous is the confirmed frontier, balance drop is exactly the
 amount, work at the send threshold, then the reference `@x402nano/exact`
 facilitator verify as a second gate), broadcasts it with the node's `process`
 RPC, and answers with `PAYMENT-RESPONSE` carrying the hash. A settled block is
-recorded with zero credit so it cannot be replayed through `X-Nano-Payment`, with one
-exception: when `/v1/fetch` cannot follow a redirect, the price goes back on the settled
-block's hash as `X-Nano-Payment` credit and the 400 note says to retry with it (since
-2026-09-27 16:41 UTC; this sentence lagged that change until 2026-09-28, uknwplayer, item 5).
+recorded with zero credit so it cannot be replayed through `X-Nano-Payment`, with two
+exceptions: when `/v1/fetch` answers 400 because a redirect could not be followed, or
+`/v1/work` answers 502 because work generation failed, the price goes back on the settled
+block's hash as `X-Nano-Payment` credit and the 400 or 502 body names the full hash to retry
+with (since 2026-09-27 16:41 UTC for `/v1/fetch`; this sentence lagged that change until
+2026-09-28, uknwplayer, item 5, and named only that route until 2026-09-28, PlatinumVera).
 A send that reached this address through a marketplace checkout wallet (a Subnano post
 purchase or tip: a one-time wallet that pays us and the platform's fee collector) paid for that,
 not for API calls, and is refused as credit with a plain reason. The payer wallet is checked

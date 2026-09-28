@@ -73,7 +73,10 @@ const nanoPrefix = a => String(a).replace(/^xrb_/, 'nano_');
 //   seen(hash)           -> optional; true if this hash was already settled or credited
 //   workGenerate(hash)   -> optional; returns work for the payer's frontier when the block
 //                           carries none (or invalid work). Runs last, after every cheap check.
-// Returns { ok, reason?, payer?, hash?, block?, workBy? ('client'|'seller') }. Never throws.
+//   blockInfo(hash)      -> optional; block_info RPC result for a block that is already the
+//                           account frontier (a resend after a lost settle reply): its amount
+//                           is checked there, since the balance drop is no longer readable
+// Returns { ok, reason?, payer?, hash?, block?, workBy? ('client'|'seller'), alreadyLanded? }. Never throws.
 async function verify(payload, required, deps) {
   const fail = (reason, payer = '') => ({ ok: false, reason, payer });
   try {
@@ -129,7 +132,21 @@ async function verify(payload, required, deps) {
     if (!info || info.error) return fail(info && info.error === 'Account not found' ? 'payer account is not opened' : 'account_info failed: ' + (info && info.error), payer);
     const frontier = up(info.frontier || '');
     if (!frontier) return fail('payer account has no frontier', payer);
-    if (frontier !== block.previous) return fail('block.previous is not the account frontier (' + frontier + ')', payer);
+    if (frontier !== block.previous) {
+      // The frontier is this very block: it landed on an earlier attempt whose settle reply was lost and the client
+      // resent the same payment. Served once (seen() above refuses a hash already served) and only when the node
+      // shows what it sent: account_info now holds the post-send balance, so the landed block's own amount is
+      // checked through blockInfo instead; without that dep the stale-previous refusal stands (Ops Control HQ, 2026-09-28).
+      if (frontier === up(hash) && deps.blockInfo) {
+        let b;
+        try { b = await deps.blockInfo(hash); } catch (e) { return fail('node rpc failed: ' + e.message, payer); }
+        if (b && !b.error && b.subtype === 'send') {
+          if (String(b.amount) !== String(required.amount)) return fail('the block on the chain sends ' + b.amount + ' raw; exactly ' + required.amount + ' raw required', payer);
+          return { ok: true, payer, hash, block, workBy: 'client', alreadyLanded: true };
+        }
+      }
+      return fail('block.previous is not the account frontier (' + frontier + ')', payer);
+    }
     // Modern include_confirmed responses use confirmed_frontier; legacy nodes
     // use confirmation_height_frontier. Require evidence instead of skipping
     // this gate when metadata is missing, and reject contradictory fields.
@@ -171,12 +188,24 @@ async function verify(payload, required, deps) {
 }
 
 // Broadcast a verified block. deps.process(block) -> RPC "process" result ({hash} or {error}).
+// Optional deps.hash (the block's hash) and deps.landed(hash) -> true | false | null (on the node, not, cannot tell):
+// when process throws or answers an error the block may have landed anyway (a lost reply), so the outcome is taken
+// from the node's view of the hash rather than reported as a failed payment; the reason then says whether a rebuilt
+// payment is safe. Without deps.landed the old failure stands (Ops Control HQ, 2026-09-28).
 async function settle(block, payer, deps) {
   const failed = reason => ({ success: false, network: NETWORK, transaction: '', errorReason: reason, payer });
+  const settled = hash => ({ success: true, network: NETWORK, transaction: up(hash), payer });
+  const afterFailure = async reason => {
+    if (!deps.landed) return failed(reason);
+    let landed; try { landed = await deps.landed(deps.hash); } catch { landed = null; }
+    if (landed === true) return settled(deps.hash);
+    if (landed === false) return failed(reason + '; the block did not land, a rebuilt payment is safe');
+    return failed(reason + '; the block may have landed, check hash ' + deps.hash + ' before paying again');
+  };
   let r;
-  try { r = await deps.process(block); } catch (e) { return failed('node rpc failed: ' + e.message); }
-  if (!r || r.error || !r.hash) return failed('process rejected the block: ' + (r && r.error || 'no hash'));
-  return { success: true, network: NETWORK, transaction: up(r.hash), payer };
+  try { r = await deps.process(block); } catch (e) { return afterFailure('node rpc failed: ' + e.message); }
+  if (!r || r.error || !r.hash) return afterFailure('process rejected the block: ' + (r && r.error || 'no hash'));
+  return settled(r.hash);
 }
 
 function settleHeader(settleResponse) { return http.encodePaymentResponseHeader(settleResponse); }

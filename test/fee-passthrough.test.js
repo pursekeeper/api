@@ -23,8 +23,15 @@ test('a throwaway payer that sends everything to us is not: no fee send, so its 
 test('a wallet that paid the collector but not us is not', () => {
   assert.equal(feePassthrough(subnano.filter(x => x.account !== ME), FEE_COLLECTORS, ME), false);
 });
-test('an account with a longer history is never a checkout wallet, even if it once paid the collector', () => {
-  const long = [...subnano, { type: 'receive', account: BUYER, amount: '1' }, { type: 'send', account: BUYER, amount: '1' }];
+test('a five-row history whose rows hold both sends is a checkout wallet: the window is scanned whole, however long', () => {
+  // The old `> 4 rows` guard answered false here, so such a wallet was cached as a real payer (Ops Control HQ, 2026-09-28).
+  const five = [...subnano, { type: 'receive', account: BUYER, amount: '1' }, { type: 'send', account: BUYER, amount: '1' }];
+  assert.equal(feePassthrough(five, FEE_COLLECTORS, ME), true);
+  const later = [{ type: 'send', account: BUYER, amount: '1' }, { type: 'receive', account: BUYER, amount: '1' }, ...subnano];
+  assert.equal(feePassthrough(later, FEE_COLLECTORS, ME), true);
+});
+test('a long history with no fee send is not, whatever its length', () => {
+  const long = [...subnano.filter(x => x.account !== FEE), ...Array.from({ length: 7 }, () => ({ type: 'send', account: BUYER, amount: '1' }))];
   assert.equal(feePassthrough(long, FEE_COLLECTORS, ME), false);
 });
 test('empty or missing history is not', () => {

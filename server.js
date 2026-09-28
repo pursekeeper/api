@@ -110,9 +110,11 @@ async function loadPurposesNow() {
   }
 }
 const feeVia = new Map();     // payer account -> did it forward a fee to a known collector?
-// Pure: an account_history (newest first, at most PASSTHROUGH-sized) of a wallet that sent to us and to a fee collector.
+// Pure: does an account_history window (newest first, whatever size the caller fetched) hold a send to us and a send to
+// a fee collector? The old `> 4 rows` guard refused to look at a five-row window, so a checkout wallet whose newest rows
+// held both sends read as a real payer (Ops Control HQ, 2026-09-28).
 function feePassthrough(history, fees, address) {
-  if (!history || !history.length || history.length > 4) return false;
+  if (!history || !history.length) return false;
   const sends = history.filter(x => x.type === 'send');
   return sends.some(x => x.account === address) && sends.some(x => fees.has(x.account));
 }
@@ -127,7 +129,7 @@ async function markFeePassthroughs() {
     if (!src || noCredit.has(src.toUpperCase())) continue;
     if (!feeVia.has(r.counterparty)) {
       let hist;
-      try { hist = (await rpc({ action: 'account_history', account: r.counterparty, count: '5' })).history || []; } catch { continue; }   // node unavailable: next round
+      try { hist = (await rpc({ action: 'account_history', account: r.counterparty, count: '10' })).history || []; } catch { continue; }   // node unavailable: next round
       const isFee = feePassthrough(hist, FEE_COLLECTORS, ADDRESS);
       if (hist.length >= 3) feeVia.set(r.counterparty, isFee);   // a checkout wallet has three blocks; fewer means it may still be settling
       if (!isFee) continue;
@@ -140,21 +142,26 @@ async function markFeePassthroughs() {
 // first presented, so a receipt cannot be spent in the minutes before the ten-minute round sees it.
 // A wallet that opened within the last minute with fewer than three blocks may still be settling
 // its fee block (it followed our share by 1-3 s in every case so far): look once more after 3 s.
-// true: a marketplace checkout wallet; false: positively observed not to be one; null: could not tell (node
-// unavailable or an RPC error). A null must not become credit: it used to collapse to false, so a checkout
-// send presented during an RPC outage became bearer credit until the ten-minute pass caught it (Ops Control HQ, 2026-09-28).
+// true: a marketplace checkout wallet (cached). false only where it is positively observed: three or more blocks in
+// the newest ten with no fee send (cached), or fewer than three blocks in an account older than a minute (not cached).
+// null: could not tell: node unavailable, an RPC error, or an account under a minute old that is still shorter than
+// three blocks after the retry (its fee block may still be settling; not cached, the caller answers "retry shortly").
+// A null must not become credit: it used to collapse to false, so a checkout send presented during an RPC outage
+// became bearer credit until the ten-minute pass caught it, and the young-and-short case answered false after the
+// retry and was cached as a real payer by the next round (Ops Control HQ, 2026-09-28).
 async function checkoutWallet(account) {
   if (feeVia.has(account)) return feeVia.get(account);
   for (let attempt = 0; attempt < 2; attempt++) {
     let hist;
-    try { const a = await rpc({ action: 'account_history', account, count: '5' }); if (!a || a.error || !Array.isArray(a.history)) return null; hist = a.history; } catch { return null; }
+    try { const a = await rpc({ action: 'account_history', account, count: '10' }); if (!a || a.error || !Array.isArray(a.history)) return null; hist = a.history; } catch { return null; }
     if (feePassthrough(hist, FEE_COLLECTORS, ADDRESS)) { feeVia.set(account, true); return true; }
     if (hist.length >= 3) { feeVia.set(account, false); return false; }
     const opened = hist.length ? Number(hist[hist.length - 1].local_timestamp) : 0;
-    if (attempt || Date.now() / 1000 - opened > 60) return false;   // a short but older account is a real payer
+    if (Date.now() / 1000 - opened > 60) return false;   // a short but older account is a real payer
+    if (attempt) return null;   // still short and under a minute old after the retry: indeterminate, not cached
     await new Promise(r => setTimeout(r, 3000));
   }
-  return false;
+  return null;
 }
 const RAW_PER_NANO = 10n ** 30n;
 
@@ -178,7 +185,7 @@ async function rpc(body) {
 // work_generate for `hash` at the send threshold via the first source that answers.
 // Returns { work, source, ms } or throws with the last error.
 const workStats = { generated: 0, by_source: {}, by_tier: {}, last_error: '' };
-// tier: 'paid' (GPU, no limit), 'payer' (free call from an account that has paid before: GPU, no
+// tier: 'paid' (GPU, no per-minute limit; at most four proofs at once), 'payer' (free call from an account that has paid before: GPU, no
 // shared budget), 'free' (GPU while the shared budget lasts), 'free-slow' (budget spent: hosted key, then node).
 async function workFor(hash, { timeoutMs = 30_000, paid = false, knownPayer = false } = {}) {
   let tier = paid ? 'paid' : knownPayer ? 'payer' : takeFreeGpu() ? 'free' : 'free-slow';
@@ -383,13 +390,22 @@ async function chargeX402(req, res, headerValue) {
     accountInfo: account => rpc({ action: 'account_info', account, representative: 'true', include_confirmed: 'true' }),
     seen: async h => (h in credits) || settling.has(h),
     reference: x402Reference,
+    blockInfo: h => rpc({ action: 'block_info', json_block: 'true', hash: h }),   // amount of a block that already landed (alreadyLanded)
     workGenerate: async hash => (await workFor(hash, { paid: true })).work   // a paying block earns its work
   });
   if (!v.ok) return paymentRequired(res, 'x402: ' + v.reason, req), false;
-  settling.add(v.hash);
   let s;
-  try { s = await x402.settle(v.block, v.payer, { process: block => rpc({ action: 'process', json_block: 'true', subtype: 'send', block }) }); }
-  finally { settling.delete(v.hash); }
+  // A block that is already the payer's frontier landed on an earlier attempt whose settle reply was lost: no second
+  // broadcast, served as settled. A lost or failed process reply is likewise settled from the node's view of the hash
+  // (deps.landed), not reported as a failed payment (Ops Control HQ, 2026-09-28).
+  if (v.alreadyLanded) s = { success: true, network: x402.NETWORK, transaction: v.hash, payer: v.payer };
+  else {
+    settling.add(v.hash);
+    try {
+      s = await x402.settle(v.block, v.payer, { hash: v.hash, process: block => rpc({ action: 'process', json_block: 'true', subtype: 'send', block }),
+        landed: async h => { try { const b = await rpc({ action: 'block_info', json_block: 'true', hash: h }); if (b && b.error) return /not found/i.test(b.error) ? false : null; return b && b.contents ? true : null; } catch { return null; } } });
+    } finally { settling.delete(v.hash); }
+  }
   if (!s.success) return paymentRequired(res, 'x402: ' + s.errorReason, req), false;
   credits[s.transaction] = '0';
   if (v.hash !== s.transaction) credits[v.hash] = '0';
@@ -420,37 +436,42 @@ async function workGenerate(req, res) {
   const hash = String(body.hash || '').toUpperCase();
   if (!/^[0-9A-F]{64}$/.test(hash)) return send(res, 400, { error: 'hash must be 64 hex characters (your account frontier); nothing charged' });
   if (workInFlight >= 4) return send(res, 503, { error: 'work server busy; retry in a few seconds; nothing charged' });
-  if (paid) {
-    if (!await charge(req, res)) return;
-    workStats.paid = (workStats.paid || 0) + 1;
-  } else {
-    const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
-    const now = Date.now();
-    const hits = (workHits.get(ip) || []).filter(t => now - t < 60_000);
-    // Over the free limit the answer is a normal 402 with PAYMENT-REQUIRED, so an x402 client just pays.
-    if (hits.length >= FREE_WORK_PER_MIN) return paymentRequired(res, 'free limit is ' + FREE_WORK_PER_MIN + ' work_generate calls per minute per IP; pay ' + nano(PRICE_RAW) + ' NANO per work (X-Nano-Payment credit or x402 PAYMENT-SIGNATURE) to continue without limit', req);
-    hits.push(now); workHits.set(ip, hits);
-    if (workHits.size > 10_000) workHits.clear();
-  }
+  // The slot is taken here, synchronously, before the charge awaits: taken only after charge() returned, five
+  // concurrent paid calls all passed the check above and ran at once (tao wang, 2026-09-28). Every return below,
+  // charge failed or free limit 402 included, releases it in the finally.
   workInFlight++;
   try {
-    const knownPayer = !paid && await isKnownPayerFrontier(hash);
-    const r = await workFor(hash, { paid, knownPayer });
-    logReq(req, { kind: 'work', hash, ok: true, paid, tier: r.tier, source: r.source, ms: r.ms });
-    return send(res, 200, { hash, work: r.work, threshold: x402.WORK_THRESHOLD, source: r.source, ms: r.ms, paid, tier: r.tier });
-  } catch (e) {
-    logReq(req, { kind: 'work', hash, ok: false, paid, error: e.message });
-    // No work, no price: the call is handed back as credit on the hash that paid (an x402 block's hash is
-    // reusable through X-Nano-Payment), under the same per-hash lock as charge().
-    let note = '';
-    const h = String(req.headers['x-nano-payment'] || res.getHeader('x-nano-payment-hash') || '').toUpperCase();
-    if (paid && h && h in credits) {
-      const left = await withHashLock(h, async () => { credits[h] = (BigInt(credits[h] || '0') + PRICE_RAW).toString(); save(); stats.calls_paid--; return credits[h]; });
-      res.setHeader('x-nano-credit-remaining-raw', left); note = '; the ' + nano(PRICE_RAW) + ' NANO for this call was handed back as credit on ' + h.slice(0, 8) + '…';
+    if (paid) {
+      if (!await charge(req, res)) return;
+      workStats.paid = (workStats.paid || 0) + 1;
+    } else {
+      const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+      const now = Date.now();
+      const hits = (workHits.get(ip) || []).filter(t => now - t < 60_000);
+      // Over the free limit the answer is a normal 402 with PAYMENT-REQUIRED, so an x402 client just pays.
+      if (hits.length >= FREE_WORK_PER_MIN) return paymentRequired(res, 'free limit is ' + FREE_WORK_PER_MIN + ' work_generate calls per minute per IP; pay ' + nano(PRICE_RAW) + ' NANO per work (X-Nano-Payment credit or x402 PAYMENT-SIGNATURE) to continue without limit', req);
+      hits.push(now); workHits.set(ip, hits);
+      if (workHits.size > 10_000) workHits.clear();
     }
-    return send(res, 502, { error: 'work_generate: ' + e.message + note });
-  }
-  finally { workInFlight--; }
+    try {
+      const knownPayer = !paid && await isKnownPayerFrontier(hash);
+      const r = await workFor(hash, { paid, knownPayer });
+      logReq(req, { kind: 'work', hash, ok: true, paid, tier: r.tier, source: r.source, ms: r.ms });
+      return send(res, 200, { hash, work: r.work, threshold: x402.WORK_THRESHOLD, source: r.source, ms: r.ms, paid, tier: r.tier });
+    } catch (e) {
+      logReq(req, { kind: 'work', hash, ok: false, paid, error: e.message });
+      // No work, no price: the call is handed back as credit on the hash that paid (an x402 block's hash is
+      // reusable through X-Nano-Payment), under the same per-hash lock as charge(). The note carries the full
+      // hash: an 8-character abbreviation cannot be retried with (PlatinumVera, 2026-09-28).
+      let note = '';
+      const h = String(req.headers['x-nano-payment'] || res.getHeader('x-nano-payment-hash') || '').toUpperCase();
+      if (paid && h && h in credits) {
+        const left = await withHashLock(h, async () => { credits[h] = (BigInt(credits[h] || '0') + PRICE_RAW).toString(); save(); stats.calls_paid--; return credits[h]; });
+        res.setHeader('x-nano-credit-remaining-raw', left); note = '; the ' + nano(PRICE_RAW) + ' NANO for this call was handed back as credit on ' + h + ', retry with X-Nano-Payment: ' + h;
+      }
+      return send(res, 502, { error: 'work_generate: ' + e.message + note });
+    }
+  } finally { workInFlight--; }
 }
 
 
@@ -635,52 +656,121 @@ function withHashLock(key, fn) {
 
 // --- endpoints ---------------------------------------------------------------
 
+// Addresses a paid fetch must not reach, classified from parsed octets and hextets rather than a textual prefix: the
+// regex missed fe80::/10 beyond the literal "fe80", the unspecified "::" and IPv4-mapped 169.254/16 (Ops Control HQ,
+// 2026-09-28). Anything that does not parse is refused.
+function parseV4(s) {   // four dotted decimal octets 0-255 -> [a, b, c, d], else null
+  const m = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(String(s));
+  if (!m) return null;
+  const o = m.slice(1).map(Number);
+  return o.every(n => n <= 255) ? o : null;
+}
+// 0/8, 10/8, 100.64/10, 127/8, 169.254/16, 172.16/12, 192.0.0/24, 192.0.2/24, 192.168/16, 198.18/15, 198.51.100/24,
+// 203.0.113/24, 224/4 and 240/4 (multicast, reserved), 255.255.255.255.
+function ipv4Private(a, b, c, d) {
+  return a === 0 || a === 10 || a === 127 || a >= 224 || (a === 100 && b >= 64 && b <= 127) || (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 0 && (c === 0 || c === 2)) || (a === 192 && b === 168) ||
+    (a === 198 && (b === 18 || b === 19)) || (a === 198 && b === 51 && c === 100) || (a === 203 && b === 0 && c === 113) ||
+    (a === 255 && b === 255 && c === 255 && d === 255);
+}
+// Eight numeric hextets for an IPv6 literal: a %zone is dropped, :: is expanded, a dotted IPv4 tail (dns.lookup
+// returns forms like ::ffff:169.254.169.254) is folded into the last two hextets. null if it does not parse.
+function expand6(ip) {
+  let s = String(ip).replace(/%.*$/, '').toLowerCase();
+  const v4 = /^(.*:)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/.exec(s);
+  if (v4) { const o = parseV4(v4[2]); if (!o) return null; s = v4[1] + ((o[0] << 8) | o[1]).toString(16) + ':' + ((o[2] << 8) | o[3]).toString(16); }
+  const halves = s.split('::');
+  if (halves.length > 2) return null;
+  const part = h => h === '' ? [] : h.split(':');
+  const head = part(halves[0]), tail = halves.length === 2 ? part(halves[1]) : [];
+  const fill = halves.length === 2 ? 8 - head.length - tail.length : 0;
+  if (fill < 0) return null;
+  const hex = [...head, ...new Array(fill).fill('0'), ...tail];
+  if (hex.length !== 8 || !hex.every(h => /^[0-9a-f]{1,4}$/.test(h))) return null;
+  return hex.map(h => parseInt(h, 16));
+}
 function isPrivate(ip) {
-  if (net.isIPv6(ip)) return /^(::1$|fc|fd|fe80|::ffff:(10\.|127\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.))/i.test(ip);
-  return /^(10\.|127\.|0\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(ip);
+  const v4 = parseV4(ip);
+  if (v4) return ipv4Private(...v4);
+  if (!net.isIPv6(ip)) return true;   // unparseable is refused
+  const h = expand6(ip);
+  if (!h) return true;
+  const zero = n => h.slice(0, n).every(x => x === 0);
+  const emb = i => ipv4Private(h[i] >> 8, h[i] & 255, h[i + 1] >> 8, h[i + 1] & 255);   // IPv4 embedded in hextets i, i+1
+  if (zero(7) && h[7] <= 1) return true;                          // :: and ::1
+  if (zero(5) && h[5] === 0xffff) return emb(6);                  // ::ffff:a.b.c.d (IPv4-mapped)
+  if (zero(6)) return emb(6);                                     // ::a.b.c.d (IPv4-compatible)
+  if (h[0] === 0x64 && h[1] === 0xff9b && h.slice(2, 6).every(x => x === 0)) return emb(6);   // 64:ff9b::/96 (NAT64)
+  if (h[0] === 0x2002) return emb(1);                             // 2002::/16 (6to4)
+  if ((h[0] & 0xfe00) === 0xfc00) return true;                    // fc00::/7
+  if ((h[0] & 0xffc0) === 0xfe80) return true;                    // fe80::/10
+  if ((h[0] & 0xffc0) === 0xfec0) return true;                    // fec0::/10
+  if ((h[0] & 0xff00) === 0xff00) return true;                    // ff00::/8
+  if (h[0] === 0x2001 && h[1] === 0x0db8) return true;            // 2001:db8::/32
+  if (h[0] === 0x0100 && h[1] === 0 && h[2] === 0 && h[3] === 0) return true;   // 100::/64
+  return false;
 }
 
 // Everything that can refuse a fetch target is checked here, and the /v1/fetch handler runs it before charge(),
 // so a missing, malformed, non-http or private-address url answers 400 with nothing paid (uknwplayer, 2026-09-27).
+// Returns { u, addrs }: the addresses the check classified, which fetchText pins the connection to. An IP literal
+// host is classified as written, without DNS; a name is refused if any answer is private or there is none.
 async function checkFetchUrl(urlStr) {
   let u; try { u = new URL(urlStr); } catch { throw new Error('bad url'); }
   if (!/^https?:$/.test(u.protocol)) throw new Error('http(s) only');
-  const addrs = await dns.lookup(u.hostname, { all: true });
+  const host = u.hostname.replace(/^\[|\]$/g, '');
+  const lit = net.isIP(host);
+  const addrs = lit ? [{ address: host, family: lit }] : await dns.lookup(host, { all: true });
+  if (!addrs || !addrs.length) throw new Error('host has no address');
   if (addrs.some(a => isPrivate(a.address))) throw new Error('private address refused');
-  return u;
+  return { u, addrs };
 }
 async function fetchText(urlStr) {
-  let u = await checkFetchUrl(urlStr);
+  // The connection goes only to the addresses the check saw: the global fetch resolved the name again on its own, so
+  // a rebinding name could pass checkFetchUrl and then connect somewhere private (Ops Control HQ, 2026-09-28). Every
+  // hop is pinned after its check and the dispatcher's lookup answers from the pins alone, never from DNS.
+  const { Agent, fetch: ufetch } = require('undici');
+  const pins = new Map();   // lowercased hostname without brackets -> [{ address, family }]
+  const pin = ({ u, addrs }) => { pins.set(u.hostname.replace(/^\[|\]$/g, '').toLowerCase(), addrs); return u; };
+  let u = pin(await checkFetchUrl(urlStr));
+  const dispatcher = new Agent({ connect: { lookup: (host, opts, cb) => {
+    const a = pins.get(String(host).toLowerCase());
+    if (!a || !a.length) return cb(new Error('host not pinned: ' + host));
+    if (a.some(x => isPrivate(x.address))) return cb(new Error('private address refused'));
+    if (opts && opts.all) return cb(null, a.map(x => ({ address: x.address, family: x.family })));
+    return cb(null, a[0].address, a[0].family);
+  } } });
   const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 15000);
   let r;
   try {
     // Redirects are followed by hand and every hop goes through checkFetchUrl, so a public URL cannot bounce the
     // paid fetch to a private or link-local address (uknwplayer, 2026-09-27; redirect: 'follow' skipped the check).
     for (let hop = 0; ; hop++) {
-      r = await fetch(u, { signal: ctl.signal, redirect: 'manual', headers: { 'user-agent': 'nano-paid-api/0.1 (+pay-per-call fetch)' } });
+      r = await ufetch(u, { dispatcher, signal: ctl.signal, redirect: 'manual', headers: { 'user-agent': 'nano-paid-api/0.1 (+pay-per-call fetch)' } });
       if (![301, 302, 303, 307, 308].includes(r.status)) break;
       const loc = r.headers.get('location');
       let next;
       try {
         if (!loc) throw new Error('redirect without a location');
         if (hop >= 5) throw new Error('too many redirects');
-        next = await checkFetchUrl(new URL(loc, u).href);
+        next = pin(await checkFetchUrl(new URL(loc, u).href));
       } catch (e) { e.unpaid = true; throw e; }   // refused before anything was fetched from the new host: the call is handed back
       u = next;
     }
-  } finally { clearTimeout(t); }
-  const ct = r.headers.get('content-type') || '';
-  let body = await r.text();
-  if (body.length > 2_000_000) body = body.slice(0, 2_000_000);
-  if (/html/i.test(ct)) {
-    body = body.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<!--[\s\S]*?-->/gi, ' ')
-      .replace(/<\/(p|div|h[1-6]|li|tr|br|section|article)>/gi, '\n')
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
-      .replace(/[ \t]+/g, ' ').replace(/\s*\n\s*/g, '\n').trim();
-  }
-  return { status: r.status, content_type: ct, url: u.href, text: body.slice(0, 200_000) };
+    clearTimeout(t);   // the 15 s bound covers the hops, as before; the body read is outside it
+    const ct = r.headers.get('content-type') || '';
+    let body = await r.text();
+    if (body.length > 2_000_000) body = body.slice(0, 2_000_000);
+    if (/html/i.test(ct)) {
+      body = body.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<!--[\s\S]*?-->/gi, ' ')
+        .replace(/<\/(p|div|h[1-6]|li|tr|br|section|article)>/gi, '\n')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+        .replace(/[ \t]+/g, ' ').replace(/\s*\n\s*/g, '\n').trim();
+    }
+    return { status: r.status, content_type: ct, url: u.href, text: body.slice(0, 200_000) };
+  } finally { clearTimeout(t); dispatcher.close().catch(() => {}); }
 }
 
 function readBody(req, limit = 1_000_000) {
@@ -714,11 +804,12 @@ x402
   accepted, payload: {block}}. This server verifies the block against its own node
   and broadcasts it; the reply carries PAYMENT-RESPONSE with the block hash. No
   external facilitator, no account. The block pays for one call and is not otherwise
-  usable as X-Nano-Payment credit; the one exception is /v1/fetch handing a call back
+  usable as X-Nano-Payment credit; the two exceptions are /v1/fetch answering 400
   because a redirect could not be followed (the next target failed the same address
   check as the first URL, the redirect had no Location header, or there were more than
-  five hops), when the price goes on the block's hash as X-Nano-Payment credit and the
-  400 reply names that hash to retry with. Work is optional here: the requirements carry
+  five hops) and /v1/work answering 502 because work generation failed, when the price
+  goes on the block's hash as X-Nano-Payment credit and the 400 or 502 body names the
+  full hash to retry with. Work is optional here: the requirements carry
   extra.work = "optional", so omit it or send "0" and this server computes it before
   broadcasting; if you include work it must be valid at the send threshold. Other
   sellers may require it: check their extra.work before generating. Requirements:
@@ -753,7 +844,8 @@ Endpoints
                               the reply's "source" and "ms" say which. Accounts that have paid
                               this server before always get the GPU. With X-Nano-Payment credit
                               or an x402 payment header, ${nano(PRICE_RAW)} NANO per work, GPU,
-                              no limit
+                              no per-minute limit; at most four proofs are generated at once
+                              and a fifth call answers 503 with nothing charged
 
 Example
   curl -s 'https://pursekeeper.dev/v1/fetch?url=https://example.com' \\
@@ -822,7 +914,7 @@ const server = http.createServer(async (req, res) => {
           r('/v1/fetch?url=', 'GET', 'fetches the absolute http(s) URL given in the required url query parameter and returns the page as plain text; a request whose url is missing, malformed, non-http or on a private host is refused with 400 before any payment is taken'),
           r('/v1/echo?msg=', 'GET', 'returns what you sent (test your payment client)'),
           r('/v1/hash', 'POST', 'sha256 of the request body, with server time'),
-          r('/v1/work', 'POST', 'Nano proof of work for {"hash": H} at the send threshold, from a GPU in about a second; 6 per minute per IP free, paid calls unlimited'),
+          r('/v1/work', 'POST', 'Nano proof of work for {"hash": H} at the send threshold, from a GPU in about a second; 6 per minute per IP free; paid calls have no per-minute limit, at most four proofs are generated at once and a fifth call answers 503 with nothing charged'),
         ],
         free: [base + '/v1/verify', base + '/v1/receivable', base + '/v1/account_info', base + '/v1/process', base + '/v1/requests', base + '/v1/price', base + '/v1/stats', base + '/v1/x402'],
         payment_requirements: base + '/v1/x402',
@@ -832,11 +924,18 @@ const server = http.createServer(async (req, res) => {
       x402Version: x402.X402_VERSION, accepts: [X402_REQ],
       // resource.url is this document (a URL, not a template; pyfile-toolkit 2026-09-28); each paid route's own 402 carries its concrete URL.
       resource: { url: 'https://' + hostOf(req) + '/v1/x402', description: 'pursekeeper.dev pay-per-call API: the payment requirements shared by every paid route; a paid call answers 402 with the same accepts entry and its own concrete resource.url', mimeType: 'application/json' },
-      paid_routes: ['/v1/echo', '/v1/fetch', '/v1/hash', '/v1/work'].map(r => 'https://' + hostOf(req) + r),
+      // method and input per route, as /.well-known/x402 states them: the bare list read as GET-able URLs, but /v1/hash
+      // and /v1/work are POST-only and a bare /v1/fetch answers 400 (PlatinumVera, 2026-09-28).
+      paid_routes: [
+        { url: 'https://' + hostOf(req) + '/v1/echo?msg=', method: 'GET', input: 'msg query parameter, returned as sent' },
+        { url: 'https://' + hostOf(req) + '/v1/fetch?url=', method: 'GET', input: 'url query parameter, required: an absolute http(s) URL to a public host; missing, malformed, non-http or private-host answers 400 before any payment is taken' },
+        { url: 'https://' + hostOf(req) + '/v1/hash', method: 'POST', input: 'request body, any bytes up to 1 MB: the reply is its sha256' },
+        { url: 'https://' + hostOf(req) + '/v1/work', method: 'POST', input: 'JSON body {"hash": H}, H 64 hex characters (your account frontier): the reply is work for H at the send threshold' },
+      ],
       request_header: 'PAYMENT-SIGNATURE (X-PAYMENT also accepted): base64 JSON {x402Version:2, accepted, payload:{block}}',
       response_header: 'PAYMENT-RESPONSE: base64 JSON {success, transaction, network, payer}',
       block_rules: 'state block from your current confirmed frontier; balance = current balance - amount exactly; link = payTo; work optional (extra.work = "optional" refers to the work field of the payment block itself, on every route including /v1/work, whose product is work for the hash you name in the body): omit it or send "0" and this seller computes it before broadcasting; if you send work it must be valid at ' + x402.WORK_THRESHOLD + ' against previous',
-      work: 'POST /v1/work {"hash": "<frontier>"}: 6 per minute per IP free (GPU, about a second, within a shared budget of ' + FREE_GPU_PER_MIN + ' a minute; CPU after that), or pay ' + nano(PRICE_RAW) + ' NANO per work (same headers) with no limit; for sends to anyone else', example: '/examples/client-x402.js', spec: 'https://github.com/x402nano/schemes',
+      work: 'POST /v1/work {"hash": "<frontier>"}: 6 per minute per IP free (GPU, about a second, within a shared budget of ' + FREE_GPU_PER_MIN + ' a minute; CPU after that), or pay ' + nano(PRICE_RAW) + ' NANO per work (same headers) with no per-minute limit, at most four proofs generated at once and a fifth call answering 503 with nothing charged; for sends to anyone else', example: '/examples/client-x402.js', spec: 'https://github.com/x402nano/schemes',
       work_sources: workSources() });
     if (u.pathname === '/v1/work' && req.method === 'POST') return workGenerate(req, res);
     if (u.pathname === '/v1/verify') return verifyBlock(req, res, u);
@@ -906,4 +1005,4 @@ if (require.main === module) {
     cohorts.warm();
   });
 }
-module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS, checkoutWallet, send, acceptsGzip };
+module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS, checkoutWallet, send, acceptsGzip, isPrivate, expand6, checkFetchUrl, fetchText };
