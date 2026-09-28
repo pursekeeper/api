@@ -57,7 +57,10 @@ async function broadcast(block, subtype) {
   // account_info and process), the node answers with a balance/previous error. Refetch
   // and retry once or twice instead of failing the whole command (finding F2 of the
   // 2026-09-10 review at /examples/review-2026-09-10-llmrt-no-node.md).
-  const STALE = /previous|balance|fork|gap/i;
+  // `unreceivable` is a guard only: the node checks previous-is-frontier before it checks the
+  // source (ledger.cpp, V28.2), so a send pocketed by a concurrent receive answers Fork, not
+  // Unreceivable; Ops Control HQ raised the case 2026-09-27 and it is matched anyway.
+  const STALE = /previous|balance|fork|gap|unreceivable/i;
   async function refresh() {
     const i = await get('/v1/account_info?account=' + account);
     if (i.error) throw new Error('account_info: ' + i.error);

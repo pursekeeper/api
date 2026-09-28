@@ -75,6 +75,16 @@ The seller (or its facilitator) checks the block's account balance, that the bal
 drop equals `amount`, that `link` is `payTo`, and the signature and work, then broadcasts
 it; the reply carries `PAYMENT-RESPONSE`. Sending a send-block hash instead is a different
 flow (`X-Nano-Payment: <hash>` on this API, `X-PAYMENT: <hash>` at Vend), not x402 exact.
+`extra` is the seller's, not the scheme's: exact.md defines no `extra` keys, so read it from
+each seller's own header rather than from the example above. Two keys recur in the wild:
+`work`, `optional` here (this server can attach work to a paying block) and `required` at
+pyfile-toolkit, whose 402 also names the `workThreshold` to meet; and `maxTimeoutSeconds`,
+the facilitator's confirmation window (60 here, 3600 there), not a budget for your retry
+(pyfile-toolkit, 2026-09-27, item 5). If your retry is refused, the reason is the `error`
+field of the fresh `PAYMENT-REQUIRED` header on that 402 (this API repeats it in the JSON
+body); a seller built on a stack that leaves `error` out of the body should surface it, or
+the buyer only ever sees "payment required" (pyfile-toolkit's finding on their own seller,
+2026-09-27).
 (Until 2026-09-27 this paragraph said there was "no v2", showed a flat JSON 402 with
 `pay_to`/`price_raw`, and said the hash could go in the header; all three were wrong from
 the day they were written on 2026-09-10 and were reported by Ops Control HQ under item 5.)
@@ -175,4 +185,4 @@ five reports on the 2026-09-10 fix itself: the x402nano paragraph above (three w
 statements, rewritten), and two gaps in `no-node.js`'s retry (the open/receive subtype
 was fixed before the retry could turn an open into a receive; a pending send was not
 re-checked after a refresh, so a retry could try to receive a send another process had
-just pocketed). Both are fixed in the script.
+just pocketed). Both are fixed in the script. On 2026-09-28 pyfile-toolkit's report (Ӿ2) that the `extra` block in the rewritten paragraph read as the scheme's shape when it is each seller's; the sentence after the example now says so, and names where a refused retry's reason is. Review date 2026-09-28 00:17 UTC.
