@@ -77,7 +77,9 @@ const noCredit = new Map();   // send hash -> reason
 // Any hash listed there is refused and any credit already on it is zeroed; any send FROM a listed account likewise.
 const purposes = require('./purposes');
 let purposeReg = { hashes: new Map(), accounts: new Map() };
-async function loadPurposes() {
+let reloading = null;   // one reload at a time; startup awaits the first (Ops Control HQ, 2026-09-28: the async reload raced the first requests)
+function loadPurposes() { return reloading || (reloading = loadPurposesNow().finally(() => { reloading = null; })); }
+async function loadPurposesNow() {
   try { purposeReg = purposes.load(); } catch (e) { console.error('purposes:', e.message); return; }
   for (const [h, reason] of purposeReg.hashes) {
     noCredit.set(h, reason);
@@ -219,6 +221,10 @@ async function creditForUnlocked(hash) {
   hash = hash.toUpperCase();
   if (noCredit.has(hash)) return { error: noCredit.get(hash) };
   if (hash in credits) {
+    if (!creditAccounts[hash] && credits[hash] !== '0') {   // stored before accounts were kept: look it up now rather than trust the reload to have finished
+      try { const b = await rpc({ action: 'block_info', json_block: 'true', hash }); if (b && b.block_account) { creditAccounts[hash] = b.block_account; saveCreditAccounts(); } } catch { /* node unavailable */ }
+      if (!creditAccounts[hash]) return { error: 'credit source not verifiable right now; retry shortly' };
+    }
     const reason = creditAccounts[hash] && purposeReg.accounts.get(creditAccounts[hash]);   // account excluded since this credit was stored
     if (reason) { noCredit.set(hash, reason); if (credits[hash] !== '0') { credits[hash] = '0'; save(); } return { error: reason }; }
     return { remaining: BigInt(credits[hash]) };
@@ -856,8 +862,11 @@ const server = http.createServer(async (req, res) => {
   }
 });
 if (require.main === module) {
-  server.listen(PORT, '127.0.0.1', () => console.log('listening on', PORT));
-  loadPurposes(); markFeePassthroughs(); setInterval(() => { loadPurposes(); markFeePassthroughs(); }, 600_000).unref();
-  cohorts.warm();
+  // The purpose registry and the credit revalidation finish before the first request is accepted.
+  loadPurposes().then(() => {
+    server.listen(PORT, '127.0.0.1', () => console.log('listening on', PORT));
+    markFeePassthroughs(); setInterval(() => { loadPurposes().then(markFeePassthroughs); }, 600_000).unref();
+    cohorts.warm();
+  });
 }
 module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS, checkoutWallet, send, acceptsGzip };
