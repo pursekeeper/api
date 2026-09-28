@@ -54,7 +54,12 @@ function counterpartyNumbers(ledger, ownExtra = new Set(), minRaw = COUNTERPARTY
   // A donation (an address labelled in data/inflow-labels.json, e.g. a Nano business that sent
   // support after reading the log) is still inflow from a stranger, but it is not agent usage,
   // so it is shown split out; the headline keeps the raw total.
-  const isDonation = r => (labels.get(r.counterparty) || {}).kind === 'donation';
+  // A label that names hashes covers only those sends (by the row's source_hash); a label without
+  // hashes covers every send from the address (the API's purpose registry applies the same rule).
+  const isDonation = r => { const l = labels.get(r.counterparty); if (!l || l.kind !== 'donation') return false;
+    if (!Array.isArray(l.hashes) || !l.hashes.length) return true;
+    let src; try { src = (JSON.parse(r.meta_json || '{}').source_hash || '').toUpperCase(); } catch { return false; }
+    return l.hashes.some(h => String(h).toUpperCase() === src); };
   const donationRows = inflowRows.filter(isDonation);
   const external = { nano: sum(inflowRows), counterparties: inflowAddrs.filter(qualifies).length,
     below_threshold: inflowAddrs.filter(a => !qualifies(a)).length, min_nano: COUNTERPARTY_MIN_NANO,

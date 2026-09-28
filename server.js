@@ -28,6 +28,12 @@ const PRICE_RAW = 10n ** 27n;                // 0.001 NANO per call
 const MAX_CREDIT_RAW = 10n ** 30n;           // ignore sends above 1 NANO (tranches are not credit)
 const NOT_BEFORE = Number(process.env.NOT_BEFORE || 1757210000); // unix time service went live
 const DATA = path.join(__dirname, 'data', 'credits.json');
+// Source account of every credited hash (data/credit-accounts.json). The purpose registry excludes whole
+// accounts (own, funding, donors); a credit stored before its account was listed has to be revoked when the
+// ten-minute reload learns the exclusion, and that needs the account (Ops Control HQ, 2026-09-28, from e1001b3).
+const CREDIT_ACCOUNTS = path.join(__dirname, 'data', 'credit-accounts.json');
+let creditAccounts = {}; try { creditAccounts = JSON.parse(fs.readFileSync(CREDIT_ACCOUNTS, 'utf8')); } catch {}
+const saveCreditAccounts = () => { try { fs.writeFileSync(CREDIT_ACCOUNTS, JSON.stringify(creditAccounts)); } catch {} };
 const X402_LOG = path.join(__dirname, 'data', 'x402.json');   // settled x402 blocks: hash, payer, amount, resource, at
 // Work sources, tried in order: WORK_URLS (comma-separated RPC-style work_generate endpoints,
 // e.g. a keyed hosted GPU work server), then the local node. Clients may omit block.work on
@@ -71,11 +77,21 @@ const noCredit = new Map();   // send hash -> reason
 // Any hash listed there is refused and any credit already on it is zeroed; any send FROM a listed account likewise.
 const purposes = require('./purposes');
 let purposeReg = { hashes: new Map(), accounts: new Map() };
-function loadPurposes() {
+async function loadPurposes() {
   try { purposeReg = purposes.load(); } catch (e) { console.error('purposes:', e.message); return; }
   for (const [h, reason] of purposeReg.hashes) {
     noCredit.set(h, reason);
     if (h in credits && credits[h] !== '0') { credits[h] = '0'; save(); }
+  }
+  // A credit whose source account is now excluded is revoked as well, not only one whose hash is listed
+  // (the first version zeroed by hash only, so an account exclusion held from the next presentation on, never
+  // retroactively; Ops Control HQ, 2026-09-28). The account is looked up once per hash and remembered.
+  for (const [h, v] of Object.entries(credits)) {
+    if (v === '0' || noCredit.has(h)) continue;
+    let acct = creditAccounts[h];
+    if (!acct) { try { const b = await rpc({ action: 'block_info', json_block: 'true', hash: h }); acct = b && b.block_account; } catch { /* node unavailable: next round */ } if (acct) { creditAccounts[h] = acct; saveCreditAccounts(); } }
+    const reason = acct && purposeReg.accounts.get(acct);
+    if (reason) { noCredit.set(h, reason); credits[h] = '0'; save(); }
   }
 }
 const feeVia = new Map();     // payer account -> did it forward a fee to a known collector?
@@ -202,7 +218,11 @@ async function creditForUnlocked(hash) {
   if (!/^[0-9A-F]{64}$/i.test(hash)) return { error: 'bad hash' };
   hash = hash.toUpperCase();
   if (noCredit.has(hash)) return { error: noCredit.get(hash) };
-  if (hash in credits) return { remaining: BigInt(credits[hash]) };
+  if (hash in credits) {
+    const reason = creditAccounts[hash] && purposeReg.accounts.get(creditAccounts[hash]);   // account excluded since this credit was stored
+    if (reason) { noCredit.set(hash, reason); if (credits[hash] !== '0') { credits[hash] = '0'; save(); } return { error: reason }; }
+    return { remaining: BigInt(credits[hash]) };
+  }
   const b = await rpc({ action: 'block_info', json_block: 'true', hash });
   if (b.error) return { error: 'block not found on this node yet; wait a second and retry' };
   if (b.confirmed !== 'true') return { error: 'block not confirmed yet; retry shortly' };
@@ -216,6 +236,7 @@ async function creditForUnlocked(hash) {
   if (amount > MAX_CREDIT_RAW) return { error: 'send too large to be a payment; max 1 NANO per hash' };
   credits[hash] = amount.toString();
   save();
+  creditAccounts[hash] = b.block_account; saveCreditAccounts();
   rememberPayer(b.block_account);
   return { remaining: amount };
 }
@@ -766,10 +787,12 @@ const server = http.createServer(async (req, res) => {
     }
     if (u.pathname === '/v1/x402') return send(res, 200, {
       x402Version: x402.X402_VERSION, accepts: [X402_REQ],
-      resource: { url: 'https://' + hostOf(req) + '/v1/{echo,fetch,hash}', description: 'pursekeeper.dev pay-per-call API', mimeType: 'application/json' },
+      // resource.url is this document (a URL, not a template; pyfile-toolkit 2026-09-28); each paid route's own 402 carries its concrete URL.
+      resource: { url: 'https://' + hostOf(req) + '/v1/x402', description: 'pursekeeper.dev pay-per-call API: the payment requirements shared by every paid route; a paid call answers 402 with the same accepts entry and its own concrete resource.url', mimeType: 'application/json' },
+      paid_routes: ['/v1/echo', '/v1/fetch', '/v1/hash', '/v1/work'].map(r => 'https://' + hostOf(req) + r),
       request_header: 'PAYMENT-SIGNATURE (X-PAYMENT also accepted): base64 JSON {x402Version:2, accepted, payload:{block}}',
       response_header: 'PAYMENT-RESPONSE: base64 JSON {success, transaction, network, payer}',
-      block_rules: 'state block from your current confirmed frontier; balance = current balance - amount exactly; link = payTo; work optional (extra.work = "optional"): omit it or send "0" and this seller computes it before broadcasting; if you send work it must be valid at ' + x402.WORK_THRESHOLD + ' against previous',
+      block_rules: 'state block from your current confirmed frontier; balance = current balance - amount exactly; link = payTo; work optional (extra.work = "optional" refers to the work field of the payment block itself, on every route including /v1/work, whose product is work for the hash you name in the body): omit it or send "0" and this seller computes it before broadcasting; if you send work it must be valid at ' + x402.WORK_THRESHOLD + ' against previous',
       work: 'POST /v1/work {"hash": "<frontier>"}: 6 per minute per IP free (GPU, about a second, within a shared budget of ' + FREE_GPU_PER_MIN + ' a minute; CPU after that), or pay ' + nano(PRICE_RAW) + ' NANO per work (same headers) with no limit; for sends to anyone else', example: '/examples/client-x402.js', spec: 'https://github.com/x402nano/schemes',
       work_sources: workSources() });
     if (u.pathname === '/v1/work' && req.method === 'POST') return workGenerate(req, res);

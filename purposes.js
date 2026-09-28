@@ -33,7 +33,14 @@ function build(src) {
   walk(src.own, o => { if (typeof o.address === 'string' && o.address.startsWith('nano_')) accounts.set(o.address, REASONS['own account']); });
   walk(src.cold, o => { for (const v of Object.values(o)) if (typeof v === 'string' && v.startsWith('nano_')) accounts.set(v, REASONS['funding account']); });
   if (Array.isArray(src.cold)) for (const v of src.cold) if (typeof v === 'string' && v.startsWith('nano_')) accounts.set(v, REASONS['funding account']);
-  if (src.inflowLabels && typeof src.inflowLabels === 'object') for (const [k, v] of Object.entries(src.inflowLabels)) if (k.startsWith('nano_') && v && v.kind === 'donation') accounts.set(k, REASONS['donation']);
+  // A donation label names the sends it covers (hashes); only when it names none is the whole address
+  // treated as a donor, and then every later send from it is refused too, which is why labels should
+  // carry hashes (Ops Control HQ, 2026-09-28: an address that donated once could never buy credit).
+  if (src.inflowLabels && typeof src.inflowLabels === 'object') for (const [k, v] of Object.entries(src.inflowLabels)) {
+    if (!k.startsWith('nano_') || !v || v.kind !== 'donation') continue;
+    const hs = (Array.isArray(v.hashes) ? v.hashes : []).filter(h => typeof h === 'string' && /^[0-9A-F]{64}$/i.test(h));
+    if (hs.length) for (const h of hs) hashes.set(h.toUpperCase(), REASONS['donation']); else accounts.set(k, REASONS['donation']);
+  }
   if (src.manual && typeof src.manual === 'object') {
     for (const [h, r] of Object.entries(src.manual.hashes || {})) if (/^[0-9A-F]{64}$/i.test(h)) hashes.set(h.toUpperCase(), String(r));
     for (const [a, r] of Object.entries(src.manual.accounts || {})) if (a.startsWith('nano_')) accounts.set(a, String(r));

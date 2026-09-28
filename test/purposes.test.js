@@ -33,3 +33,13 @@ test('the live registry on this box lists the two round-2 stakes named in api#74
   assert.ok(reg.hashes.has('F49EA1FC0CC41CCEB5C421D82C6618487BC7119925CF01AAF65803D1EECDA220'));
   assert.ok(reg.accounts.has('nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf'));
 });
+
+test('a donation label that names hashes is hash-scoped; one without hashes covers the whole address (Ops Control HQ, 2026-09-28)', () => {
+  const h = 'c665a9289d909c59c44ee00f0dcd6e606b46447ba615fb8f37492ea7fbe0ecc0';
+  const reg = build({ ladderEntries: null, ladderSurplus: null, own: null, cold: null, manual: null,
+    inflowLabels: { nano_1named: { name: 'n', kind: 'donation', hashes: [h] }, nano_1whole: { name: 'w', kind: 'donation' }, nano_1bad: { kind: 'donation', hashes: ['nothex'] } } });
+  assert.strictEqual(reg.hashes.get(h.toUpperCase()), REASONS['donation']);
+  assert.strictEqual(reg.accounts.get('nano_1named'), undefined);   // a later send from the donor is ordinary credit
+  assert.strictEqual(reg.accounts.get('nano_1whole'), REASONS['donation']);
+  assert.strictEqual(reg.accounts.get('nano_1bad'), REASONS['donation']);   // no usable hash: falls back to the address
+});
