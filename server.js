@@ -102,7 +102,9 @@ async function loadPurposesNow() {
   for (const [h, v] of Object.entries(credits)) {
     if (v === '0' || noCredit.has(h)) continue;
     let acct = creditAccounts[h];
-    if (!acct && !nodeDown) { try { const b = await rpc({ action: 'block_info', json_block: 'true', hash: h }); acct = b && b.block_account; } catch { nodeDown = true; console.error('purposes: node unavailable, remaining account lookups left to presentation time'); } if (acct) { creditAccounts[h] = acct; saveCreditAccounts(); } }
+    // The first failed lookup ends the round's lookups, whether rpc() threw or the node answered {"error"} / no
+    // block_account (a degraded node or proxy answers JSON errors without throwing; Enrico, 2026-09-28).
+    if (!acct && !nodeDown) { try { const b = await rpc({ action: 'block_info', json_block: 'true', hash: h }); acct = b && !b.error && b.block_account; if (!acct) throw new Error(b && b.error || 'no block_account'); } catch (e) { nodeDown = true; console.error('purposes: node unavailable (' + e.message + '), remaining account lookups left to presentation time'); } if (acct) { creditAccounts[h] = acct; saveCreditAccounts(); } }
     const reason = acct && purposeReg.accounts.get(acct);
     if (reason) { noCredit.set(h, reason); credits[h] = '0'; save(); }
   }
@@ -138,11 +140,14 @@ async function markFeePassthroughs() {
 // first presented, so a receipt cannot be spent in the minutes before the ten-minute round sees it.
 // A wallet that opened within the last minute with fewer than three blocks may still be settling
 // its fee block (it followed our share by 1-3 s in every case so far): look once more after 3 s.
+// true: a marketplace checkout wallet; false: positively observed not to be one; null: could not tell (node
+// unavailable or an RPC error). A null must not become credit: it used to collapse to false, so a checkout
+// send presented during an RPC outage became bearer credit until the ten-minute pass caught it (Ops Control HQ, 2026-09-28).
 async function checkoutWallet(account) {
   if (feeVia.has(account)) return feeVia.get(account);
   for (let attempt = 0; attempt < 2; attempt++) {
     let hist;
-    try { hist = (await rpc({ action: 'account_history', account, count: '5' })).history || []; } catch { return false; }   // node unavailable: the round re-checks
+    try { const a = await rpc({ action: 'account_history', account, count: '5' }); if (!a || a.error || !Array.isArray(a.history)) return null; hist = a.history; } catch { return null; }
     if (feePassthrough(hist, FEE_COLLECTORS, ADDRESS)) { feeVia.set(account, true); return true; }
     if (hist.length >= 3) { feeVia.set(account, false); return false; }
     const opened = hist.length ? Number(hist[hist.length - 1].local_timestamp) : 0;
@@ -166,6 +171,7 @@ try { x402Log = JSON.parse(fs.readFileSync(X402_LOG, 'utf8')); } catch {}
 const RPC_TIMEOUT_MS = Number(process.env.RPC_TIMEOUT_MS || 15_000);
 async function rpc(body) {
   const r = await fetch(RPC, { method: 'POST', body: JSON.stringify(body), signal: AbortSignal.timeout(RPC_TIMEOUT_MS) });
+  if (!r.ok) throw new Error('rpc HTTP ' + r.status);   // a proxy's 429/5xx page is a transport failure, not an answer (Enrico, 2026-09-28)
   return r.json();
 }
 
@@ -253,7 +259,9 @@ async function creditForUnlocked(hash) {
   if (Number(b.local_timestamp) < NOT_BEFORE) return { error: 'block predates this service' };
   const known = purposeReg.hashes.get(hash) || purposeReg.accounts.get(b.block_account);   // a stake, an own move, a tranche, a donation (JoanAbad82, api#74)
   if (known) { noCredit.set(hash, known); return { error: known }; }
-  if (await checkoutWallet(b.block_account)) { noCredit.set(hash, NO_CREDIT_REASON); return { error: NO_CREDIT_REASON }; }
+  const checkout = await checkoutWallet(b.block_account);
+  if (checkout === null) return { error: 'cannot check the payer account right now (node unavailable); nothing credited, retry shortly' };
+  if (checkout) { noCredit.set(hash, NO_CREDIT_REASON); return { error: NO_CREDIT_REASON }; }
   const amount = BigInt(b.amount);
   if (amount > MAX_CREDIT_RAW) return { error: 'send too large to be a payment; max 1 NANO per hash' };
   credits[hash] = amount.toString();
@@ -405,6 +413,13 @@ let workInFlight = 0;
 const FREE_WORK_PER_MIN = Number(process.env.FREE_WORK_PER_MIN || 6);
 async function workGenerate(req, res) {
   const paid = !!(req.headers['x-nano-payment'] || x402.paymentHeader(req.headers));
+  // Body and the busy cap before the charge: a paid call used to be debited and then answered 400 or 503 with no
+  // hand-back, so a payer following the 503's "retry" paid again (PlatinumVera, 2026-09-28; same class as /v1/hash).
+  let body;
+  try { body = JSON.parse((await readBody(req, 10_000)).toString('utf8') || '{}'); } catch { return send(res, 400, { error: 'body must be JSON {hash}; nothing charged' }); }
+  const hash = String(body.hash || '').toUpperCase();
+  if (!/^[0-9A-F]{64}$/.test(hash)) return send(res, 400, { error: 'hash must be 64 hex characters (your account frontier); nothing charged' });
+  if (workInFlight >= 4) return send(res, 503, { error: 'work server busy; retry in a few seconds; nothing charged' });
   if (paid) {
     if (!await charge(req, res)) return;
     workStats.paid = (workStats.paid || 0) + 1;
@@ -417,18 +432,24 @@ async function workGenerate(req, res) {
     hits.push(now); workHits.set(ip, hits);
     if (workHits.size > 10_000) workHits.clear();
   }
-  let body;
-  try { body = JSON.parse((await readBody(req, 10_000)).toString('utf8') || '{}'); } catch { return send(res, 400, { error: 'body must be JSON {hash}' }); }
-  const hash = String(body.hash || '').toUpperCase();
-  if (!/^[0-9A-F]{64}$/.test(hash)) return send(res, 400, { error: 'hash must be 64 hex characters (your account frontier)' });
-  if (workInFlight >= 4) return send(res, 503, { error: 'work server busy; retry in a few seconds' });
   workInFlight++;
   try {
     const knownPayer = !paid && await isKnownPayerFrontier(hash);
     const r = await workFor(hash, { paid, knownPayer });
     logReq(req, { kind: 'work', hash, ok: true, paid, tier: r.tier, source: r.source, ms: r.ms });
     return send(res, 200, { hash, work: r.work, threshold: x402.WORK_THRESHOLD, source: r.source, ms: r.ms, paid, tier: r.tier });
-  } catch (e) { logReq(req, { kind: 'work', hash, ok: false, paid, error: e.message }); return send(res, 502, { error: 'work_generate: ' + e.message }); }
+  } catch (e) {
+    logReq(req, { kind: 'work', hash, ok: false, paid, error: e.message });
+    // No work, no price: the call is handed back as credit on the hash that paid (an x402 block's hash is
+    // reusable through X-Nano-Payment), under the same per-hash lock as charge().
+    let note = '';
+    const h = String(req.headers['x-nano-payment'] || res.getHeader('x-nano-payment-hash') || '').toUpperCase();
+    if (paid && h && h in credits) {
+      const left = await withHashLock(h, async () => { credits[h] = (BigInt(credits[h] || '0') + PRICE_RAW).toString(); save(); stats.calls_paid--; return credits[h]; });
+      res.setHeader('x-nano-credit-remaining-raw', left); note = '; the ' + nano(PRICE_RAW) + ' NANO for this call was handed back as credit on ' + h.slice(0, 8) + '…';
+    }
+    return send(res, 502, { error: 'work_generate: ' + e.message + note });
+  }
   finally { workInFlight--; }
 }
 
