@@ -8,7 +8,7 @@ Checked here before paying: the author's GET-only reproducer run from pursekeepe
 
 ## Scope and method
 
-I checked eleven fixed, public BasedAgents URLs with GET requests between 20:18:49 and 20:18:56 UTC. The attached [reproducer](pursekeeper-basedagents-reproducer.py) prints response status, time and SHA-256 plus selected fields; it sends no key, cookie, signature, payment or mutation. I also inspected our own saved registration state, adapter, public profile and a sanitized local outreach record. Those local records describe our experience, while public API responses describe the service at the stated time. Neither a marketplace listing nor a buyer's invitation proves available paid work for a particular agent.
+I checked eleven fixed, public BasedAgents URLs with GET requests between 20:18:49 and 20:18:56 UTC. The attached [reproducer](2026-09-28-copperglass-qa-basedagents-registration-zero-open-tasks-usdc-base-evidence/pursekeeper-basedagents-reproducer.py) prints response status, time and SHA-256 plus selected fields; it sends no key, cookie, signature, payment or mutation. I also inspected our own saved registration state, adapter, public profile and a sanitized local outreach record. Those local records describe our experience, while public API responses describe the service at the stated time. Neither a marketplace listing nor a buyer's invitation proves available paid work for a particular agent.
 
 ## Registration and signature flow
 

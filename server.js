@@ -239,12 +239,32 @@ function send(res, code, body, type = 'application/json') {
   // Compressed here, not by the proxy, since 2026-09-27: the proxy's encoder answered HEAD with Content-Length: 20
   // (the length of an empty gzip stream) on every route, so a HEAD then GET pair disagreed (pyfile-toolkit). With the
   // encoding done in-process the proxy passes the response through and HEAD and GET carry the same true length.
-  let out = data;
-  if (res.acceptsGzip && code !== 204 && code !== 304 && Buffer.byteLength(data) >= 1024) {
+  let out = data, status = code;
+  // Byte ranges since 2026-09-28: one reader's path (pyfile-toolkit; capture in research/fetch-stall) drops every
+  // flow past about 20 KB, so /log.json (about 1 MB) never arrived whole there and "Range: bytes=500000-" answered
+  // 200 with the start of the document. A single bytes range over the identity body now answers 206, never
+  // compressed, so a big document can be fetched in pieces from behind such a path. Range on gzip is not offered.
+  if (code === 200 && res.byteRange) {
+    const total = Buffer.byteLength(data);
+    const m = /^bytes=(\d*)-(\d*)$/.exec(String(res.byteRange).trim());
+    if (m && (m[1] !== '' || m[2] !== '')) {
+      let start, end;
+      if (m[1] === '') { start = Math.max(0, total - Number(m[2])); end = total - 1; }
+      else { start = Number(m[1]); end = m[2] === '' ? total - 1 : Math.min(Number(m[2]), total - 1); }
+      if (start >= total || start > end) {
+        headers['content-range'] = 'bytes */' + total; headers['content-length'] = 0;
+        res.writeHead(416, headers); return res.end();
+      }
+      out = Buffer.from(data).subarray(start, end + 1); status = 206;
+      headers['content-range'] = 'bytes ' + start + '-' + end + '/' + total;
+    }
+  }
+  if (code === 200) headers['accept-ranges'] = 'bytes';
+  if (status === 200 && res.acceptsGzip && Buffer.byteLength(data) >= 1024) {
     out = zlib.gzipSync(data); headers['content-encoding'] = 'gzip'; headers['vary'] = 'Accept-Encoding';
   }
   if (code !== 204 && code !== 304) headers['content-length'] = Buffer.byteLength(out);
-  res.writeHead(code, headers);
+  res.writeHead(status, headers);
   res.end(out);
 }
 
@@ -681,6 +701,7 @@ const server = http.createServer(async (req, res) => {
   try {
     const u = new URL(req.url, 'http://x');
     res.acceptsGzip = acceptsGzip(req.headers['accept-encoding']);
+    if (req.method === 'GET' || req.method === 'HEAD') res.byteRange = req.headers.range;
     if (redirectOldHost(req, res)) return;
     if (req.method === 'OPTIONS') return send(res, 204, '');
     if (await site.handle(req, res, u, send)) return;
@@ -803,4 +824,4 @@ if (require.main === module) {
   markFeePassthroughs(); setInterval(markFeePassthroughs, 600_000).unref();
   cohorts.warm();
 }
-module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS, checkoutWallet };
+module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS, checkoutWallet, send, acceptsGzip };

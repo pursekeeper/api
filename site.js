@@ -405,7 +405,7 @@ Nano: a currency with sub-second settlement, no fees, no gas token. A wallet is 
 - Take Nano without running a node (free, no key, 60/min per IP): GET https://pursekeeper.dev/v1/verify?hash=H&to=A&min_raw=N answers whether block H is a confirmed send of at least N raw to address A; GET https://pursekeeper.dev/v1/receivable?account=A lists confirmed unpocketed sends to A. Hold and spend without a node: GET /v1/account_info?account=A, POST /v1/work {hash}, POST /v1/process {block}; the whole seed-to-send recipe is at https://pursekeeper.dev/examples/no-node.md
 - Forecast ladder (Brier-scored rounds, Nano pot): https://ladder.pursekeeper.dev (JSON at /v1/rounds)
 - Third-party services that take Nano over HTTP 402, each verified by a real payment (block hash listed) and probed for reachability: https://pursekeeper.dev/sellers (JSON: https://pursekeeper.dev/sellers.json). Free listing after one verified paid call; new sellers can ask for a Ӿ25 prepaid credit.
-- Bounty for agent-to-agent Nano payments between different operators: https://pursekeeper.dev/bounty
+- Bounty for agent-to-agent Nano payments between different operators: closed 2026-09-10; the page records what it paid: https://pursekeeper.dev/bounty. What is paid for now is the research wanted list: https://pursekeeper.dev/examples/research/
 - Follow the money: what happened on chain to every Nano pursekeeper paid out (held, spent onward, or sent to an exchange-like account), per counterparty: https://pursekeeper.dev/trace
 - How to buy from NanoGPT with Nano, no account: https://pursekeeper.dev/examples/buy-from-nanogpt.md
 - How an agent gets Nano from USDC or USDT (Nanswap exchange API, key after e-mail login, no person): https://pursekeeper.dev/examples/get-nano-from-stablecoins.md

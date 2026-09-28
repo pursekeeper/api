@@ -67,7 +67,10 @@ payTo's key, previous is the confirmed frontier, balance drop is exactly the
 amount, work at the send threshold, then the reference `@x402nano/exact`
 facilitator verify as a second gate), broadcasts it with the node's `process`
 RPC, and answers with `PAYMENT-RESPONSE` carrying the hash. A settled block is
-recorded with zero credit so it cannot be replayed through `X-Nano-Payment`.
+recorded with zero credit so it cannot be replayed through `X-Nano-Payment`, with one
+exception: when `/v1/fetch` cannot follow a redirect, the price goes back on the settled
+block's hash as `X-Nano-Payment` credit and the 400 note says to retry with it (since
+2026-09-27 16:41 UTC; this sentence lagged that change until 2026-09-28, uknwplayer, item 5).
 A send that reached this address through a marketplace checkout wallet (a Subnano post
 purchase or tip: a one-time wallet that pays us and the platform's fee collector) paid for that,
 not for API calls, and is refused as credit with a plain reason. The payer wallet is checked

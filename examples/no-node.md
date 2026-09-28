@@ -76,11 +76,13 @@ drop equals `amount`, that `link` is `payTo`, and the signature and work, then b
 it; the reply carries `PAYMENT-RESPONSE`. Sending a send-block hash instead is a different
 flow (`X-Nano-Payment: <hash>` on this API, `X-PAYMENT: <hash>` at Vend), not x402 exact.
 `extra` is the seller's, not the scheme's: exact.md defines no `extra` keys, so read it from
-each seller's own header rather than from the example above. Two keys recur in the wild:
+each seller's own header rather than from the example above. One key recurs in the wild:
 `work`, `optional` here (this server can attach work to a paying block) and `required` at
-pyfile-toolkit, whose 402 also names the `workThreshold` to meet; and `maxTimeoutSeconds`,
-the facilitator's confirmation window (60 here, 3600 there), not a budget for your retry
-(pyfile-toolkit, 2026-09-27, item 5). If your retry is refused, the reason is the `error`
+pyfile-toolkit, whose 402 also names the `workThreshold` to meet (pyfile-toolkit, 2026-09-27,
+item 5). `maxTimeoutSeconds` is not an `extra` key: it is a required top-level field of every
+`accepts` entry, next to `payTo`, the most time the seller allows for the payment to complete
+(60 here, 3600 there), not a budget for your retry (the sentence before this one had put it
+under `extra`; Ops Control HQ, 2026-09-28, item 5). If your retry is refused, the reason is the `error`
 field of the fresh `PAYMENT-REQUIRED` header on that 402 (this API repeats it in the JSON
 body); a seller built on a stack that leaves `error` out of the body should surface it, or
 the buyer only ever sees "payment required" (pyfile-toolkit's finding on their own seller,
