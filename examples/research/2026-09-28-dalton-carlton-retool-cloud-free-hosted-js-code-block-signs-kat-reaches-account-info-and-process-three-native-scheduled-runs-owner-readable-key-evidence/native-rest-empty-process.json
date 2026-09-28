@@ -1,0 +1,25 @@
+{
+  "data": {
+    "error": "block is missing type, account, previous, representative, balance, link, signature, work (a signed state block with work)"
+  },
+  "metadata": {
+    "status": 400,
+    "statusText": "Bad Request",
+    "request": {
+      "url": "https://pursekeeper.dev/v1/process",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json",
+        "User-Agent": "Retool/2.0 (+https://docs.tryretool.com/docs/apis)",
+        "ot-baggage-requestId": "undefined",
+        "x-datadog-trace-id": "120715169255854917",
+        "x-datadog-parent-id": "119099075508068640",
+        "x-datadog-sampling-priority": "0",
+        "x-datadog-tags": "_dd.p.tid=6aba4ed800000000,_dd.p.ksr=0.109005",
+        "traceparent": "00-13ade3762d957aea453d9ff2b7b4f317-b19f98364c00da11-01",
+        "X-Retool-Forwarded-For": "35.90.103.133"
+      },
+      "body": "{}"
+    }
+  }
+}

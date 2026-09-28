@@ -1,0 +1,176 @@
+{
+  "created_at": "2026-09-28T11:57:22.705380+00:00",
+  "scope": "Review-only native evidence; public test vector, no wallet secret",
+  "files": [
+    {
+      "path": "RETOOL-FINAL-REPORT.md",
+      "bytes": 13606,
+      "sha256": "9df2a4509a2bc233670c9429590f14ed9a0ede6281bc950bd1612627c2552cad"
+    },
+    {
+      "path": "local-portable-check-result.json",
+      "bytes": 633,
+      "sha256": "49280fe95edf3a2234d1bfd6a123cba82b2ca6593b47aaccd5c8c03f4ffe7fa1"
+    },
+    {
+      "path": "native-code-result.json",
+      "bytes": 2439,
+      "sha256": "39d61e94d9e0ec7f0cd8e3ed44da00b6c9fa55ba7d32cc0051e0858fcbeed48f"
+    },
+    {
+      "path": "native-logs/run-1128-UTC.txt",
+      "bytes": 2911,
+      "sha256": "2fcd76e3f89da14ef7ac555bba0c4d2025066161e470ae083852196afdfdadbb"
+    },
+    {
+      "path": "native-logs/run-1139-UTC.txt",
+      "bytes": 2946,
+      "sha256": "699cc31970de0ea767a2328d35614706b4f64757519db2bfcbb690f760fa82e6"
+    },
+    {
+      "path": "native-logs/run-1142-UTC.txt",
+      "bytes": 2946,
+      "sha256": "b712e82b8b489be803af7063a39c23e481b6322d1ab8784f39982497283a0ac0"
+    },
+    {
+      "path": "native-logs/run-1143-UTC.txt",
+      "bytes": 2946,
+      "sha256": "2de26a72d84aa9787e6d9664fce5adf1fc8f2d8e8b98be704f0f2abe4bbf74f5"
+    },
+    {
+      "path": "native-rest-account.json",
+      "bytes": 1582,
+      "sha256": "e76460d5a0b86e9152d4f94c85bf51ea75a8b95dd7dff2ed4dcdc7827dfa476d"
+    },
+    {
+      "path": "native-rest-empty-process.json",
+      "bytes": 895,
+      "sha256": "df871dbd41a3434dbf4d0888ca0e4040efa3321b2a3c685ad71fe5eea216fe7c"
+    },
+    {
+      "path": "native-run-01a0e7c6-49f4-7789-a475-46b6ef00d6f5.json",
+      "bytes": 4127,
+      "sha256": "9a689e0829adfc1d559a7504322f3a99115399dfa4e89d4210054d3a8c79627e"
+    },
+    {
+      "path": "native-run-01a0e7d0-3063-75e4-867f-24900c83b56d.json",
+      "bytes": 4162,
+      "sha256": "f07a2f16e6efeefd12b4f8f4f1cac052cd3b6bdd204ae7789f2de47cb18d635d"
+    },
+    {
+      "path": "native-run-01a0e7d2-635b-7439-9b17-e14d2169ee05.json",
+      "bytes": 4161,
+      "sha256": "e19b1d72db6c515a48a330f22d1d6661a86f064b356980823eb06a8a8a9d444c"
+    },
+    {
+      "path": "native-run-01a0e7d3-4dc0-7c7c-bc72-b10a59df09cc.json",
+      "bytes": 4162,
+      "sha256": "43ffb7347e097832d30fd9ac95e6822a21cff81072aa9163ae36188576ccc947"
+    },
+    {
+      "path": "retool-agent-persisted-tool.json",
+      "bytes": 1130,
+      "sha256": "9405dfb43786efc141a95c32083741a052b3db1f711d454a93c28bbbc6979657"
+    },
+    {
+      "path": "retool-agent-workflow-tool-draft.json",
+      "bytes": 1216,
+      "sha256": "3b4b786b8e64f73af67ccd42764a5f2356b5224bbfd08be1c482b6c64d5d3b2d"
+    },
+    {
+      "path": "retool-agent-workflow-tool-saved.json",
+      "bytes": 1118,
+      "sha256": "f0df8ed976de57e5b8e9b51df38b9246c72d544f2e5f7fd908f26c70c9a87bf1"
+    },
+    {
+      "path": "retool-cleanup-reloaded.json",
+      "bytes": 4553,
+      "sha256": "54ee54ba6038ec2d58ee4a2750b2d16fd221141b22c14066f5b9b8778896bcce"
+    },
+    {
+      "path": "retool-credit-final-settled.json",
+      "bytes": 1077,
+      "sha256": "1600d9f305842b1cb3367169583a2aea09e51f993ac833ee08563d2dee5bad80"
+    },
+    {
+      "path": "retool-export-evidence.json",
+      "bytes": 421,
+      "sha256": "e785196d50bfe40f9179135a3079e3944a5dc32e19afee1664180bf9bf3f8ae3"
+    },
+    {
+      "path": "retool-first-schedule-no-run.json",
+      "bytes": 348,
+      "sha256": "890756dae2ddf257ff1347d187d0d18cf26c71e4886560aa05d9a66339c3882a"
+    },
+    {
+      "path": "retool-free-plan-final.json",
+      "bytes": 1470,
+      "sha256": "32f7c7e2ac075f7add9bc051f4558401bce439cde2f5fd17c817b526b268477b"
+    },
+    {
+      "path": "retool-interval-retry-start.json",
+      "bytes": 1023,
+      "sha256": "3bc6906903e74437308f4a0a255f1b7570a90976eca8efec55dcf3d16719adcd"
+    },
+    {
+      "path": "retool-interval-test-ended.json",
+      "bytes": 925,
+      "sha256": "acab8f502e01512b54cd4b2c8713d7ab8962b8e069505fc7729752a0ee00ea12"
+    },
+    {
+      "path": "retool-kat-http.txt",
+      "bytes": 6630,
+      "sha256": "c1ea3c5d7593e5545df0ac7ad3d82bd652f16bfed318f8ae47bb0307547c68e6"
+    },
+    {
+      "path": "retool-left-editor-before-schedule.json",
+      "bytes": 216,
+      "sha256": "0bef296babf1e214523fb504aa1e951e3ba8a8a58c43a579f126f9d2a3430e3b"
+    },
+    {
+      "path": "retool-left-editor-interval-retry.json",
+      "bytes": 136,
+      "sha256": "a84be14a5faa98762584d5e6fdea90e354f97b9e97ac1e9a51840b8711f2de2b"
+    },
+    {
+      "path": "retool-native-run-index.json",
+      "bytes": 814,
+      "sha256": "06afd2b1a573a1f7690823249ceb51b7f53ab9eebe11b4a4ea2a53f7e9da3a52"
+    },
+    {
+      "path": "retool-runs-verified.json",
+      "bytes": 11998,
+      "sha256": "df49e6759ee10e8b5ebd24b0c4224ea42e7710c4761703ebed8cf9104a87b3eb"
+    },
+    {
+      "path": "retool-schedule-deleted.json",
+      "bytes": 3917,
+      "sha256": "77a44711cb9475dc91c0be3d4ecf7f3f312d67e83b1b49ea16c5c5be40fb069b"
+    },
+    {
+      "path": "retool-schedule-enabled-ui.json",
+      "bytes": 3820,
+      "sha256": "5bc08ea865541fce096275b5cfd431fc71ec7d967eda83efd0fae36b831d78fb"
+    },
+    {
+      "path": "retool-schedule-intent.json",
+      "bytes": 1745,
+      "sha256": "b2e5c8cc9e701c263b70e629b8197a6549cbfb488d391a69756808fe921194ca"
+    },
+    {
+      "path": "retool-workflow-usage-final.json",
+      "bytes": 603,
+      "sha256": "1d9f5e1ed4841cf572a4511efe9f78f23ca5d21d414171dc95170bf692f428a3"
+    },
+    {
+      "path": "verify-local-source.txt",
+      "bytes": 1036,
+      "sha256": "589603ee3438c81fa33b34ca2f1f89978f64cdcc05da7249c0a84ef1dd992369"
+    },
+    {
+      "path": "workflow-owner-export.json",
+      "bytes": 18140,
+      "sha256": "41d15027b0724e4ae0051c3fbca3a86df60853d49f4bbc1dddde3a185c183faf"
+    }
+  ]
+}

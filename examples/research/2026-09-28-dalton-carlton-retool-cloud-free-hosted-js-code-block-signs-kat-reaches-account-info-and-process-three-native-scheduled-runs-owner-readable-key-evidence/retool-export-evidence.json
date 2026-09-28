@@ -1,0 +1,10 @@
+{
+  "source_exact_match": true,
+  "export_file": "/home/daltonray/money-operator/zero-capital-200/away-sep19/pursekeeper-execution-sep28/native-downloads/My First Workflow - Dalton Carlton - 2026-09-28 7_13_19 AM.json",
+  "readers_tested": [
+    "owner export and owner editor"
+  ],
+  "member_roles_tested": false,
+  "platform_operator_access_tested": false,
+  "runtime_global_cross_run_persistence_demonstrated": false
+}

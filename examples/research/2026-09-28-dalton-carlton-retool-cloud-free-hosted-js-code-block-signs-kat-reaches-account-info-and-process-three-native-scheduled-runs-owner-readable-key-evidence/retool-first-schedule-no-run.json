@@ -1,0 +1,7 @@
+{
+  "at": "2026-09-28T11:40:02.030962+00:00",
+  "configured_target": "2026-09-28T11:36:00Z",
+  "observed_history": "Only the 07:28 local manual run appeared after target and native Refresh. No scheduled run identified. Cause not established.",
+  "first_schedule_disabled": true,
+  "next": "One bounded native interval attempt, then stop retries."
+}

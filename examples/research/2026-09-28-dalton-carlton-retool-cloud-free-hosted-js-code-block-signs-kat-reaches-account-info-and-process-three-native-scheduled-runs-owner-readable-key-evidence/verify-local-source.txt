@@ -1,0 +1,10 @@
+const fs=require('fs'),crypto=require('crypto');
+const source=fs.readFileSync(process.argv[2],'utf8');
+const core=source.split('// Own-account native capability report.')[0];
+const m=new Function(core+';return {publicVectorResult,blake2b64,hex,signVector,unhex};')();
+const lengths=[0,1,32,64,127,128,129,256];
+for(const len of lengths){const input=Uint8Array.from({length:len},(_,i)=>i%256);if(m.hex(m.blake2b64(input))!==crypto.createHash('blake2b512').update(input).digest('hex').toUpperCase())throw Error('BLAKE2b mismatch '+len);}
+const k=m.publicVectorResult();if(!k.pass)throw Error('KAT failed');
+const changed=m.signVector(m.unhex(k.testPrivateKey),new Uint8Array(32));if(changed.signature===k.signature)throw Error('Mutation control failed');
+const AsyncFunction=Object.getPrototypeOf(async function(){}).constructor;new AsyncFunction(source);
+console.log(JSON.stringify({kind:'LOCAL QA ONLY, not native evidence',hashCases:lengths.length,kat:k,messageMutationPassed:true,nativeBodySyntaxPassed:true,networkCalls:0},null,2));

@@ -1,0 +1,39 @@
+{
+  "data": {
+    "account": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+    "found": true,
+    "open": true,
+    "frontier": "77C9BB020A8FBF0C2FC1C50FE552796E5054E0263B33359F6E29C707116C0801",
+    "confirmed_frontier": "77C9BB020A8FBF0C2FC1C50FE552796E5054E0263B33359F6E29C707116C0801",
+    "confirmed": true,
+    "balance_raw": "102632430344318570000000000000001",
+    "balance_nano": "102.632430344318570000000000000001",
+    "confirmed_balance_raw": "102632430344318570000000000000001",
+    "receivable_raw": "0",
+    "representative": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+    "block_count": 296,
+    "confirmation_height": 296,
+    "checked_at": "2026-09-28T11:23:37.765Z",
+    "node": "pursekeeper.dev"
+  },
+  "metadata": {
+    "status": 200,
+    "statusText": "OK",
+    "request": {
+      "url": "https://pursekeeper.dev/v1/account_info?account=nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json",
+        "User-Agent": "Retool/2.0 (+https://docs.tryretool.com/docs/apis)",
+        "ot-baggage-requestId": "undefined",
+        "x-datadog-trace-id": "2402171109251490440",
+        "x-datadog-parent-id": "3926266505386853104",
+        "x-datadog-sampling-priority": "0",
+        "x-datadog-tags": "_dd.p.tid=6aba4e3900000000,_dd.p.ksr=0.073359",
+        "traceparent": "00-786ecc6d1442468cb5815bb3663ecd8f-1ba15bebfd4526cf-01",
+        "X-Retool-Forwarded-For": "35.90.103.133"
+      },
+      "body": "{}"
+    }
+  }
+}

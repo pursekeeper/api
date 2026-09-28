@@ -1,0 +1,6 @@
+{
+  "at": "2026-09-28T11:37:05.402818+00:00",
+  "url": "https://pinnacleterrain229.retool.com/agents/b87fc23d-0e85-4e78-a60c-92b7d6b6c32b/configuration",
+  "body": "Apps\nResources\nDatabase\nQuery Library\nWorkflows\nAgents\nBeta\n\nBook a demo\n\nHome\nMonitor\nTemplates\nNew Agent\nRecents\nPursekeeper Public-Vector Tools\nHide sidebar\nPursekeeper Public-Vector Tools\n\nLatest (unpublished)\n\nUndeployed changes\n\nDeploy\n\nChats\nConfiguration\nLogs\nEvals\nDatasets\nAgent configuration\nTriggers\nChat\nA2A\nInstructions\nYou are a helpful assistant chatting with {{ current_user.firstName }} {{ current_user.lastName }}. Their email is {{ current_user.email }}, and the date is {{ new Date() }}.\nAI Resource\nModel\n\nAdvanced settings\n\nTools\n\nDocumentation\n\nAdd Tool\n\npublic_vector_research\n\nRuns only the published public test-vector workflow, a public canary and intentionally empty process rejection. No real wallet key, valid transfer, spending, or arbitrary input is accepted.\n\nConfiguration Assistant\nConfiguration Assistant\n\n7:36 AM\n\nAnthropic\n\nclaude-sonnet-4-6",
+  "no_model_run": true
+}

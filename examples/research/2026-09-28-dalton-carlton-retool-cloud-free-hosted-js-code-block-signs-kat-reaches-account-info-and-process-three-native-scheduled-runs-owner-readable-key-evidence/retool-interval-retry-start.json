@@ -1,0 +1,15 @@
+{
+  "enabled_at": "2026-09-28T11:41:27.566269+00:00",
+  "latest_cleanup_by": "2026-09-28T11:44:27.566303+00:00",
+  "body": "minute\nhour\nday\nweek\nmonth\nPursekeeper Hosted Public-Vector Research\nLatest version published\n\nRun\n\nPublish release\n\nTriggers\nSchedule\nEvery minute, every hour, every day\nWebhook\nhttps://api.retool.com/v1/workflows/59c90d65-cbba-4f8b-b467-3c00c73fbb0e/startTrigger\nSchedule\nTrigger type\nSchedule\nSchedule type\nInterval\nCron\nTimezone\nRun every\nminute\nEnvironment\nproduction\nEvery minute, every hour, every day\n\nSave changes\n\n100%\n\nPursekeeper Hosted Public-Vector Research\n2026-09-28 07:28\n1.4KB\nLogs\nRun is not selected\nSelect a run to view its logs\nproduction\n\u00a0 v0.0.2\nRun history",
+  "switches": [
+    {
+      "checked": "true",
+      "group": "ScheduleEvery minute, every hour, every day"
+    },
+    {
+      "checked": "false",
+      "group": "Webhookhttps://api.retool.com/v1/workflows/59c90d65-cbba-4f8b-b467-3c00c73fbb0e/startTrigger"
+    }
+  ]
+}

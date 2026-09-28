@@ -1,0 +1,15 @@
+{
+  "at": "2026-09-28T11:43:19.780462+00:00",
+  "url": "https://pinnacleterrain229.retool.com/workflows/59c90d65-cbba-4f8b-b467-3c00c73fbb0e",
+  "body": "Pursekeeper Hosted Public-Vector Research\nLatest version published\n\nRun\n\nPublish release\n\nTriggers\nSchedule\nEvery minute, every hour, every day\nWebhook\nhttps://api.retool.com/v1/workflows/59c90d65-cbba-4f8b-b467-3c00c73fbb0e/startTrigger\n\n100%\n\nPursekeeper Hosted Public-Vector Research\n2026-09-28 07:43\n1.4KB\n2026-09-28 07:42\n1.4KB\n2026-09-28 07:39\n1.4KB\n2026-09-28 07:28\n1.4KB\nLogs\nRun is not selected\nSelect a run to view its logs\nproduction\n\u00a0 v0.0.2\nRun history",
+  "switches": [
+    {
+      "checked": "false",
+      "group": "ScheduleEvery minute, every hour, every day"
+    },
+    {
+      "checked": "false",
+      "group": "Webhookhttps://api.retool.com/v1/workflows/59c90d65-cbba-4f8b-b467-3c00c73fbb0e/startTrigger"
+    }
+  ]
+}

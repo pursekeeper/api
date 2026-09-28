@@ -1,0 +1,7 @@
+{
+  "at": "2026-09-28T11:36:45.344218+00:00",
+  "url": "https://pinnacleterrain229.retool.com/agents/b87fc23d-0e85-4e78-a60c-92b7d6b6c32b/configuration/use-workflow",
+  "body": "Create a new workflow\nPursekeeper Hosted Public-Vector Research\n\nOpen\n\nApps\nResources\nDatabase\nQuery Library\nWorkflows\nAgents\nBeta\n\nBook a demo\n\nHome\nMonitor\nTemplates\nNew Agent\nRecents\nPursekeeper Public-Vector Tools\nHide sidebar\nPursekeeper Public-Vector Tools\n\nLatest (unpublished)\n\nUndeployed changes\n\nDeploy\n\nConfiguration\n/\nAdd tool\n/\nUse workflow\n\nSave\n\nUse workflow\nSelect workflow\nPursekeeper Hosted Public-Vector Research\n\nOpen\n\nMissing Response Block\n\nThis workflow does not include a Response block. Agents can only access data from workflows that include a Response block. To access this workflow's data, add a Response block to return the data you want the agent to access.\n\nName*\nDescription*\nRequire user confirmation before use\nParameters\n\nAdd parameter\n\nNo parameters added yet\n\nTool Timeout*\n10s\nConfiguration Assistant\nConfiguration Assistant\n\n7:35 AM\n\nAnthropic\n\nclaude-sonnet-4-6",
+  "confirmation_required_default": false,
+  "model_invoked": false
+}

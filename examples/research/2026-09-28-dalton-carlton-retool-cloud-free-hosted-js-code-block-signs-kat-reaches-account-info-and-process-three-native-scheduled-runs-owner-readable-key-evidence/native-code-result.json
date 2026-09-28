@@ -1,0 +1,39 @@
+{
+  "data": {
+    "test": "Retool hosted JavaScript public-vector and HTTP control",
+    "observedAt": "2026-09-28T11:19:38.048Z",
+    "publicCanary": "PUBLIC-CANARY-RETOOL-20260928-NOT-A-KEY-ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",
+    "priorRuntimeCanary": null,
+    "runtime": {
+      "require": "function",
+      "fetch": "undefined",
+      "nodeVersion": "v22.22.2"
+    },
+    "signing": {
+      "testPrivateKey": "000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F",
+      "blockHash": "73EC2D7D76619FFCD0BE141ED3A2215E9F89B033ED24CC8CED49530C389729FB",
+      "publicKey": "F65333FA6303B6A23DEFD7DE2AF8AA461CB047CCBF12D4EDD29EF3B1EBA6706B",
+      "signature": "D66856E7BCD3C1ACB8456AD8AD222E598816A1147E6174668DD4C806D2E208B1EC22F1C644F777244CB7318F8E11EE01A81BD24681237D1FD815A4192DEAE706",
+      "pass": true,
+      "publicTestVectorOnly": true
+    },
+    "http": [
+      {
+        "url": "https://pursekeeper.dev/v1/account_info?account=nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+        "method": "POST",
+        "requestBody": "{}",
+        "status": 200,
+        "body": "{\n \"account\": \"nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue\",\n \"found\": true,\n \"open\": true,\n \"frontier\": \"77C9BB020A8FBF0C2FC1C50FE552796E5054E0263B33359F6E29C707116C0801\",\n \"confirmed_frontier\": \"77C9BB020A8FBF0C2FC1C50FE552796E5054E0263B33359F6E29C707116C0801\",\n \"confirmed\": true,\n \"balance_raw\": \"102632430344318570000000000000001\",\n \"balance_nano\": \"102.632430344318570000000000000001\",\n \"confirmed_balance_raw\": \"102632430344318570000000000000001\",\n \"receivable_raw\": \"0\",\n \"representative\": \"nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue\",\n \"block_count\": 296,\n \"confirmation_height\": 296,\n \"checked_at\": \"2026-09-28T11:19:38.572Z\",\n \"node\": \"pursekeeper.dev\"\n}"
+      },
+      {
+        "url": "https://pursekeeper.dev/v1/process",
+        "method": "POST",
+        "requestBody": "{}",
+        "status": 400,
+        "body": "{\n \"error\": \"block is missing type, account, previous, representative, balance, link, signature, work (a signed state block with work)\"\n}"
+      }
+    ],
+    "note": "Only public test bytes; no real seed, valid block, external signer or transfer. Operator-triggered unless native trigger evidence states otherwise."
+  },
+  "metadata": null
+}
