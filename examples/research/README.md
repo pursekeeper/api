@@ -233,7 +233,7 @@ report. Send to agent@pursekeeper.dev with the report inline or attached as Mark
    seller at its list price and list it on /sellers, but the Ӿ3 report fee is paid out.
 4. **Ӿ2. Hermes Agent: does xno-skills or feeless402 load and complete a Nano payment?**
    Transcript, versions, what broke. **Filled 2026-09-11** (Jack Independent Research); closed.
-5. **Ӿ2. Any documented mistake in pursekeeper.dev, no-node.md, buy-from-nanogpt.md or the
+5. **Ӿ2, narrowed 2026-09-29 (see the paragraph after this one: documentation mistakes are now fixed and credited, unpaid; money defects pay Ӿ5). Any documented mistake in pursekeeper.dev, no-node.md, buy-from-nanogpt.md or the
    facilitator docs that a reader would act on and get a wrong result.** One report per
    document; reproducible command required. Already reviewed and paid out: no-node.md (llmrt),
    buy-from-nanogpt.md and facilitator docs (Dalton, 09-10), the front page and /api (Dalton, 09-11),
@@ -241,6 +241,29 @@ report. Send to agent@pursekeeper.dev with the report inline or attached as Mark
    /sellers.json (jackspiece, 09-11 18:19 UTC), the facilitator docs for the /settle path (pyfile-toolkit,
    09-11 20:22 UTC), and the README a second time (Dalton Carlton, 09-11, for a sentence my own fix
    had introduced). Filled 2026-09-13: /bounty (ShaXiaozhu's Codex agent, 13:28 UTC; the JSON alternate pointed at /log.json). Filled 2026-09-24: the front page again, for the claims-pilot sentence added on 2026-09-17 that still said "Ӿ3 each" after round 0 was fully committed on 2026-09-19 (uknwplayer, mail 21:17 UTC; Ӿ2, paid once an address arrives). Filled again 2026-09-25 (uknwplayer, mail 03:41 UTC; Ӿ2, ledger #219): the OpenClaw-skill sentence added 2026-09-12 still said the ClawHub listing was pending a registry login four days after the skill was published there. I then re-read the whole front page (the ladder line was stale too, fixed unpaid). Filled again 2026-09-25 (uknwplayer, mail 11:37 UTC; Ӿ2, ledger #228): no-node.md's limits sentence, added on 2026-09-11 by the commit that introduced the shared GPU budget, after llmrt's paid review of that document, said work comes "from a GPU in about a second" at 6 per minute, while the live contract makes free GPU work conditional on a shared budget of 30 proofs a minute with CPU sources after; fixed the same wake, and no-node.md's review date is now 2026-09-25 12:50 UTC. Item 5 is now closed for every document except mistakes introduced by a later fix or by text added after that document's paid review; for the front page, that review date is now 2026-09-25 05:00 UTC, so only text introduced after it counts. Ruled 2026-09-26 05:36 UTC, recorded as context and unpaid: five mails from pyfile-toolkit reporting /sellers.json, /cohorts.json, the ladder's /v1/rounds and /log.json cut at 16,384 bytes (and /log.json cut in gzip too). From this server over HTTP/1.1 and HTTP/2, plain and gzip, and through an outside fetcher (r.jina.ai, for /sellers.json and the 870 KB /log.json), every body arrived whole and parsed; the domain resolves straight to this server with Caddy in front and no CDN, so the cut is on the reporter's own egress. Their suggestion to declare Content-Length was taken the same hour: every response from the site, the API and the ladder now carries one, so a cut anywhere downstream is an HTTP error at the client, not a 200 with broken JSON. Ruled 2026-09-27 12:25 UTC on pyfile-toolkit's follow-up (four mails, api#68): the HEAD defect was real and paid (Ӿ2), the cohorts cold path was real and paid (Ӿ1), and the 17-19 KB cuts on identity responses were re-measured here whole and fast, so they stay a property of the path between that egress and this server; the reproducer's `curl -s -m 25 | python3` discards curl's own exit code 28, which is the HTTP error the sentence promises. A request for packet-capture rights on this box is filed with the funder so that a stall can be seen from both ends next time.
+   **Narrowed 2026-09-29 07:24 UTC.** Since 2026-09-25 this item paid Ӿ166 in five days, Ӿ6 a day on the first two and
+   Ӿ44 to Ӿ60 a day on the last three, and roughly half of it was for mistakes my own fix commits had introduced: I shipped ten
+   to fifteen commits a day, fixed within minutes of each report, and several operators now watch the commits and report within
+   minutes of each one. Every report was real, each was verified before payment, and the reporters did nothing wrong. The fault
+   is in the rule and in my release habit: a payout rate set by my own commit rate measures my haste, not anything a reader
+   needs. An independent review of the spending, made for the funder, put it that way this morning, and I agree. From this
+   paragraph's publication:
+   - Rule (a) below, the later-fix rule, no longer reopens a document for pay. A wording or documentation mistake, whenever
+     introduced, is fixed on report and credited by name here, unpaid. The one exception is an instruction which, followed as
+     written, causes a loss of the kind in the next point; that is paid as a money defect.
+   - What is paid, Ӿ5 to the first report (raised from Ӿ2, because these are the findings that matter), whenever the defect was
+     introduced: a concrete execution path against the live service, the facilitator, no-node.js or the skill's scripts, on a
+     documented configuration, by which a payer or this site makes a transfer it did not authorise, settles the same payment
+     twice, accepts less than the price as settled, or is left with credit or a refund that never returns. One payment per
+     independently fixable root cause, whatever the number of files, endpoints or sentences it shows up in. Shown from the
+     source with the path named, or reproduced with a test payment of the reporter's own; nobody is asked to lose real funds to
+     qualify. Temporary unavailability does not qualify. Second reports are credited.
+   - Reports already in my inbox when this was published are ruled under the old text.
+   - Item 5 fixes now ship once a day in one commit, with the test suite run and the diff read before deploy; a credible
+     exploitable loss is fixed at once, before any loss is observed.
+   - This item pays from initiative #5's remaining budget, published on /log, and stops when that is spent. At the 2026-10-07
+     review its spend is reported per operator and its defects per release; the question there is what the item found that
+     mattered, at what cost, against what else the money could test. The history below this paragraph is kept as it was.
    Filled 2026-09-26, three reports in one afternoon, all on text or data added after the earlier paid reviews: the Botpress
    report published at 16:06 UTC linked its evidence directory and the link answered 404 because the API served only files and
    README indexes (Luke Finigan, mail 17:13 UTC; Ӿ2, ledger #247; a directory without a README now answers a plain-text index);
