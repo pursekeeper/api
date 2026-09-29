@@ -17,6 +17,7 @@ const site = require('./site');
 const cohorts = require('./cohorts');
 const x402 = require('./x402');
 const facilitator = require('./facilitator');
+const { withHashLock } = require('./hashlock');   // per-hash serialisation shared with the facilitator
 const nanocurrency = require('nanocurrency');
 const { Helper } = require('@x402nano/helper');
 const { ExactNanoScheme: X402Reference } = require('@x402nano/exact/facilitator');
@@ -53,7 +54,7 @@ const workName = u => { const url = new URL(u); if (url.hash) return url.hash.sl
 const workLocal = u => /^(127\.|localhost)/.test(new URL(u).host);
 const FREE_GPU_PER_MIN = Number(process.env.FREE_GPU_PER_MIN || 30);
 const workSources = () => ({ paid: [...PAID_WORK_URLS.map(workName), ...WORK_URLS.map(workName), 'node'],
-  free: [...PAID_WORK_URLS.map(u => workName(u) + ' (' + FREE_GPU_PER_MIN + '/min shared; unlimited for accounts that paid before)'), ...WORK_URLS.map(workName), 'node'] });
+  free: [...PAID_WORK_URLS.map(u => workName(u) + ' (' + FREE_GPU_PER_MIN + '/min shared; prior payers skip the shared GPU budget but stay under the free per-IP cap of ' + FREE_WORK_PER_MIN + '/min)'), ...WORK_URLS.map(workName), 'node'] });
 const freeGpu = { tokens: FREE_GPU_PER_MIN, at: Date.now() };
 function takeFreeGpu() {   // token bucket: FREE_GPU_PER_MIN a minute, burst the same
   const now = Date.now();
@@ -408,8 +409,9 @@ async function chargeX402Locked(req, res, payload) {
     workGenerate: async hash => (await workFor(hash, { paid: true })).work   // a paying block earns its work
   });
   if (!v.ok) return paymentRequired(res, 'x402: ' + v.reason, req), false;
-  // In `settling` for the whole serve, the alreadyLanded branch included: the facilitator shares the set, so its verify
-  // refuses the hash meanwhile (Ops Control HQ, 2026-09-28 22:34 UTC).
+  // In `settling` for the whole serve, the alreadyLanded branch included: the facilitator shares the set, so its /verify
+  // refuses the hash meanwhile (Ops Control HQ, 2026-09-28 22:34 UTC); its /settle queues on the same per-hash lock
+  // (hashlock.js) and runs after this serve, when block_info finds the block (2026-09-29).
   settling.add(v.hash);
   try {
     let s;
@@ -658,15 +660,6 @@ async function charge(req, res) {
     return true;
   });
 }
-const hashLocks = new Map();
-function withHashLock(key, fn) {
-  const prev = hashLocks.get(key) || Promise.resolve();
-  const run = prev.catch(() => {}).then(fn);
-  const tail = run.catch(() => {});
-  hashLocks.set(key, tail);
-  tail.then(() => { if (hashLocks.get(key) === tail) hashLocks.delete(key); });
-  return run;
-}
 
 // --- endpoints ---------------------------------------------------------------
 
@@ -726,7 +719,7 @@ function isPrivate(ip) {
   if (h[0] === 0x2001 && h[1] === 0x0db8) return true;            // 2001:db8::/32
   if (h[0] === 0x2001 && h[1] === 2 && h[2] === 0) return true;     // 2001:2::/48 (benchmarking)
   if (h[0] === 0x2001 && (h[1] & 0xfff0) === 0x0010) return true;  // 2001:10::/28 (ORCHID)
-  if (h[0] === 0x2001 && (h[1] & 0xfff0) === 0x0020) return true;  // 2001:20::/28 (ORCHIDv2)
+  // 2001:20::/28 (ORCHIDv2, RFC 7343) is not refused: the IANA registry marks it globally reachable (jcemus, 2026-09-29).
   if (h[0] === 0x3fff && (h[1] & 0xf000) === 0) return true;       // 3fff::/20 (documentation, RFC 9637)
   if (h[0] === 0x5f00) return true;                                // 5f00::/16 (SRv6 SIDs, RFC 9602)
   if (h[0] === 0x0100 && h[1] === 0 && h[2] === 0 && h[3] === 0) return true;   // 100::/64
@@ -747,28 +740,36 @@ async function checkFetchUrl(urlStr) {
   if (addrs.some(a => isPrivate(a.address))) throw new Error('private address refused');
   return { u, addrs };
 }
-async function fetchText(urlStr) {
+// `checked` is the { u, addrs } the /v1/fetch handler got from checkFetchUrl before the charge: the first hop connects
+// to those pins and the name is not resolved a second time. Without it fetchText re-ran the lookup after the charge, and
+// a transient DNS failure there threw an error carrying neither noAnswer nor unpaid, so the handler kept the payment and
+// answered 400 with no hash to retry with (uknwplayer, 2026-09-29). Any failure before the target is contacted is flagged
+// like a target that never answered, so the handler restores the price.
+async function fetchText(urlStr, checked) {
   // The connection goes only to the addresses the check saw: the global fetch resolved the name again on its own, so
   // a rebinding name could pass checkFetchUrl and then connect somewhere private (Ops Control HQ, 2026-09-28). Every
   // hop is pinned after its check and the dispatcher's lookup answers from the pins alone, never from DNS.
-  const { Agent, fetch: ufetch } = require('undici');
+  let u, dispatcher, ufetch;
   const pins = new Map();   // lowercased hostname without brackets -> [{ address, family }]
   const pin = ({ u, addrs }) => { pins.set(u.hostname.replace(/^\[|\]$/g, '').toLowerCase(), addrs); return u; };
-  let u = pin(await checkFetchUrl(urlStr));
-  const dispatcher = new Agent({ connect: { lookup: (host, opts, cb) => {
-    const a = pins.get(String(host).toLowerCase());
-    if (!a || !a.length) return cb(new Error('host not pinned: ' + host));
-    if (a.some(x => isPrivate(x.address))) return cb(new Error('private address refused'));
-    if (opts && opts.all) return cb(null, a.map(x => ({ address: x.address, family: x.family })));
-    return cb(null, a[0].address, a[0].family);
-  } } });
+  try {
+    const undici = require('undici'); ufetch = undici.fetch;
+    u = pin(checked || await checkFetchUrl(urlStr));
+    dispatcher = new undici.Agent({ connect: { lookup: (host, opts, cb) => {
+      const a = pins.get(String(host).toLowerCase());
+      if (!a || !a.length) return cb(new Error('host not pinned: ' + host));
+      if (a.some(x => isPrivate(x.address))) return cb(new Error('private address refused'));
+      if (opts && opts.all) return cb(null, a.map(x => ({ address: x.address, family: x.family })));
+      return cb(null, a[0].address, a[0].family);
+    } } });
+  } catch (e) { e.noAnswer = true; e.message = 'target was not contacted (' + e.message + ')'; throw e; }
   const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(new Error('no answer within 15 s')), 15000);
   let r;
   try {
     // Redirects are followed by hand and every hop goes through checkFetchUrl, so a public URL cannot bounce the
     // paid fetch to a private or link-local address (uknwplayer, 2026-09-27; redirect: 'follow' skipped the check).
     for (let hop = 0; ; hop++) {
-      // No response at all from this hop (timeout, connection refused or reset, TLS failure, connect-time DNS): nothing
+      // No response at all from this hop (timeout, connection refused or reset, TLS failure; names were resolved before): nothing
       // was fetched and the call is handed back. Anything that arrives as an HTTP response, whatever its status, is
       // billable (Ops Control HQ, 2026-09-28 22:23 UTC).
       try { r = await ufetch(u, { dispatcher, signal: ctl.signal, redirect: 'manual', headers: { 'user-agent': 'nano-paid-api/0.1 (+pay-per-call fetch)' } }); }
@@ -835,8 +836,10 @@ x402
   be followed (the next target failed the same address check as the first URL, the
   redirect had no Location header, or there were more than five hops), and /v1/fetch
   answering 502 because the target never answered (timeout, refused or reset connection,
-  TLS failure, connect-time DNS; any HTTP response from the target, whatever its status,
-  is billable), when the price goes on the block's hash as X-Nano-Payment credit and the
+  TLS failure; a name that does not resolve is not a 502: the first URL is refused with 400
+  before the charge, a later hop is handed back as a redirect that could not be followed;
+  any HTTP response from the target, whatever its status, is billable), when the price
+  goes on the block's hash as X-Nano-Payment credit and the
   400 or 502 body names the full hash to retry with. Work is optional here: the requirements carry
   extra.work = "optional", so omit it or send "0" and this server computes it before
   broadcasting; if you include work it must be valid at the send threshold. Other
@@ -869,11 +872,14 @@ Endpoints
   POST /v1/work  {"hash":H}   work_generate at the send threshold for any hash. Free: 6 per
                               minute per IP, from a GPU (about a second) while a shared budget
                               of 30 free proofs a minute lasts, then CPU sources (10 s or more);
-                              the reply's "source" and "ms" say which. Accounts that have paid
-                              this server before always get the GPU. With X-Nano-Payment credit
-                              or an x402 payment header, ${nano(PRICE_RAW)} NANO per work, GPU,
-                              no per-minute limit; at most four proofs are generated at once
-                              and a fifth call answers 503 with nothing charged
+                              the reply's "source", "ms" and "tier" say which. Accounts that have
+                              paid this server before skip the shared GPU budget on free calls (the
+                              per-IP limit still applies). With X-Nano-Payment credit or an x402
+                              payment header, ${nano(PRICE_RAW)} NANO per work, no per-minute limit.
+                              GPU first for paid calls and for known payers, falling back to the
+                              hosted work sources or this node when the GPU path returns no work
+                              (this text said "always" until 2026-09-29); at most four proofs are
+                              generated at once and a fifth call answers 503 with nothing charged
 
 Example
   curl -s 'https://pursekeeper.dev/v1/fetch?url=https://example.com' \\
@@ -988,17 +994,20 @@ const server = http.createServer(async (req, res) => {
     }
     if (u.pathname === '/v1/fetch') {
       const target = u.searchParams.get('url') || '';
-      try { await checkFetchUrl(target); }
+      let checked;   // the resolved, classified target; fetchText pins the first hop to it and does not resolve again after the charge
+      try { checked = await checkFetchUrl(target); }
       catch (e) { return send(res, 400, { error: e.message, note: 'url must be an absolute http(s) URL to a public host; this check runs before any payment is taken' }); }
       if (!await charge(req, res)) return;
-      try { return send(res, 200, await fetchText(target)); }
+      try { return send(res, 200, await fetchText(target, checked)); }
       catch (e) {
         // A redirect to a refused host is the target's doing, not the buyer's, and nothing was fetched: hand the call back.
         // For X-Nano-Payment the price goes back on the hash. For x402 the payment block is already on the chain and cannot
         // be undone, so the price goes on the settled block's hash as X-Nano-Payment credit instead; the first version of
         // this hand-back (12:25 UTC) restored only the header path and still said "not charged" (Ops Control HQ, Pururin-ux).
-        // A target that never answered (e.noAnswer: timeout, refused or reset connection, TLS failure, connect-time DNS) is
-        // handed back the same way, with 502; a target that answered anything is billable (Ops Control HQ, 2026-09-28 22:23 UTC).
+        // A target that never answered (e.noAnswer: timeout, refused or reset connection, TLS failure, or anything that failed
+        // before the target was contacted) is handed back the same way, with 502; a target that answered anything is billable
+        // (Ops Control HQ, 2026-09-28 22:23 UTC). A name that does not resolve never gets here: the first URL is refused with 400
+        // before the charge, and a redirect hop's lookup failure is e.unpaid (uknwplayer, 2026-09-29).
         const h = String(req.headers['x-nano-payment'] || res.getHeader('x-nano-payment-hash') || '').toUpperCase();
         const why = e.unpaid ? 'the redirect could not be followed (' + e.message + ') before any fetch from the new host' : e.message;
         let note;

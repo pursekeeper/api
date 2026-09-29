@@ -121,6 +121,21 @@ test('settle: a second settle of the same block is refused', async () => {
   assert.equal(r2.success, false); assert.equal(r2.errorReason, 'block_already_exists');
 });
 
+test('settle: two concurrent settles of the same block yield one success and one refusal, and one process call', async () => {
+  // Before the per-hash lock both passed verify's seen() check (the reservation was made only after verify's node reads
+  // returned) and both broadcast; serialised, the second sees the first's block on the chain (2026-09-29).
+  const n = node();
+  let processes = 0;
+  const rpc = async b => { if (b.action === 'process') processes++; return n(b); };
+  const b = makeBlock();
+  const [r1, r2] = await Promise.all([f.settleRequest(body(b), deps(rpc)), f.settleRequest(body(b), deps(rpc))]);
+  const ok = [r1, r2].filter(r => r.success), bad = [r1, r2].filter(r => !r.success);
+  assert.equal(ok.length, 1, JSON.stringify([r1, r2]));
+  assert.equal(bad[0].errorReason, 'block_already_exists');
+  assert.equal(processes, 1, 'one block, one broadcast');
+  assert.ok(n.chain.has(ok[0].transaction));
+});
+
 test('settle: an in-flight hash is refused while settling', async () => {
   const settling = new Set();
   const b = makeBlock();

@@ -27,6 +27,7 @@ const path = require('path');
 const crypto = require('crypto');
 const N = require('nanocurrency');
 const x402 = require('./x402');
+const { withHashLock } = require('./hashlock');   // the seller path's per-hash lock, shared
 
 const HOST = 'facilitator.pursekeeper.dev';
 const PREFIX = '/facilitator';
@@ -94,7 +95,18 @@ async function verifyRequest(body, deps) {
   return { isValid: true, payer: v.payer, _hash: v.hash, _block: v.block, _timeout: Number(paymentRequirements.maxTimeoutSeconds) || 60 };
 }
 
+// Verify, reservation and settle run under the block's hash lock, keyed before verify and shared with chargeX402 in
+// server.js (hashlock.js). Before this, `settling` was entered only after verify's node reads returned, so two concurrent
+// /settle calls carrying the same block both passed seen() and both broadcast, and a /settle racing the seller path for
+// one block was not excluded at all. Serialised, the second call runs after the first and its seen() finds the block on
+// the chain (block_already_exists) or still reserved. A block that does not hash runs unlocked so verify names the fault.
 async function settleRequest(body, deps) {
+  let key = null;
+  try { key = x402.blockHash(body.paymentPayload.payload.block).toUpperCase(); } catch { /* verify reports what is wrong */ }
+  const run = () => settleLocked(body, deps);
+  return key ? withHashLock(key, run) : run();
+}
+async function settleLocked(body, deps) {
   const v = await verifyRequest(body, deps);
   const network = x402.NETWORK;
   if (!v.isValid) return { success: false, errorReason: v.invalidReason, detail: v.detail, transaction: '', network, payer: v.payer };
@@ -258,6 +270,8 @@ Endpoints (the x402 facilitator HTTP API; @x402/core and the x402 Python package
   POST /settle   same body
        -> {"success":true,"transaction":"<block hash>","network":"nano:mainnet","payer":"nano_..."}
        -> {"success":false,"errorReason":"<code>","detail":"<why>","transaction":"","network":"nano:mainnet","payer":"..."}
+          transaction is "" on every failure except confirmation_timeout, where it is the hash of the block that
+          was processed but not confirmed within the poll budget (check block_info before retrying; it may still confirm)
 
   GET  /stats    counters, one row per payTo address, the last settled blocks (human page: https://pursekeeper.dev/facilitator)
 
