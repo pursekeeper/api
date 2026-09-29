@@ -89,3 +89,31 @@ test('never confirmed within the bound -> 402 naming the hash, not marked spent;
   assert.equal(credits[hash], '0');
   assert.equal(calls.filter(a => a === 'process').length, processesBefore + 1, 'one broadcast in total');
 });
+
+test('a broadcast block is public: re-presented from another address without the token -> refused, not marked spent; with the token -> served once', async () => {
+  const { hash, header } = payment('nano_3arg3asgtigae3xckabaaewkx3bzsh7nwz7jkmjos79ihyaxwphhm6qgjps4');   // another representative: another block
+  moved = null; confirm = () => 'false';   // the account is back at FRONTIER for this block
+  const res = response();
+  assert.equal(await chargeX402(request(header), res, header), false);
+  assert.equal(res.status, 402, JSON.stringify(res.body));
+  const token = res.getHeader('x-nano-represent');
+  assert.match(String(token), /^[0-9a-f]{32}$/);
+  assert.equal(res.body.represent_token, token);
+  assert.ok(res.body.note.includes('X-Nano-Represent: ' + token), res.body.note);
+  assert.equal(credits[hash], undefined);
+  moved = hash; confirm = h => h === hash ? 'true' : 'false';
+  const stranger = () => { const q = request(header); q.socket = { remoteAddress: '203.0.113.9' }; return q; };
+  const res2 = response();
+  assert.equal(await chargeX402(stranger(), res2, header), false, JSON.stringify(res2.body));
+  assert.equal(res2.status, 402);
+  assert.match(res2.body.error, /waiting for its payer/);
+  assert.equal(credits[hash], undefined, 'not marked spent by the stranger');
+  const q3 = stranger(); q3.headers['x-nano-represent'] = token;
+  const res3 = response();
+  assert.equal(await chargeX402(q3, res3, header), true, JSON.stringify(res3.body));
+  assert.equal(res3.getHeader('x-nano-payment-hash'), hash);
+  assert.equal(credits[hash], '0');
+  const res4 = response();
+  assert.equal(await chargeX402(q3, res4, header), false);
+  assert.match(res4.body.error, /already used/);
+});

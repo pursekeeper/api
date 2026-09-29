@@ -68,7 +68,9 @@ amount, work at the send threshold, then the reference `@x402nano/exact`
 facilitator verify as a second gate), broadcasts it with the node's `process`
 RPC, waits up to 8 s for the node to confirm it (since 2026-09-29; a block not confirmed within
 that answers 402 naming the hash with nothing charged: re-present the same `PAYMENT-SIGNATURE`,
-never a new block, and it is served once confirmed), and answers with `PAYMENT-RESPONSE`
+never a new block, with the single-use `X-Nano-Represent` token that 402 carries, and it is served
+once confirmed; the block is public on the chain from the broadcast, and the token, or the same
+client address, binds the re-presentation to the payer), and answers with `PAYMENT-RESPONSE`
 carrying the hash. A settled block is
 recorded with zero credit so it cannot be replayed through `X-Nano-Payment`, with three
 exceptions: when `/v1/work` answers 502 because work generation failed, `/v1/fetch` answers
