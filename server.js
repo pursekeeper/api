@@ -253,6 +253,9 @@ async function creditForUnlocked(hash) {
   if (!/^[0-9A-F]{64}$/i.test(hash)) return { error: 'bad hash' };
   hash = hash.toUpperCase();
   if (noCredit.has(hash)) return { error: noCredit.get(hash) };
+  // A block this server broadcast for an x402 payment and answered 402 for is its payer's, not bearer credit: it is served
+  // only to the re-presentation carrying the X-Nano-Represent token from that 402 (see REPRESENT; pyfile-toolkit, 2026-09-29).
+  if (represent[hash]) return { error: 'this block was broadcast through this server for an x402 payment and is waiting for its payer to re-present the same PAYMENT-SIGNATURE with the X-Nano-Represent token from that 402; it is not spendable as X-Nano-Payment credit' };
   if (!purposeRegOk) return { error: 'the list of sends that are not API credit could not be loaded; bearer credit is refused until it is, retry shortly (x402 payments are unaffected)' };
   if (hash in credits) {
     if (!creditAccounts[hash] && credits[hash] !== '0') {   // stored before accounts were kept: look it up now rather than trust the reload to have finished
@@ -310,8 +313,8 @@ function acceptsGzip(header) {
 function send(res, code, body, type = 'application/json') {
   const data = typeof body === 'string' ? body : JSON.stringify(body, null, 1);
   const headers = { 'content-type': type + '; charset=utf-8', 'access-control-allow-origin': '*',
-    'access-control-allow-headers': 'X-Nano-Payment, PAYMENT-SIGNATURE, X-PAYMENT, Content-Type',
-    'access-control-expose-headers': 'PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-Nano-Credit-Remaining-Raw, X-Nano-Payment-Hash' };
+    'access-control-allow-headers': 'X-Nano-Payment, PAYMENT-SIGNATURE, X-PAYMENT, X-Nano-Represent, Content-Type',
+    'access-control-expose-headers': 'PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-Nano-Credit-Remaining-Raw, X-Nano-Payment-Hash, X-Nano-Represent' };
   // Declared length since 2026-09-26: a body cut by any proxy or sandbox between here and the reader is then an
   // HTTP error at the client, not a 200 with unparseable JSON (a reporter saw 16 KiB bodies on their own egress).
   // Compressed here, not by the proxy, since 2026-09-27: the proxy's encoder answered HEAD with Content-Length: 20
@@ -417,18 +420,25 @@ const X402_CONFIRM = { intervalMs: 250, boundMs: 8_000 };
 // wrap the block in their own PAYMENT-SIGNATURE and be served through verify's alreadyLanded branch before the payer
 // re-presented (trollhunters, 2026-09-29 16:29 UTC). The 402 now carries a single-use token (x-nano-represent header,
 // represent_token in the body, named in the note) that binds the re-presentation to the payer: the resend must carry
-// X-Nano-Represent: <token>, or come from the same client address as the broadcast request (clients from before the token).
-// Kept on disk for 24 h so a restart does not reopen the window; a landed block with no record here (broadcast elsewhere, or
-// older than a day) is served as before, since this server never handed anyone a 402 for it.
+// X-Nano-Represent: <token>. The token is the only binding: until 2026-09-29 20:5x UTC a resend from the same client
+// address was accepted too, and an address is not a payer (agents behind one platform egress share it; a forwarded-for
+// header can be shaped by the caller) (Ops Control HQ, 17:38 UTC). The record also closes the bearer path: a hash with a
+// record here is refused as X-Nano-Payment credit (creditForUnlocked), because the block is a confirmed send to this
+// address and the bearer path would otherwise credit whoever read it off the chain first (pyfile-toolkit, 18:42 UTC).
+// Kept on disk; a record the payer never used is closed after 30 days (the hash is marked spent, so nobody can take it
+// later either, and the reason names the mail address for a refund). A landed block with no record here (broadcast
+// elsewhere, or before the record existed) is served as before, since this server never handed anyone a 402 for it.
 const REPRESENT = path.join(__dirname, 'data', 'represent.json');
+const REPRESENT_TTL_MS = 30 * 86_400_000;
+const REPRESENT_EXPIRED = 'this block was broadcast through this server and answered 402 for, and its payer did not re-present it within 30 days; it is not spendable as credit; write to agent@pursekeeper.dev with the hash';
 let represent = {};
 try { represent = JSON.parse(fs.readFileSync(REPRESENT, 'utf8')); } catch {}
 function saveRepresent() {
-  const now = Date.now();
-  for (const [h, r] of Object.entries(represent)) if (now - r.at > 86_400_000) delete represent[h];
+  const now = Date.now(); let spent = false;
+  for (const [h, r] of Object.entries(represent)) if (now - r.at > REPRESENT_TTL_MS) { delete represent[h]; credits[h] = '0'; noCredit.set(h, REPRESENT_EXPIRED); spent = true; }
+  if (spent) save();
   try { fs.writeFileSync(REPRESENT, JSON.stringify(represent)); } catch {}
 }
-const clientIp = req => String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
 async function confirmedWithin(hash) {
   const deadline = Date.now() + X402_CONFIRM.boundMs;
   for (;;) {
@@ -451,13 +461,13 @@ async function chargeX402Locked(req, res, payload) {
   // (hashlock.js) and runs after this serve, when block_info finds the block (2026-09-29).
   settling.add(v.hash);
   try {
-    // A landed block this server broadcast and answered 402 for is served only to its payer: the token from that 402, or the
-    // same client address (see REPRESENT). Refused here nothing is marked spent, so the payer's own re-presentation still works.
+    // A landed block this server broadcast and answered 402 for is served only to its payer: the token from that 402 (see
+    // REPRESENT). Refused here nothing is marked spent, so the payer's own re-presentation still works.
     const rep = v.alreadyLanded ? represent[v.hash] : null;
     if (rep) {
       const given = String(req.headers['x-nano-represent'] || '').trim();
-      if (given !== rep.token && !(given === '' && clientIp(req) === rep.ip))
-        return paymentRequired(res, 'x402: block ' + v.hash + ' was broadcast through this server and is waiting for its payer to re-present it; send X-Nano-Represent with the token from that 402, or re-present from the same client address; nothing served, nothing marked spent', req), false;
+      if (given !== rep.token)
+        return paymentRequired(res, 'x402: block ' + v.hash + ' was broadcast through this server and is waiting for its payer to re-present it; send X-Nano-Represent with the token from that 402 (its x-nano-represent header and represent_token field); nothing served, nothing marked spent', req), false;
     }
     let s;
     // A block that is already the payer's frontier landed on an earlier attempt whose settle reply was lost: no second
@@ -469,7 +479,7 @@ async function chargeX402Locked(req, res, payload) {
     if (!s.success) return paymentRequired(res, 'x402: ' + s.errorReason, req), false;
     if (!v.alreadyLanded && !await confirmedWithin(s.transaction)) {
       const token = crypto.randomBytes(16).toString('hex');
-      represent[s.transaction] = { token, ip: clientIp(req), at: Date.now() }; saveRepresent();
+      represent[s.transaction] = { token, at: Date.now() }; saveRepresent();
       const note = 'block ' + s.transaction + ' was broadcast but not yet confirmed within ' + X402_CONFIRM.boundMs / 1000 + ' s; nothing was charged for this call; re-present the same payment (the unchanged PAYMENT-SIGNATURE) with the header X-Nano-Represent: ' + token + ' (this reply carries it as the x-nano-represent header and as represent_token) and it is served once the block is confirmed; the token binds the re-presentation to you, because the block is public on the chain from the broadcast; do not sign a new block, that would pay twice';
       res.setHeader('x-nano-represent', token);
       return paymentRequired(res, 'x402: block ' + s.transaction + ' was broadcast but not yet confirmed; re-present the same PAYMENT-SIGNATURE with X-Nano-Represent', req, { note, represent_token: token }), false;
@@ -908,8 +918,8 @@ x402
   answers 402 naming the hash with nothing charged: re-present the same PAYMENT-SIGNATURE
   (the same block, not a new one, which would pay twice) with the single-use X-Nano-Represent
   token that 402 carries, and it is served once confirmed. The block is public on the chain from
-  the broadcast; the token, or the same client address, is what binds the re-presentation to the
-  payer, so nobody else can be served on it.
+  the broadcast; the token is what binds the re-presentation to the payer, so nobody else can be
+  served on it, and a block waiting for its token is not X-Nano-Payment credit for anyone either.
   No external facilitator, no account. The block pays for one call and is not otherwise
   usable as X-Nano-Payment credit; the three exceptions are /v1/work answering 502
   because work generation failed, /v1/fetch answering 400 because a redirect could not
@@ -1131,5 +1141,5 @@ if (require.main === module) {
     cohorts.warm();
   });
 }
-module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS, checkoutWallet, send, acceptsGzip, isPrivate, expand6, checkFetchUrl, fetchText, chargeX402,
+module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS, checkoutWallet, send, acceptsGzip, isPrivate, expand6, checkFetchUrl, fetchText, chargeX402, creditFor,
   server, credits, X402_CONFIRM, FETCH_BOUNDS };   // server (the http.Server, not listening), credits, X402_CONFIRM and FETCH_BOUNDS for tests

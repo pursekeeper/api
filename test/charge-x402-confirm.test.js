@@ -15,7 +15,7 @@ const DATA_DIR = path.join(__dirname, '..', 'data') + path.sep;
 const realWrite = fs.writeFileSync, realAppend = fs.appendFileSync;
 fs.writeFileSync = (p, ...a) => { if (String(p).startsWith(DATA_DIR)) return; return realWrite(p, ...a); };
 fs.appendFileSync = (p, ...a) => { if (String(p).startsWith(DATA_DIR)) return; return realAppend(p, ...a); };
-const { chargeX402, credits, X402_CONFIRM } = require('../server');
+const { chargeX402, credits, X402_CONFIRM, creditFor, send } = require('../server');
 const x402 = require('../x402');
 
 const PAY_TO = 'nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue';   // ADDRESS in server.js
@@ -81,10 +81,12 @@ test('never confirmed within the bound -> 402 naming the hash, not marked spent;
   assert.match(res.body.note, /re-present the same payment/);
   assert.equal(credits[hash], undefined, 'nothing marked spent');
   assert.equal(calls.filter(a => a === 'process').length, processesBefore + 1);
-  // The node now holds the block as the confirmed frontier: the unchanged payment is served, nothing broadcast again.
+  // The node now holds the block as the confirmed frontier: the unchanged payment, re-presented with the token from that
+  // 402, is served, nothing broadcast again.
   moved = hash; confirm = h => h === hash ? 'true' : 'false';
+  const q2 = request(header); q2.headers['x-nano-represent'] = res.getHeader('x-nano-represent');
   const res2 = response();
-  assert.equal(await chargeX402(request(header), res2, header), true, JSON.stringify(res2.body));
+  assert.equal(await chargeX402(q2, res2, header), true, JSON.stringify(res2.body));
   assert.equal(res2.getHeader('x-nano-payment-hash'), hash);
   assert.equal(credits[hash], '0');
   assert.equal(calls.filter(a => a === 'process').length, processesBefore + 1, 'one broadcast in total');
@@ -116,4 +118,45 @@ test('a broadcast block is public: re-presented from another address without the
   const res4 = response();
   assert.equal(await chargeX402(q3, res4, header), false);
   assert.match(res4.body.error, /already used/);
+});
+
+test('the token is the only binding: same client address without it -> 402; the bearer path refuses the hash while the record exists; served once with the token, then spent', async () => {
+  const other = N.deriveAddress(N.derivePublicKey(N.deriveSecretKey(await N.generateSeed(), 0)), { useNanoPrefix: true });
+  const { hash, header } = payment(other);   // another representative: another block
+  moved = null; confirm = () => 'false';
+  const res = response();
+  assert.equal(await chargeX402(request(header), res, header), false);
+  assert.equal(res.status, 402, JSON.stringify(res.body));
+  const token = res.getHeader('x-nano-represent');
+  assert.match(String(token), /^[0-9a-f]{32}$/);
+  moved = hash; confirm = h => h === hash ? 'true' : 'false';
+  // Same client address as the broadcast request, no token: refused (an address is not a payer; Ops Control HQ, 2026-09-29 17:38 UTC).
+  const res2 = response();
+  assert.equal(await chargeX402(request(header), res2, header), false, JSON.stringify(res2.body));
+  assert.equal(res2.status, 402);
+  assert.match(res2.body.error, /waiting for its payer/);
+  assert.equal(credits[hash], undefined, 'not marked spent');
+  // The same block presented as X-Nano-Payment credit by anyone who read it off the chain: refused (pyfile-toolkit, 18:42 UTC).
+  const bearer = await creditFor(hash);
+  assert.match(String(bearer.error), /waiting for its payer/, JSON.stringify(bearer));
+  assert.equal(credits[hash], undefined, 'the bearer attempt credited nothing');
+  // The payer, with the token, from any address: served once; afterwards the hash is spent on both paths.
+  const q3 = request(header); q3.socket = { remoteAddress: '198.51.100.7' }; q3.headers['x-nano-represent'] = token;
+  const res3 = response();
+  assert.equal(await chargeX402(q3, res3, header), true, JSON.stringify(res3.body));
+  assert.equal(res3.getHeader('x-nano-payment-hash'), hash);
+  assert.equal(credits[hash], '0');
+  const spent = await creditFor(hash);   // the purpose registry is not loaded under test, so a refusal for that reason is fine; never credit
+  assert.ok(!spent.remaining, JSON.stringify(spent));
+  assert.equal(credits[hash], '0');
+});
+
+test('every reply lists X-Nano-Represent in both CORS lists, so a browser client can read the token from the 402 and send it back (pyfile-toolkit, 2026-09-29 16:50 UTC)', () => {
+  const res = response();
+  res.writeHead = function (s, h) { this.status = s; for (const [k, v] of Object.entries(h || {})) this.headers[k.toLowerCase()] = v; };
+  res.end = function () {};
+  send(res, 200, { ok: true }, 'application/json');
+  assert.equal(res.status, 200);
+  assert.match(String(res.getHeader('access-control-allow-headers')), /\bX-Nano-Represent\b/);
+  assert.match(String(res.getHeader('access-control-expose-headers')), /\bX-Nano-Represent\b/);
 });
