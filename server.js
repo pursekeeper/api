@@ -145,7 +145,7 @@ async function markFeePassthroughs() {
 // true: a marketplace checkout wallet (cached). false only where it is positively observed: three or more blocks in
 // the newest ten with no fee send (cached), or fewer than three blocks in an account older than a minute (not cached).
 // null: could not tell: node unavailable, an RPC error, or an account under a minute old that is still shorter than
-// three blocks after the retry (its fee block may still be settling; not cached, the caller answers "retry shortly").
+// three blocks after the retry (its fee block may still be settling; not cached, the caller answers "retry in a minute").
 // A null must not become credit: it used to collapse to false, so a checkout send presented during an RPC outage
 // became bearer credit until the ten-minute pass caught it, and the young-and-short case answered false after the
 // retry and was cached as a real payer by the next round (Ops Control HQ, 2026-09-28).
@@ -267,7 +267,9 @@ async function creditForUnlocked(hash) {
   const known = purposeReg.hashes.get(hash) || purposeReg.accounts.get(b.block_account);   // a stake, an own move, a tranche, a donation (JoanAbad82, api#74)
   if (known) { noCredit.set(hash, known); return { error: known }; }
   const checkout = await checkoutWallet(b.block_account);
-  if (checkout === null) return { error: 'cannot check the payer account right now (node unavailable); nothing credited, retry shortly' };
+  // null is also a wallet under a minute old that is still shorter than three blocks after the retry (b438d56), so the
+  // reason names both and asks for a minute, not "shortly" (PlatinumVera, 2026-09-28 22:30 UTC).
+  if (checkout === null) return { error: 'cannot check the payer account right now (node unavailable, or the wallet is under a minute old and its fee block is still settling); nothing credited, retry in a minute' };
   if (checkout) { noCredit.set(hash, NO_CREDIT_REASON); return { error: NO_CREDIT_REASON }; }
   const amount = BigInt(b.amount);
   if (amount > MAX_CREDIT_RAW) return { error: 'send too large to be a payment; max 1 NANO per hash' };
@@ -383,40 +385,52 @@ function paymentRequired(res, hint, req) {
 // x402 path: verify the signed send block locally, broadcast it, then serve. The settled
 // hash is written to credits.json with zero credit so it can never be presented again
 // through the X-Nano-Payment path (a settled x402 block is a confirmed send to us).
+// The whole charge runs under the block's hash lock, keyed before verify: two concurrent requests carrying the same
+// PAYMENT-SIGNATURE both passed verify's seen() check (the alreadyLanded branch never entered `settling`, and the normal
+// branch entered it only after verify returned), and since b438d56 the second one's "Old block" rejection was turned into
+// a settled success by the landed() fallback, so one block paid for two calls. Serialised, the second request sees the
+// first's credits write and is refused as already used. A block that does not hash (malformed) runs unlocked so verify
+// reports what is wrong with it (Ops Control HQ, 2026-09-28 22:34 UTC; llmrt, 2026-09-29 00:17 UTC).
 async function chargeX402(req, res, headerValue) {
   const d = x402.decodePayment(headerValue);
   if (d.error) return paymentRequired(res, 'x402: ' + d.error, req), false;
-  const v = await x402.verify(d.payload, X402_REQ, {
+  let key = null;
+  try { key = x402.blockHash(d.payload.payload.block).toUpperCase(); } catch { /* verify names the fault */ }
+  const run = () => chargeX402Locked(req, res, d.payload);
+  return key ? withHashLock(key, run) : run();
+}
+async function chargeX402Locked(req, res, payload) {
+  const v = await x402.verify(payload, X402_REQ, {
     accountInfo: account => rpc({ action: 'account_info', account, representative: 'true', include_confirmed: 'true' }),
     seen: async h => (h in credits) || settling.has(h),
     reference: x402Reference,
-    blockInfo: h => rpc({ action: 'block_info', json_block: 'true', hash: h }),   // amount of a block that already landed (alreadyLanded)
+    blockInfo: h => rpc({ action: 'block_info', json_block: 'true', hash: h }),   // amount and confirmation of a block that already landed (alreadyLanded)
     workGenerate: async hash => (await workFor(hash, { paid: true })).work   // a paying block earns its work
   });
   if (!v.ok) return paymentRequired(res, 'x402: ' + v.reason, req), false;
-  let s;
-  // A block that is already the payer's frontier landed on an earlier attempt whose settle reply was lost: no second
-  // broadcast, served as settled. A lost or failed process reply is likewise settled from the node's view of the hash
-  // (deps.landed), not reported as a failed payment (Ops Control HQ, 2026-09-28).
-  if (v.alreadyLanded) s = { success: true, network: x402.NETWORK, transaction: v.hash, payer: v.payer };
-  else {
-    settling.add(v.hash);
-    try {
-      s = await x402.settle(v.block, v.payer, { hash: v.hash, process: block => rpc({ action: 'process', json_block: 'true', subtype: 'send', block }),
-        landed: async h => { try { const b = await rpc({ action: 'block_info', json_block: 'true', hash: h }); if (b && b.error) return /not found/i.test(b.error) ? false : null; return b && b.contents ? true : null; } catch { return null; } } });
-    } finally { settling.delete(v.hash); }
-  }
-  if (!s.success) return paymentRequired(res, 'x402: ' + s.errorReason, req), false;
-  credits[s.transaction] = '0';
-  if (v.hash !== s.transaction) credits[v.hash] = '0';
-  save();
-  x402Log.push({ hash: s.transaction, payer: v.payer, amount_raw: PRICE_RAW.toString(), resource: req.url, at: new Date().toISOString(), work_by: v.workBy || 'client' });
-  rememberPayer(v.payer);
-  try { fs.writeFileSync(X402_LOG, JSON.stringify(x402Log)); } catch {}
-  stats.calls_paid++; stats.calls_x402++;
-  res.setHeader(x402.RESPONSE_HEADER, x402.settleHeader(s));
-  res.setHeader('x-nano-payment-hash', s.transaction);
-  return true;
+  // In `settling` for the whole serve, the alreadyLanded branch included: the facilitator shares the set, so its verify
+  // refuses the hash meanwhile (Ops Control HQ, 2026-09-28 22:34 UTC).
+  settling.add(v.hash);
+  try {
+    let s;
+    // A block that is already the payer's frontier landed on an earlier attempt whose settle reply was lost: no second
+    // broadcast, served as settled. A lost or failed process reply is likewise settled from the node's view of the hash
+    // (deps.landed), not reported as a failed payment (Ops Control HQ, 2026-09-28).
+    if (v.alreadyLanded) s = { success: true, network: x402.NETWORK, transaction: v.hash, payer: v.payer };
+    else s = await x402.settle(v.block, v.payer, { hash: v.hash, process: block => rpc({ action: 'process', json_block: 'true', subtype: 'send', block }),
+      landed: async h => { try { const b = await rpc({ action: 'block_info', json_block: 'true', hash: h }); if (b && b.error) return /not found/i.test(b.error) ? false : null; return b && b.contents ? true : null; } catch { return null; } } });
+    if (!s.success) return paymentRequired(res, 'x402: ' + s.errorReason, req), false;
+    credits[s.transaction] = '0';
+    if (v.hash !== s.transaction) credits[v.hash] = '0';
+    save();
+    x402Log.push({ hash: s.transaction, payer: v.payer, amount_raw: PRICE_RAW.toString(), resource: req.url, at: new Date().toISOString(), work_by: v.workBy || 'client' });
+    rememberPayer(v.payer);
+    try { fs.writeFileSync(X402_LOG, JSON.stringify(x402Log)); } catch {}
+    stats.calls_paid++; stats.calls_x402++;
+    res.setHeader(x402.RESPONSE_HEADER, x402.settleHeader(s));
+    res.setHeader('x-nano-payment-hash', s.transaction);
+    return true;
+  } finally { settling.delete(v.hash); }
 }
 
 // Rate-limited proxy to the node's work_generate, for clients without a work server.
@@ -665,8 +679,10 @@ function parseV4(s) {   // four dotted decimal octets 0-255 -> [a, b, c, d], els
   const o = m.slice(1).map(Number);
   return o.every(n => n <= 255) ? o : null;
 }
-// 0/8, 10/8, 100.64/10, 127/8, 169.254/16, 172.16/12, 192.0.0/24, 192.0.2/24, 192.168/16, 198.18/15, 198.51.100/24,
-// 203.0.113/24, 224/4 and 240/4 (multicast, reserved), 255.255.255.255.
+// Every IPv4 range the IANA special-purpose registry marks not globally reachable: 0/8, 10/8, 100.64/10, 127/8,
+// 169.254/16, 172.16/12, 192.0.0/24, 192.0.2/24, 192.168/16, 198.18/15, 198.51.100/24, 203.0.113/24, 224/4 and 240/4
+// (multicast, reserved; 240/4 includes 255.255.255.255). The IPv6 branch below carries the same registry's ranges since
+// 2026-09-29 (Ops Control HQ, 2026-09-28 22:26 and 22:32 UTC; ranges from the IANA special-purpose registries).
 function ipv4Private(a, b, c, d) {
   return a === 0 || a === 10 || a === 127 || a >= 224 || (a === 100 && b >= 64 && b <= 127) || (a === 169 && b === 254) ||
     (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 0 && (c === 0 || c === 2)) || (a === 192 && b === 168) ||
@@ -701,12 +717,18 @@ function isPrivate(ip) {
   if (zero(5) && h[5] === 0xffff) return emb(6);                  // ::ffff:a.b.c.d (IPv4-mapped)
   if (zero(6)) return emb(6);                                     // ::a.b.c.d (IPv4-compatible)
   if (h[0] === 0x64 && h[1] === 0xff9b && h.slice(2, 6).every(x => x === 0)) return emb(6);   // 64:ff9b::/96 (NAT64)
+  if (h[0] === 0x64 && h[1] === 0xff9b && h[2] === 1) return true;   // 64:ff9b:1::/48 (RFC 8215 local-use translation)
   if (h[0] === 0x2002) return emb(1);                             // 2002::/16 (6to4)
   if ((h[0] & 0xfe00) === 0xfc00) return true;                    // fc00::/7
   if ((h[0] & 0xffc0) === 0xfe80) return true;                    // fe80::/10
   if ((h[0] & 0xffc0) === 0xfec0) return true;                    // fec0::/10
   if ((h[0] & 0xff00) === 0xff00) return true;                    // ff00::/8
   if (h[0] === 0x2001 && h[1] === 0x0db8) return true;            // 2001:db8::/32
+  if (h[0] === 0x2001 && h[1] === 2 && h[2] === 0) return true;     // 2001:2::/48 (benchmarking)
+  if (h[0] === 0x2001 && (h[1] & 0xfff0) === 0x0010) return true;  // 2001:10::/28 (ORCHID)
+  if (h[0] === 0x2001 && (h[1] & 0xfff0) === 0x0020) return true;  // 2001:20::/28 (ORCHIDv2)
+  if (h[0] === 0x3fff && (h[1] & 0xf000) === 0) return true;       // 3fff::/20 (documentation, RFC 9637)
+  if (h[0] === 0x5f00) return true;                                // 5f00::/16 (SRv6 SIDs, RFC 9602)
   if (h[0] === 0x0100 && h[1] === 0 && h[2] === 0 && h[3] === 0) return true;   // 100::/64
   return false;
 }
@@ -740,13 +762,17 @@ async function fetchText(urlStr) {
     if (opts && opts.all) return cb(null, a.map(x => ({ address: x.address, family: x.family })));
     return cb(null, a[0].address, a[0].family);
   } } });
-  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 15000);
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(new Error('no answer within 15 s')), 15000);
   let r;
   try {
     // Redirects are followed by hand and every hop goes through checkFetchUrl, so a public URL cannot bounce the
     // paid fetch to a private or link-local address (uknwplayer, 2026-09-27; redirect: 'follow' skipped the check).
     for (let hop = 0; ; hop++) {
-      r = await ufetch(u, { dispatcher, signal: ctl.signal, redirect: 'manual', headers: { 'user-agent': 'nano-paid-api/0.1 (+pay-per-call fetch)' } });
+      // No response at all from this hop (timeout, connection refused or reset, TLS failure, connect-time DNS): nothing
+      // was fetched and the call is handed back. Anything that arrives as an HTTP response, whatever its status, is
+      // billable (Ops Control HQ, 2026-09-28 22:23 UTC).
+      try { r = await ufetch(u, { dispatcher, signal: ctl.signal, redirect: 'manual', headers: { 'user-agent': 'nano-paid-api/0.1 (+pay-per-call fetch)' } }); }
+      catch (e) { e.noAnswer = true; e.message = 'target did not answer (' + e.message + (e.cause && e.cause.message ? ': ' + e.cause.message : '') + ')'; throw e; }
       if (![301, 302, 303, 307, 308].includes(r.status)) break;
       const loc = r.headers.get('location');
       let next;
@@ -804,12 +830,14 @@ x402
   accepted, payload: {block}}. This server verifies the block against its own node
   and broadcasts it; the reply carries PAYMENT-RESPONSE with the block hash. No
   external facilitator, no account. The block pays for one call and is not otherwise
-  usable as X-Nano-Payment credit; the two exceptions are /v1/fetch answering 400
-  because a redirect could not be followed (the next target failed the same address
-  check as the first URL, the redirect had no Location header, or there were more than
-  five hops) and /v1/work answering 502 because work generation failed, when the price
-  goes on the block's hash as X-Nano-Payment credit and the 400 or 502 body names the
-  full hash to retry with. Work is optional here: the requirements carry
+  usable as X-Nano-Payment credit; the three exceptions are /v1/work answering 502
+  because work generation failed, /v1/fetch answering 400 because a redirect could not
+  be followed (the next target failed the same address check as the first URL, the
+  redirect had no Location header, or there were more than five hops), and /v1/fetch
+  answering 502 because the target never answered (timeout, refused or reset connection,
+  TLS failure, connect-time DNS; any HTTP response from the target, whatever its status,
+  is billable), when the price goes on the block's hash as X-Nano-Payment credit and the
+  400 or 502 body names the full hash to retry with. Work is optional here: the requirements carry
   extra.work = "optional", so omit it or send "0" and this server computes it before
   broadcasting; if you include work it must be valid at the send threshold. Other
   sellers may require it: check their extra.work before generating. Requirements:
@@ -969,9 +997,12 @@ const server = http.createServer(async (req, res) => {
         // For X-Nano-Payment the price goes back on the hash. For x402 the payment block is already on the chain and cannot
         // be undone, so the price goes on the settled block's hash as X-Nano-Payment credit instead; the first version of
         // this hand-back (12:25 UTC) restored only the header path and still said "not charged" (Ops Control HQ, Pururin-ux).
+        // A target that never answered (e.noAnswer: timeout, refused or reset connection, TLS failure, connect-time DNS) is
+        // handed back the same way, with 502; a target that answered anything is billable (Ops Control HQ, 2026-09-28 22:23 UTC).
         const h = String(req.headers['x-nano-payment'] || res.getHeader('x-nano-payment-hash') || '').toUpperCase();
+        const why = e.unpaid ? 'the redirect could not be followed (' + e.message + ') before any fetch from the new host' : e.message;
         let note;
-        if (e.unpaid && h && h in credits) {
+        if ((e.unpaid || e.noAnswer) && h && h in credits) {
           // The hand-back runs under the same per-hash lock as charge(): written outside it, the restored credit could land
           // between another request's balance read and its debit write on the same hash and be overwritten, losing the
           // handed-back call (Ops Control HQ, 2026-09-27 17:28 UTC, from the source of the 16:41 UTC version).
@@ -980,9 +1011,9 @@ const server = http.createServer(async (req, res) => {
             return credits[h];
           });
           res.setHeader('x-nano-credit-remaining-raw', left);
-          note = 'the redirect could not be followed (' + e.message + ') before any fetch from the new host; the price of this call is back on hash ' + h + ' as X-Nano-Payment credit (' + nano(left) + ' NANO remaining), so retry with X-Nano-Payment: ' + h + (req.headers['x-nano-payment'] ? '' : '; the x402 payment block itself is on the chain and is not reversed');
-        } else if (e.unpaid) note = 'the redirect could not be followed (' + e.message + ') before any fetch from the new host; nothing was charged';
-        return send(res, 400, { error: e.message, ...(note ? { note } : {}) });
+          note = why + '; the call was handed back: the price is back on hash ' + h + ' as X-Nano-Payment credit (' + nano(left) + ' NANO remaining), so retry with X-Nano-Payment: ' + h + (req.headers['x-nano-payment'] ? '' : '; the x402 payment block itself is on the chain and is not reversed');
+        } else if (e.unpaid || e.noAnswer) note = why + '; nothing was charged';
+        return send(res, e.noAnswer ? 502 : 400, { error: e.message, ...(note ? { note } : {}) });
       }
     }
     if (u.pathname === '/v1/hash' && req.method === 'POST') {
@@ -1005,4 +1036,4 @@ if (require.main === module) {
     cohorts.warm();
   });
 }
-module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS, checkoutWallet, send, acceptsGzip, isPrivate, expand6, checkFetchUrl, fetchText };
+module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS, checkoutWallet, send, acceptsGzip, isPrivate, expand6, checkFetchUrl, fetchText, chargeX402 };

@@ -43,7 +43,7 @@ the credit. Fine at 0.001 NANO per call; not a design for anything larger.
 | GET    | `/v1/requests?hash=H` | no | was H (a block hash, or a frontier that work was asked for) worked or broadcast through this server? `{found, entries}` from a per-call log kept since 2026-09-16, no raw IPs. For checking a report that says "I did not use pursekeeper.dev". 60 per minute per IP |
 | GET/POST | `https://facilitator.pursekeeper.dev/{supported,verify,settle,stats}` | no | a public x402 **facilitator** for scheme `exact` on `nano:mainnet` (also under `/facilitator/*` on pursekeeper.dev): the nine checks of the scheme text in x402-foundation/x402#3432 plus a confirmed-frontier check and a requirements match; distinct failure codes (`frontier_moved`, `amount_mismatch`, `invalid_work`, `block_already_exists`, ...). Holds no funds, needs no key. Docs at its `/`; code in `facilitator.js`. 120 verify / 60 settle per minute per IP |
 | POST   | `/v1/process`         | no   | `{"block": {…signed state block with work…}, "subtype": "send\|receive\|open\|change"}` -> broadcast through this node, returns `{ok, hash}` or the node's error with a hint. With `/v1/work`, `/v1/receivable` and `/v1/verify` this is enough to pocket and spend from a seed with no node: [examples/no-node.md](examples/no-node.md). 60 per minute per IP |
-| POST   | `/v1/work`            | no*  | `{"hash": H}` -> work_generate at the send threshold; 6 per minute per IP free, or with `X-Nano-Payment` credit / x402 `PAYMENT-SIGNATURE` at the standard price per work with no per-minute limit (*paid calls skip the per-IP limit; at most four proofs are generated at once and a fifth call answers 503 with nothing charged). Work comes from a GPU and takes about a second: always for paid calls and for accounts that have paid this server before, and for other free calls while a shared budget of 30 free proofs a minute lasts; past that, free work comes from hosted CPU sources or the local node and can take 10 seconds or more. The reply's `source`, `ms` and `tier` say which path answered |
+| POST   | `/v1/work`            | no*  | `{"hash": H}` -> work_generate at the send threshold; 6 per minute per IP free, or with `X-Nano-Payment` credit / x402 `PAYMENT-SIGNATURE` at the standard price per work with no per-minute limit (*paid calls skip the per-IP limit; at most four proofs are generated at once and a fifth call answers 503 with nothing charged). Work comes from the GPU first (about a second) for paid calls, for accounts that have paid this server before, and for other free calls while a shared budget of 30 free proofs a minute lasts; when the GPU request does not return work (a request that times out or fails also opens a 60-second breaker during which the GPU is not tried), and for free calls past that budget, work comes from hosted CPU sources or the local node and can take 10 seconds or more (this row said "always" for paid calls until 2026-09-29; Dixon, 2026-09-29 02:17 UTC). The reply's `source`, `ms` and `tier` say which path answered |
 
 ```sh
 curl -s 'https://pursekeeper.dev/v1/fetch?url=https://example.com' \
@@ -67,17 +67,23 @@ payTo's key, previous is the confirmed frontier, balance drop is exactly the
 amount, work at the send threshold, then the reference `@x402nano/exact`
 facilitator verify as a second gate), broadcasts it with the node's `process`
 RPC, and answers with `PAYMENT-RESPONSE` carrying the hash. A settled block is
-recorded with zero credit so it cannot be replayed through `X-Nano-Payment`, with two
-exceptions: when `/v1/fetch` answers 400 because a redirect could not be followed, or
-`/v1/work` answers 502 because work generation failed, the price goes back on the settled
-block's hash as `X-Nano-Payment` credit and the 400 or 502 body names the full hash to retry
-with (since 2026-09-27 16:41 UTC for `/v1/fetch`; this sentence lagged that change until
-2026-09-28, uknwplayer, item 5, and named only that route until 2026-09-28, PlatinumVera).
+recorded with zero credit so it cannot be replayed through `X-Nano-Payment`, with three
+exceptions: when `/v1/work` answers 502 because work generation failed, `/v1/fetch` answers
+400 because a redirect could not be followed, or `/v1/fetch` answers 502 because the target
+never answered (a timeout, a refused or reset connection, a TLS failure or connect-time DNS
+before any response; any HTTP response from the target, whatever its status, is billable),
+the price goes back on the settled block's hash as `X-Nano-Payment` credit and the 400 or 502
+body names the full hash to retry with (since 2026-09-27 16:41 UTC for `/v1/fetch` redirects;
+this sentence lagged that change until 2026-09-28, uknwplayer, item 5, named only that route
+until 2026-09-28, PlatinumVera, and left the buyer charged for a target that never answered
+until 2026-09-29, Ops Control HQ, 2026-09-28 22:23 UTC).
 A send that reached this address through a marketplace checkout wallet (a Subnano post
 purchase or tip: a one-time wallet that pays us and the platform's fee collector) paid for that,
 not for API calls, and is refused as credit with a plain reason. The payer wallet is checked
 when a hash is first presented (a wallet opened seconds ago is looked at twice, 3 s apart, in
-case its fee block is still settling), and the ledger is re-read every ten minutes.
+case its fee block is still settling; one still shorter than three blocks after the second look
+is answered "retry in a minute" and looked at again on the next presentation, not cached;
+PlatinumVera, 2026-09-28 22:30 UTC), and the ledger is re-read every ten minutes.
 Client: [`examples/client-x402.js`](examples/client-x402.js) (needs only
 `nanocurrency` and, since 2026-09-12, no node: account_info comes from pursekeeper.dev
 unless `NANO_RPC` is set; works against any `nano:mainnet` x402 seller).

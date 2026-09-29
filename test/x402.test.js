@@ -159,12 +159,18 @@ test('settle: a lost or failed process reply is settled from the node when the b
   assert.equal(decodePaymentResponseHeader(x.settleHeader(thrown)).transaction, H);
 });
 
-test('settle: landed false says a rebuilt payment is safe, null says to check the hash first', async () => {
+// "safe" only after a definite rejection from process; when process threw, a block the node does not hold yet may still
+// land after the read, and the reason says so instead (PlatinumVera, 2026-09-28 22:30 UTC).
+test('settle: landed false says a rebuilt payment is safe after a definite rejection, may still arrive after a thrown process; null says to check the hash first', async () => {
   const b = makeBlock();
   const H = 'D'.repeat(64);
-  const no = await x.settle(b, payer, { hash: H, process: async () => { throw new Error('down'); }, landed: async () => false });
+  const no = await x.settle(b, payer, { hash: H, process: async () => ({ error: 'Bad signature' }), landed: async () => false });
   assert.equal(no.success, false); assert.equal(no.transaction, '');
-  assert.match(no.errorReason, /^node rpc failed: down; the block did not land, a rebuilt payment is safe$/);
+  assert.equal(no.errorReason, 'process rejected the block: Bad signature; the block did not land, a rebuilt payment is safe');
+  const notYet = await x.settle(b, payer, { hash: H, process: async () => { throw new Error('down'); }, landed: async () => false });
+  assert.equal(notYet.success, false); assert.equal(notYet.transaction, '');
+  assert.equal(notYet.errorReason, 'node rpc failed: down; the block is not on the node right now but may still arrive; check hash ' + H + ' before paying again');
+  assert.doesNotMatch(notYet.errorReason, /safe/);
   const unknown = await x.settle(b, payer, { hash: H, process: async () => ({ error: 'Gap previous' }), landed: async () => null });
   assert.equal(unknown.success, false);
   assert.equal(unknown.errorReason, 'process rejected the block: Gap previous; the block may have landed, check hash ' + H + ' before paying again');
@@ -181,16 +187,28 @@ test('verify: a block that is already the frontier is ok with alreadyLanded when
   const hash = N.hashBlock({ account: payer, previous: FRONTIER, representative: payer, balance: b.balance, link: PAY_TO });
   const landedInfo = () => info({ frontier: hash, confirmation_height_frontier: hash, balance: (BALANCE - AMOUNT).toString() });
   let asked = null;
-  const r = await x.verify(payload(b), REQ, deps({ accountInfo: async () => landedInfo(), blockInfo: async h => { asked = h; return { subtype: 'send', amount: AMOUNT.toString(), contents: {} }; } }));
+  const r = await x.verify(payload(b), REQ, deps({ accountInfo: async () => landedInfo(), blockInfo: async h => { asked = h; return { subtype: 'send', amount: AMOUNT.toString(), confirmed: 'true', contents: {} }; } }));
   assert.equal(r.ok, true, r.reason); assert.equal(r.alreadyLanded, true); assert.equal(r.hash, hash); assert.equal(r.payer, payer); assert.equal(asked, hash);
   const wrongAmount = await x.verify(payload(b), REQ, deps({ accountInfo: async () => landedInfo(), blockInfo: async () => ({ subtype: 'send', amount: '1' }) }));
   assert.equal(wrongAmount.ok, false); assert.match(wrongAmount.reason, /sends 1 raw; exactly/);
   const noDep = await x.verify(payload(b), REQ, deps({ accountInfo: async () => landedInfo() }));
   assert.equal(noDep.ok, false); assert.match(noDep.reason, /previous/);
-  const served = await x.verify(payload(b), REQ, deps({ accountInfo: async () => landedInfo(), seen: async () => true, blockInfo: async () => ({ subtype: 'send', amount: AMOUNT.toString() }) }));
+  const served = await x.verify(payload(b), REQ, deps({ accountInfo: async () => landedInfo(), seen: async () => true, blockInfo: async () => ({ subtype: 'send', amount: AMOUNT.toString(), confirmed: 'true' }) }));
   assert.equal(served.ok, false); assert.match(served.reason, /already used/);
   const plainStale = await x.verify(payload(b), REQ, deps({ accountInfo: async () => info({ frontier: 'A'.repeat(64), confirmation_height_frontier: 'A'.repeat(64) }), blockInfo: async () => ({ subtype: 'send', amount: AMOUNT.toString() }) }));
   assert.equal(plainStale.ok, false); assert.match(plainStale.reason, /previous/);
+});
+
+// The landed block has to be confirmed too, as the frontier must be on the normal path; block_info says so as the string
+// 'true' / 'false', and a missing field is not confirmation (Ops Control HQ, 2026-09-28 22:27 UTC).
+test('verify: a block that is already the frontier but not confirmed yet is refused with a retry, not served', async () => {
+  const b = makeBlock();
+  const hash = N.hashBlock({ account: payer, previous: FRONTIER, representative: payer, balance: b.balance, link: PAY_TO });
+  const landedInfo = () => info({ frontier: hash, confirmation_height_frontier: hash, balance: (BALANCE - AMOUNT).toString() });
+  const r = await x.verify(payload(b), REQ, deps({ accountInfo: async () => landedInfo(), blockInfo: async () => ({ subtype: 'send', amount: AMOUNT.toString(), confirmed: 'false' }) }));
+  assert.equal(r.ok, false); assert.match(r.reason, /not confirmed/); assert.equal(r.alreadyLanded, undefined); assert.equal(r.payer, payer);
+  const noField = await x.verify(payload(b), REQ, deps({ accountInfo: async () => landedInfo(), blockInfo: async () => ({ subtype: 'send', amount: AMOUNT.toString() }) }));
+  assert.equal(noField.ok, false); assert.match(noField.reason, /not confirmed/);
 });
 
 test('402 header round-trips through @x402/core and matches the v2 schema', () => {

@@ -66,6 +66,13 @@ function decodePayment(value) {
 const up = s => String(s).toUpperCase();
 const nanoPrefix = a => String(a).replace(/^xrb_/, 'nano_');
 
+// Hash of a payload block over its five signed fields, normalised as verify() normalises them (nano_ prefix, upper-case
+// hex); throws on a malformed block. Exported so the seller can key a per-block lock before verify() runs: a second
+// concurrent request with the same block used to pass seen() too (Ops Control HQ, 2026-09-28 22:34 UTC).
+function blockHash(raw) {
+  return N.hashBlock({ account: nanoPrefix(raw.account), previous: up(raw.previous), representative: nanoPrefix(raw.representative), balance: String(raw.balance), link: up(raw.link) });
+}
+
 // Verify a PaymentPayload against what we required. deps:
 //   accountInfo(account) -> account_info RPC result (with representative), or {error}
 //   workThreshold        -> hex threshold (default send threshold)
@@ -74,8 +81,8 @@ const nanoPrefix = a => String(a).replace(/^xrb_/, 'nano_');
 //   workGenerate(hash)   -> optional; returns work for the payer's frontier when the block
 //                           carries none (or invalid work). Runs last, after every cheap check.
 //   blockInfo(hash)      -> optional; block_info RPC result for a block that is already the
-//                           account frontier (a resend after a lost settle reply): its amount
-//                           is checked there, since the balance drop is no longer readable
+//                           account frontier (a resend after a lost settle reply): its amount and
+//                           confirmation are checked there, since the balance drop is no longer readable
 // Returns { ok, reason?, payer?, hash?, block?, workBy? ('client'|'seller'), alreadyLanded? }. Never throws.
 async function verify(payload, required, deps) {
   const fail = (reason, payer = '') => ({ ok: false, reason, payer });
@@ -120,7 +127,7 @@ async function verify(payload, required, deps) {
     // (b) signature over the block hash by block.account
     let hash;
     try {
-      hash = N.hashBlock({ account: block.account, previous: block.previous, representative: block.representative, balance: block.balance, link: block.link });
+      hash = blockHash(block);
       if (!N.verifyBlock({ hash, signature: block.signature, publicKey: N.derivePublicKey(block.account) })) return fail('bad signature', payer);
     } catch (e) { return fail('cannot hash or verify block: ' + e.message, payer); }
 
@@ -142,6 +149,10 @@ async function verify(payload, required, deps) {
         try { b = await deps.blockInfo(hash); } catch (e) { return fail('node rpc failed: ' + e.message, payer); }
         if (b && !b.error && b.subtype === 'send') {
           if (String(b.amount) !== String(required.amount)) return fail('the block on the chain sends ' + b.amount + ' raw; exactly ' + required.amount + ' raw required', payer);
+          // The confirmation gate the normal path puts on the frontier applies here too: block_info answers confirmed as the
+          // string 'true' / 'false', and the first version served the landed block before it was confirmed (Ops Control HQ,
+          // 2026-09-28 22:27 UTC).
+          if (b.confirmed !== 'true') return fail('the resent block is on the node but not confirmed yet; retry shortly', payer);
           return { ok: true, payer, hash, block, workBy: 'client', alreadyLanded: true };
         }
       }
@@ -195,20 +206,24 @@ async function verify(payload, required, deps) {
 async function settle(block, payer, deps) {
   const failed = reason => ({ success: false, network: NETWORK, transaction: '', errorReason: reason, payer });
   const settled = hash => ({ success: true, network: NETWORK, transaction: up(hash), payer });
-  const afterFailure = async reason => {
+  // definite: process answered with a rejection, so a block the node does not hold now will not arrive later. When process
+  // THREW (transport failure, timeout) the node may still be working on the block and it can land after the block_info
+  // read, so "not on the node" is not "safe to rebuild" on that path (PlatinumVera, 2026-09-28 22:30 UTC).
+  const afterFailure = async (reason, definite) => {
     if (!deps.landed) return failed(reason);
     let landed; try { landed = await deps.landed(deps.hash); } catch { landed = null; }
     if (landed === true) return settled(deps.hash);
-    if (landed === false) return failed(reason + '; the block did not land, a rebuilt payment is safe');
+    if (landed === false) return failed(reason + (definite ? '; the block did not land, a rebuilt payment is safe'
+      : '; the block is not on the node right now but may still arrive; check hash ' + deps.hash + ' before paying again'));
     return failed(reason + '; the block may have landed, check hash ' + deps.hash + ' before paying again');
   };
   let r;
-  try { r = await deps.process(block); } catch (e) { return afterFailure('node rpc failed: ' + e.message); }
-  if (!r || r.error || !r.hash) return afterFailure('process rejected the block: ' + (r && r.error || 'no hash'));
+  try { r = await deps.process(block); } catch (e) { return afterFailure('node rpc failed: ' + e.message, false); }
+  if (!r || r.error || !r.hash) return afterFailure('process rejected the block: ' + (r && r.error || 'no hash'), true);
   return settled(r.hash);
 }
 
 function settleHeader(settleResponse) { return http.encodePaymentResponseHeader(settleResponse); }
 
 module.exports = { SCHEME, NETWORK, ASSET, X402_VERSION, WORK_THRESHOLD, REQUIRED_HEADER, RESPONSE_HEADER, REQUEST_HEADERS,
-  requirements, paymentRequired, paymentHeader, decodePayment, verify, settle, settleHeader };
+  requirements, paymentRequired, paymentHeader, decodePayment, blockHash, verify, settle, settleHeader };
