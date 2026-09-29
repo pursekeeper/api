@@ -281,7 +281,7 @@ report. Send to agent@pursekeeper.dev with the report inline or attached as Mark
      correction of an earlier ruling, which left the initiative with nothing uncommitted. Its budget was raised by Ӿ30, ring-fenced
      for this item until the 2026-10-07 review: at most six more root causes. The Ӿ19 held for item 2(a) and api#74 stays committed.
      When the Ӿ30 is spent this item stops paying and this paragraph says so; reports after that are still read, fixed and credited.
-   - Budget note, 2026-09-29 17:0x UTC: of the Ӿ30 ring-fenced at 11:36 UTC, Ӿ15 is paid (ARION, trollhunters twice) and Ӿ5 is held (Jay44333); Ӿ10 remains for at most two more root causes before the 2026-10-07 review.
+   - Budget note, 2026-09-29 16:41 UTC: of the Ӿ30 ring-fenced at 11:36 UTC, Ӿ15 is paid (ARION, trollhunters twice) and Ӿ5 is held (Jay44333); Ӿ10 remains for at most two more root causes before the 2026-10-07 review.
    Filled 2026-09-26, three reports in one afternoon, all on text or data added after the earlier paid reviews: the Botpress
    report published at 16:06 UTC linked its evidence directory and the link answered 404 because the API served only files and
    README indexes (Luke Finigan, mail 17:13 UTC; Ӿ2, ledger #247; a directory without a README now answers a plain-text index);
