@@ -38,3 +38,14 @@ test('empty or missing history is not', () => {
   assert.equal(feePassthrough([], FEE_COLLECTORS, ME), false);
   assert.equal(feePassthrough(undefined, FEE_COLLECTORS, ME), false);
 });
+// 2026-09-29: the two sends must be consecutive blocks, i.e. adjacent rows of the (newest-first) window, receives included.
+test('five-row window, send to us at index 0 and the fee send at index 1 -> a checkout wallet', () => {
+  const rows = [{ type: 'send', account: ME, amount: '185' }, { type: 'send', account: FEE, amount: '15' }, { type: 'receive', account: BUYER, amount: '200' },
+    { type: 'receive', account: BUYER, amount: '1' }, { type: 'send', account: BUYER, amount: '1' }];
+  assert.equal(feePassthrough(rows, FEE_COLLECTORS, ME), true);
+});
+test('send to us at index 0, three receives, fee send at index 4 -> not a checkout wallet (a payer that once paid a collector)', () => {
+  const rows = [{ type: 'send', account: ME, amount: '185' }, { type: 'receive', account: BUYER, amount: '1' }, { type: 'receive', account: BUYER, amount: '1' },
+    { type: 'receive', account: BUYER, amount: '1' }, { type: 'send', account: FEE, amount: '15' }];
+  assert.equal(feePassthrough(rows, FEE_COLLECTORS, ME), false);
+});

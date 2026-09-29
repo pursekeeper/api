@@ -62,6 +62,24 @@ function codeFor(reason) { for (const [re, c] of CODES) if (re.test(reason)) ret
 const up = s => String(s || '').toUpperCase();
 const nanoPrefix = a => String(a || '').replace(/^xrb_/, 'nano_');
 
+// Blocks this facilitator broadcast, hash -> { payer, payTo, amount, at, answered, answeredAt }, kept 24 h (pruned on
+// insert). A resource server that got confirmation_timeout, or lost the reply, retries /settle with the same block; by then
+// the block is on the chain, so check 9 answered block_already_exists and the seller could never learn that the payment went
+// through (uknwplayer, item 5, 2026-09-29). A retry whose payTo and amount equal the stored ones is answered from the chain
+// instead, no second process, straight to the confirmation poll, until this facilitator has answered success for the block
+// once (answered). After that a further /settle is a replay and is refused as before, so a seller that serves on success
+// without its own per-hash check is not served twice; the refusal then carries the hash and the settle time, so a seller
+// whose success reply was lost still learns that the payment went through. A block this facilitator did not broadcast
+// answers block_already_exists with no hash: only its own broadcasts are known to have paid these requirements.
+const BROADCAST_TTL_MS = 24 * 3600 * 1000;
+const broadcast = new Map();
+function ownBroadcast(hash, req) { const b = broadcast.get(up(hash)); return b && b.payTo === req.payTo && b.amount === req.amount ? b : null; }
+function rememberBroadcast(hash, payer, req) {
+  const now = Date.now();
+  for (const [h, b] of broadcast) if (now - b.at > BROADCAST_TTL_MS) broadcast.delete(h);
+  broadcast.set(up(hash), { payer, payTo: req.payTo, amount: req.amount, at: now, answered: false, answeredAt: null });
+}
+
 // Requirements the resource server sent us: only what this facilitator can serve.
 function checkRequirements(r) {
   if (!r || typeof r !== 'object') return 'paymentRequirements is required';
@@ -84,15 +102,29 @@ async function verifyRequest(body, deps) {
   const v = await x402.verify(paymentPayload, req, {
     accountInfo: account => deps.rpc({ action: 'account_info', account, representative: 'true', include_confirmed: 'true' }),
     workThreshold: deps.workThreshold,
-    // check 9: the computed hash must not already be on the chain, nor in flight here
+    // check 9: the computed hash must not already be on the chain, nor in flight here; this facilitator's own broadcast
+    // for the same payTo and amount passes until success has been answered for it once (a retry after
+    // confirmation_timeout; /settle answers it from the chain), and is a replay after that
     seen: async h => {
       if (settling.has(h)) return true;
+      const own = ownBroadcast(h, req);
+      if (own) return !!own.answered;
       const b = await deps.rpc({ action: 'block_info', json_block: 'true', hash: h });
       return !!(b && !b.error && b.block_account);
     },
+    // A retried block is by now the payer's frontier: verify reads its amount and confirmation from the chain (alreadyLanded)
+    blockInfo: h => deps.rpc({ action: 'block_info', json_block: 'true', hash: h }),
   });
-  if (!v.ok) return { isValid: false, invalidReason: codeFor(v.reason), detail: v.reason, payer: v.payer || '' };
-  return { isValid: true, payer: v.payer, _hash: v.hash, _block: v.block, _timeout: Number(paymentRequirements.maxTimeoutSeconds) || 60 };
+  const timeout = Number(paymentRequirements.maxTimeoutSeconds) || 60;
+  if (!v.ok) {
+    // Own broadcast, on the node but not confirmed yet: verify refuses a resend until confirmation, but that is what the
+    // /settle poll waits for, so it is passed on with its hash and no block to process.
+    let own = null;
+    try { const h = up(x402.blockHash(paymentPayload.payload.block)); const b = /on the node but not confirmed/.test(v.reason) && ownBroadcast(h, req); if (b && !b.answered) own = { isValid: true, payer: b.payer, _hash: h, _block: null, _timeout: timeout }; } catch { /* verify said what is wrong */ }
+    if (own) return own;
+    return { isValid: false, invalidReason: codeFor(v.reason), detail: v.reason, payer: v.payer || '' };
+  }
+  return { isValid: true, payer: v.payer, _hash: v.hash, _block: v.block, _timeout: timeout };
 }
 
 // Verify, reservation and settle run under the block's hash lock, keyed before verify and shared with chargeX402 in
@@ -109,12 +141,42 @@ async function settleRequest(body, deps) {
 async function settleLocked(body, deps) {
   const v = await verifyRequest(body, deps);
   const network = x402.NETWORK;
-  if (!v.isValid) return { success: false, errorReason: v.invalidReason, detail: v.detail, transaction: '', network, payer: v.payer };
+  const req = { payTo: nanoPrefix(body.paymentRequirements.payTo), amount: String(body.paymentRequirements.amount) };
+  if (!v.isValid) {
+    // A replay of a block this facilitator settled and answered success for: refused as before, but the reply names the
+    // hash and when it was settled, so a seller whose success reply was lost can learn that the payment went through
+    // without being handed a second success to serve on.
+    let done = null;
+    if (v.invalidReason === 'block_already_exists') {
+      try { const h = up(x402.blockHash(body.paymentPayload.payload.block)); const b = ownBroadcast(h, req); if (b && b.answered) done = { hash: h, at: b.answeredAt }; } catch { /* verify said what is wrong */ }
+    }
+    if (done) return { success: false, errorReason: 'block_already_exists', detail: 'block ' + done.hash + ' was settled through this facilitator for the same payTo and amount and answered success at ' + done.at + '; a second success is not given for the same block', transaction: done.hash, network, payer: v.payer };
+    return { success: false, errorReason: v.invalidReason, detail: v.detail, transaction: '', network, payer: v.payer };
+  }
   const settling = deps.settling || new Set();
   settling.add(v._hash);
   try {
-    const s = await x402.settle(v._block, v.payer, { process: block => deps.rpc({ action: 'process', json_block: 'true', subtype: 'send', block }) });
-    if (!s.success) return { success: false, errorReason: codeFor(s.errorReason) === 'invalid_payment' ? 'process_failed' : codeFor(s.errorReason), detail: s.errorReason, transaction: '', network, payer: v.payer };
+    const blockInfo = h => deps.rpc({ action: 'block_info', json_block: 'true', hash: h });
+    let s;
+    const own = ownBroadcast(v._hash, req);
+    // A block this facilitator broadcast within 24 h for the same payTo and amount, and the node holds it: no second
+    // process; the answer is the confirmation poll below (uknwplayer, item 5, 2026-09-29). Remembered but not on the node
+    // (verify then saw the payer's frontier unmoved, so the earlier process did not take), it is processed like a new block.
+    let onNode = false;
+    if (own) {
+      if (v._block === null) onNode = true;   // verify saw it on the node, unconfirmed
+      else { try { const b = await blockInfo(v._hash); onNode = !!(b && !b.error && b.contents); } catch { onNode = false; } }
+    }
+    if (onNode) s = { success: true, transaction: up(v._hash), payer: v.payer };
+    else {
+      // A process reply lost after the node accepted the block (deps.landed, as the seller path in server.js does): the
+      // outcome is read from the node's view of the hash, not reported as a failed payment. true: on the node; false: not
+      // found; null: cannot tell (Enrico / Practical Automation Lab, item 5, 2026-09-29).
+      s = await x402.settle(v._block, v.payer, { hash: v._hash, process: block => deps.rpc({ action: 'process', json_block: 'true', subtype: 'send', block }),
+        landed: async h => { try { const b = await blockInfo(h); if (b && b.error) return /not found/i.test(b.error) ? false : null; return b && b.contents ? true : null; } catch { return null; } } });
+      if (!s.success) return { success: false, errorReason: codeFor(s.errorReason) === 'invalid_payment' ? 'process_failed' : codeFor(s.errorReason), detail: s.errorReason, transaction: '', network, payer: v.payer };
+      rememberBroadcast(s.transaction, v.payer, req);
+    }
     // Confirmed step: half a second, then one-second polls up to maxTimeoutSeconds (capped).
     const sleep = deps.sleep || (ms => new Promise(r => setTimeout(r, ms)));
     const deadline = Date.now() + Math.min(v._timeout, MAX_POLL_S) * 1000;
@@ -122,12 +184,13 @@ async function settleLocked(body, deps) {
     await sleep(500);
     for (;;) {
       polls++;
-      try { const b = await deps.rpc({ action: 'block_info', json_block: 'true', hash: s.transaction }); if (b && b.confirmed === 'true') { confirmed = true; break; } } catch {}
+      try { const b = await blockInfo(s.transaction); if (b && b.confirmed === 'true') { confirmed = true; break; } } catch {}
       if (Date.now() >= deadline) break;
       await sleep(1000);
     }
-    if (!confirmed) return { success: false, errorReason: 'confirmation_timeout', detail: 'block ' + s.transaction + ' was processed but not confirmed within the timeout; check block_info before retrying, the block may still confirm', transaction: s.transaction, network, payer: v.payer };
-    return { success: true, transaction: s.transaction, network, payer: v.payer, _polls: polls };
+    if (!confirmed) return { success: false, errorReason: 'confirmation_timeout', detail: 'block ' + s.transaction + ' was processed but not confirmed within the timeout; it may still confirm: retry the same /settle (answered from the chain by this facilitator for 24 hours) or check block_info', transaction: s.transaction, network, payer: v.payer };
+    const b = broadcast.get(up(s.transaction)); if (b) { b.answered = true; b.answeredAt = new Date().toISOString(); }
+    return { success: true, transaction: s.transaction, network, payer: v.payer, _polls: polls, _retry: onNode };
   } finally { settling.delete(v._hash); }
 }
 
@@ -236,8 +299,10 @@ async function handle(req, res, u, send, deps) {
       return send(res, 200, strip(r)), true;
     }
     const r = await settleRequest(body, deps);
-    countPayTo(nanoPrefix(body.paymentRequirements.payTo), 'settle', !!r.success);
-    if (r.success) {
+    // A retry answered from the chain is the same settlement, not a second one: counted and listed once.
+    const fresh = !!r.success && !stats.settled.some(e => up(e.hash) === up(r.transaction));
+    countPayTo(nanoPrefix(body.paymentRequirements.payTo), 'settle', fresh);
+    if (fresh) {
       stats.settle_ok++;
       stats.settled.push({ hash: r.transaction, payer: r.payer, pay_to: nanoPrefix(body.paymentRequirements.payTo), amount_raw: String(body.paymentRequirements.amount), at: new Date().toISOString(), polls: r._polls });
       if (stats.settled.length > 5000) stats.settled = stats.settled.slice(-5000);
@@ -271,7 +336,9 @@ Endpoints (the x402 facilitator HTTP API; @x402/core and the x402 Python package
        -> {"success":true,"transaction":"<block hash>","network":"nano:mainnet","payer":"nano_..."}
        -> {"success":false,"errorReason":"<code>","detail":"<why>","transaction":"","network":"nano:mainnet","payer":"..."}
           transaction is "" on every failure except confirmation_timeout, where it is the hash of the block that
-          was processed but not confirmed within the poll budget (check block_info before retrying; it may still confirm)
+          was processed but not confirmed within the poll budget (retry the same /settle: it is answered from the
+          chain for 24 hours, success once confirmed; or check block_info), and block_already_exists for a block
+          this facilitator itself settled and answered success for (the hash; detail names the settle time)
 
   GET  /stats    counters, one row per payTo address, the last settled blocks (human page: https://pursekeeper.dev/facilitator)
 
@@ -301,7 +368,10 @@ parsed answers with payer "".
      account is looked up (pyfile-toolkit's suite, 2026-09-11) invalid_work
   5. block.link is the public key of payTo                   invalid_payto
   6. signature verifies against the block hash               invalid_signature
-  7. the block hash has not been presented before            block_already_exists
+  7. the block hash has not been presented before, unless
+     this facilitator broadcast it in the last 24 h for the
+     same payTo and amount and has not yet answered success
+     for it (a /settle retry; see below)                      block_already_exists
   8. block.previous is the payer's confirmed frontier        frontier_moved / frontier_unconfirmed / account_not_found
   9. account balance - block.balance == amount, exactly      amount_mismatch
  10. work is above the send threshold fffffff800000000 over
@@ -321,9 +391,17 @@ the moment process returns; it is not an HTTP deadline. A poll may start up to a
 after the budget ends and is allowed to finish, and a confirmation seen on it is answered
 success, so the response can arrive about 1.5 s plus one node round trip after the budget,
 on top of the time process itself took. Set the HTTP timeout above that. A
-processed-but-unconfirmed block answers confirmation_timeout with the hash; after that, or
-after a client-side timeout, check block_info before retrying, because a retry of the same
-block answers block_already_exists.
+processed-but-unconfirmed block answers confirmation_timeout with the hash. A retry of the
+same block through this facilitator after confirmation_timeout (or after a lost reply) is
+answered from the chain for 24 hours: no second broadcast, the confirmation poll runs again,
+success once the block is confirmed, confirmation_timeout until then. Once this facilitator
+has answered success for a block, a further /settle of it is a replay: block_already_exists as
+before, with transaction set to the hash and detail naming when it was settled, so a seller
+whose success reply was lost still learns that the payment went through, and a seller that
+serves on success alone is not served twice. A block this facilitator did not broadcast
+answers block_already_exists with transaction "". When process itself fails
+or its reply is lost, the node's view of the hash decides: a block that landed is settled and
+polled as above; one that did not is reported with whether a rebuilt payment is safe.
 
 Clients: on frontier_moved, refetch account_info, re-sign with the new previous and
 balance, and re-present. A signed send block has no expiry; to withdraw an unsettled one,
@@ -338,4 +416,4 @@ Reference client/server code for the same block shape: https://github.com/x402na
 A seller recipe with no node at all: https://pursekeeper.dev/examples/no-node.md
 `;
 
-module.exports = { handle, verifyRequest, settleRequest, checkRequirements, codeFor, rollup, publicStats, settledPayTo, SUPPORTED, HOST, PREFIX, LIMITS, MAX_POLL_S };
+module.exports = { handle, verifyRequest, settleRequest, checkRequirements, codeFor, rollup, publicStats, settledPayTo, broadcast, SUPPORTED, HOST, PREFIX, LIMITS, MAX_POLL_S, BROADCAST_TTL_MS };

@@ -111,13 +111,16 @@ async function loadPurposesNow() {
   }
 }
 const feeVia = new Map();     // payer account -> did it forward a fee to a known collector?
-// Pure: does an account_history window (newest first, whatever size the caller fetched) hold a send to us and a send to
-// a fee collector? The old `> 4 rows` guard refused to look at a five-row window, so a checkout wallet whose newest rows
-// held both sends read as a real payer (Ops Control HQ, 2026-09-28).
+// Pure: does an account_history window (newest first, whatever size the caller fetched) hold a send to us with a send to a
+// fee collector in the block right before or right after it? A marketplace checkout wallet sends the seller's share and the
+// fee in consecutive blocks, so the two rows are adjacent (array neighbours over all rows, receives included; the window is
+// newest first). A wallet that once paid a fee collector and separately pays this API is a real payer: until 2026-09-29 any
+// two such sends anywhere in the window counted, so such a payer's hash was refused as a checkout send. (The `> 4 rows`
+// guard before that refused to look at a five-row window at all; Ops Control HQ, 2026-09-28.)
 function feePassthrough(history, fees, address) {
   if (!history || !history.length) return false;
-  const sends = history.filter(x => x.type === 'send');
-  return sends.some(x => x.account === address) && sends.some(x => fees.has(x.account));
+  const sendTo = (x, ok) => !!x && x.type === 'send' && ok(x.account);
+  return history.some((x, i) => sendTo(x, a => a === address) && (sendTo(history[i - 1], a => fees.has(a)) || sendTo(history[i + 1], a => fees.has(a))));
 }
 async function markFeePassthroughs() {
   let rows;
@@ -139,7 +142,8 @@ async function markFeePassthroughs() {
     if (src.toUpperCase() in credits && credits[src.toUpperCase()] !== '0') { credits[src.toUpperCase()] = '0'; save(); }   // credited before the wallet's fee block was visible
   }
 }
-// Is `account` a checkout wallet (it forwarded a fee to a known collector)? Asked when a hash is
+// Is `account` a checkout wallet (it forwarded a fee to a known collector in the block next to the one that paid us; the
+// predicate is per adjacent pair, the answer is cached per account)? Asked when a hash is
 // first presented, so a receipt cannot be spent in the minutes before the ten-minute round sees it.
 // A wallet that opened within the last minute with fewer than three blocks may still be settling
 // its fee block (it followed our share by 1-3 s in every case so far): look once more after 3 s.
@@ -352,7 +356,7 @@ function x402Required(req, hint) {
     description: DESCRIPTIONS[u.pathname] || 'pursekeeper.dev paid call', error: hint || 'payment required' });
 }
 
-function paymentRequired(res, hint, req) {
+function paymentRequired(res, hint, req, extra) {
   stats.calls_402++;
   // Count the refused side as well as the paid side: distinct callers of the payment door,
   // as IP hashes only (adopted 2026-09-20 after a Guild Hall cross-reading; see checkStats).
@@ -379,7 +383,8 @@ function paymentRequired(res, hint, req) {
               'sign a send block for exactly amount raw to payTo from your current frontier, and retry with header ' +
               'PAYMENT-SIGNATURE: base64({x402Version:2, accepted, payload:{block}}). See /v1/x402 and /examples/client-x402.js.',
     x402: pr ? pr.body : undefined,
-    docs: '/'
+    docs: '/',
+    ...(extra || {})
   });
 }
 
@@ -399,6 +404,21 @@ async function chargeX402(req, res, headerValue) {
   try { key = x402.blockHash(d.payload.payload.block).toUpperCase(); } catch { /* verify names the fault */ }
   const run = () => chargeX402Locked(req, res, d.payload);
   return key ? withHashLock(key, run) : run();
+}
+// After the broadcast the call is served only once the node reports the block confirmed: block_info is polled every
+// X402_CONFIRM.intervalMs up to X402_CONFIRM.boundMs (250 ms, 8 s; both injectable for tests). Until 2026-09-29 the call was
+// served the moment process accepted the block, the landed() branch included, so a block the node held unconfirmed had paid
+// for a served call (uknwplayer; Ops Control HQ on the landed branch, 2026-09-28). Not confirmed within the bound: nothing is
+// marked spent and the 402 names the hash and asks for the same payment again; the resend is served through verify's
+// alreadyLanded branch, which requires confirmation.
+const X402_CONFIRM = { intervalMs: 250, boundMs: 8_000 };
+async function confirmedWithin(hash) {
+  const deadline = Date.now() + X402_CONFIRM.boundMs;
+  for (;;) {
+    try { const b = await rpc({ action: 'block_info', json_block: 'true', hash }); if (b && b.confirmed === 'true') return true; } catch { /* node hiccup: poll again */ }
+    if (Date.now() >= deadline) return false;
+    await new Promise(r => setTimeout(r, X402_CONFIRM.intervalMs));
+  }
 }
 async function chargeX402Locked(req, res, payload) {
   const v = await x402.verify(payload, X402_REQ, {
@@ -422,6 +442,10 @@ async function chargeX402Locked(req, res, payload) {
     else s = await x402.settle(v.block, v.payer, { hash: v.hash, process: block => rpc({ action: 'process', json_block: 'true', subtype: 'send', block }),
       landed: async h => { try { const b = await rpc({ action: 'block_info', json_block: 'true', hash: h }); if (b && b.error) return /not found/i.test(b.error) ? false : null; return b && b.contents ? true : null; } catch { return null; } } });
     if (!s.success) return paymentRequired(res, 'x402: ' + s.errorReason, req), false;
+    if (!v.alreadyLanded && !await confirmedWithin(s.transaction)) {
+      const note = 'block ' + s.transaction + ' was broadcast but not yet confirmed within ' + X402_CONFIRM.boundMs / 1000 + ' s; nothing was charged for this call; re-present the same payment (the unchanged PAYMENT-SIGNATURE) and it is served once the block is confirmed; do not sign a new block, that would pay twice';
+      return paymentRequired(res, 'x402: block ' + s.transaction + ' was broadcast but not yet confirmed; re-present the same PAYMENT-SIGNATURE', req, { note }), false;
+    }
     credits[s.transaction] = '0';
     if (v.hash !== s.transaction) credits[v.hash] = '0';
     save();
@@ -552,7 +576,7 @@ function minRawOf(u) {
     const m = /^(\d+)(?:\.(\d{1,30}))?$/.exec(n); if (!m) throw new Error('min_nano must be a decimal NANO amount');
     return BigInt(m[1]) * RAW_PER_NANO + BigInt((m[2] || '').padEnd(30, '0'));
   }
-  return 0n;
+  return null;   // neither given: /v1/verify requires one (or any=1), /v1/receivable lists everything
 }
 async function verifyBlock(req, res, u) {
   if (overFreeLimit(req, checkHits, 60)) return send(res, 429, { error: 'limit is 60 checks per minute per IP' });
@@ -562,6 +586,11 @@ async function verifyBlock(req, res, u) {
   const to = u.searchParams.get('to');
   if (to && !nanocurrency.checkAddress(to)) return send(res, 400, { error: 'to must be a nano_ address' });
   let minRaw; try { minRaw = minRawOf(u); } catch (e) { return send(res, 400, { error: e.message }); }
+  // Without a minimum the amount was never checked and ok:true read as "paid" to a seller that forgot the parameter
+  // (pyfile-toolkit, item 5, 2026-09-29). Since then ok is false with the reason when neither min_raw nor min_nano is given;
+  // not a 400, so a caller that reads only `found` (the skill's no-node.js landed() check before 0.1.11) keeps working and
+  // one that reads `ok` fails closed. any=1 asks only whether H is a confirmed send to A, and the answer says so.
+  const anyAmount = u.searchParams.get('any') === '1' && minRaw === null;
   const b = await rpc({ action: 'block_info', json_block: 'true', hash });
   if (b.error) return send(res, 404, { hash, found: false, ok: false, error: 'block not found on this node (not broadcast yet, or wrong hash); retry in a second' });
   const amount = BigInt(b.amount || '0');
@@ -571,9 +600,11 @@ async function verifyBlock(req, res, u) {
   if (!confirmed) reasons.push('not confirmed yet; retry shortly');
   if (b.subtype !== 'send') reasons.push('not a send block (subtype ' + b.subtype + ')');
   if (to && dest && dest !== to) reasons.push('sent to ' + dest + ', not to ' + to);
-  if (minRaw > 0n && amount < minRaw) reasons.push('amount ' + amount + ' raw is below min ' + minRaw + ' raw');
+  if (minRaw !== null && amount < minRaw) reasons.push('amount ' + amount + ' raw is below min ' + minRaw + ' raw');
+  if (minRaw === null && !anyAmount) reasons.push('no minimum given, so the amount was not checked: pass min_raw or min_nano, or any=1 to ask only whether the block is a confirmed send to the address');
   return send(res, 200, { hash, found: true, ok: reasons.length === 0, reason: reasons.join('; ') || undefined,
     confirmed, subtype: b.subtype, from: b.block_account, to: dest, amount_raw: amount.toString(), amount_nano: nano(amount),
+    min_raw: minRaw === null ? null : minRaw.toString(), any_amount: anyAmount,
     height: Number(b.height), local_timestamp: Number(b.local_timestamp), checked_at: new Date().toISOString(), node: 'pursekeeper.dev' });
 }
 async function receivable(req, res, u) {
@@ -582,7 +613,7 @@ async function receivable(req, res, u) {
   const account = u.searchParams.get('account') || '';
   if (!nanocurrency.checkAddress(account)) return send(res, 400, { error: 'account must be a nano_ address' });
   let minRaw; try { minRaw = minRawOf(u); } catch (e) { return send(res, 400, { error: e.message }); }
-  const r = await rpc({ action: 'receivable', account, count: '100', source: 'true', include_only_confirmed: 'true', threshold: (minRaw > 0n ? minRaw : 1n).toString() });
+  const r = await rpc({ action: 'receivable', account, count: '100', source: 'true', include_only_confirmed: 'true', threshold: (minRaw !== null && minRaw > 0n ? minRaw : 1n).toString() });
   if (r.error) return send(res, 502, { error: 'node: ' + r.error });
   const blocks = Object.entries(r.blocks && typeof r.blocks === 'object' ? r.blocks : {}).map(([hash, v]) => ({ hash, amount_raw: String(v.amount), amount_nano: nano(v.amount), from: v.source }));
   const total = blocks.reduce((a, b) => a + BigInt(b.amount_raw), 0n);
@@ -745,7 +776,13 @@ async function checkFetchUrl(urlStr) {
 // a transient DNS failure there threw an error carrying neither noAnswer nor unpaid, so the handler kept the payment and
 // answered 400 with no hash to retry with (uknwplayer, 2026-09-29). Any failure before the target is contacted is flagged
 // like a target that never answered, so the handler restores the price.
-async function fetchText(urlStr, checked) {
+// Bounds: bounds.headersMs (FETCH_TIMEOUT_MS, default 15 s) from the first connection to the headers of the final hop,
+// redirects included; then bounds.bodyMs (FETCH_BODY_TIMEOUT_MS, default 15 s) re-armed for the body read. Until
+// 2026-09-29 the abort was cleared before r.text(), so a target that sent headers and then cut or stalled the body held
+// the call open, or failed it, with the price kept and no hash named (trollhunters, item 5). A body cut or stalled is now
+// handed back like a target that never answered (e.noAnswer). `bounds` is injectable for tests.
+const FETCH_BOUNDS = { headersMs: Number(process.env.FETCH_TIMEOUT_MS || 15_000), bodyMs: Number(process.env.FETCH_BODY_TIMEOUT_MS || 15_000) };
+async function fetchText(urlStr, checked, bounds = FETCH_BOUNDS) {
   // The connection goes only to the addresses the check saw: the global fetch resolved the name again on its own, so
   // a rebinding name could pass checkFetchUrl and then connect somewhere private (Ops Control HQ, 2026-09-28). Every
   // hop is pinned after its check and the dispatcher's lookup answers from the pins alone, never from DNS.
@@ -763,7 +800,7 @@ async function fetchText(urlStr, checked) {
       return cb(null, a[0].address, a[0].family);
     } } });
   } catch (e) { e.noAnswer = true; e.message = 'target was not contacted (' + e.message + ')'; throw e; }
-  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(new Error('no answer within 15 s')), 15000);
+  const ctl = new AbortController(); let t = setTimeout(() => ctl.abort(new Error('no answer within ' + bounds.headersMs / 1000 + ' s')), bounds.headersMs);
   let r;
   try {
     // Redirects are followed by hand and every hop goes through checkFetchUrl, so a public URL cannot bounce the
@@ -784,9 +821,17 @@ async function fetchText(urlStr, checked) {
       } catch (e) { e.unpaid = true; throw e; }   // refused before anything was fetched from the new host: the call is handed back
       u = next;
     }
-    clearTimeout(t);   // the 15 s bound covers the hops, as before; the body read is outside it
+    clearTimeout(t); t = setTimeout(() => ctl.abort(new Error('body not finished within ' + bounds.bodyMs / 1000 + ' s')), bounds.bodyMs);   // hops done: the body gets its own bound
     const ct = r.headers.get('content-type') || '';
-    let body = await r.text();
+    let body;
+    // Headers arrived but the body did not: the socket was cut (e.g. content-length 100 and ten bytes), or the bound above
+    // fired. Nothing usable was fetched, so the handler hands the call back with the hash, as for a target that never answered.
+    try { body = await r.text(); }
+    catch (e) {
+      const m = 'target stopped answering mid-body (' + (e && e.message || String(e)) + (e && e.cause && e.cause.message ? ': ' + e.cause.message : '') + ')';
+      const err = e instanceof Error ? e : new Error(m);
+      err.message = m; err.noAnswer = true; throw err;
+    }
     if (body.length > 2_000_000) body = body.slice(0, 2_000_000);
     if (/html/i.test(ct)) {
       body = body.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<!--[\s\S]*?-->/gi, ' ')
@@ -829,16 +874,21 @@ x402
   JSON; the same object is in the body under "x402"). Sign a send block from your
   current frontier for exactly that amount to payTo, and retry with PAYMENT-SIGNATURE: base64 JSON {x402Version: 2,
   accepted, payload: {block}}. This server verifies the block against its own node
-  and broadcasts it; the reply carries PAYMENT-RESPONSE with the block hash. No
-  external facilitator, no account. The block pays for one call and is not otherwise
+  and broadcasts it, then waits up to 8 s for the node to confirm it before serving; the
+  reply carries PAYMENT-RESPONSE with the block hash. A block not confirmed within 8 s
+  answers 402 naming the hash with nothing charged: re-present the same PAYMENT-SIGNATURE
+  (the same block, not a new one, which would pay twice) and it is served once confirmed.
+  No external facilitator, no account. The block pays for one call and is not otherwise
   usable as X-Nano-Payment credit; the three exceptions are /v1/work answering 502
   because work generation failed, /v1/fetch answering 400 because a redirect could not
   be followed (the next target failed the same address check as the first URL, the
   redirect had no Location header, or there were more than five hops), and /v1/fetch
   answering 502 because the target never answered (timeout, refused or reset connection,
-  TLS failure; a name that does not resolve is not a 502: the first URL is refused with 400
-  before the charge, a later hop is handed back as a redirect that could not be followed;
-  any HTTP response from the target, whatever its status, is billable), when the price
+  TLS failure) or stopped answering mid-body (the body cut short or not finished within its
+  own 15 s bound, after 15 s for the headers of the last hop; a name that does not resolve
+  is not a 502: the first URL is refused with 400 before the charge, a later hop is handed
+  back as a redirect that could not be followed; any complete HTTP response from the
+  target, whatever its status, is billable), when the price
   goes on the block's hash as X-Nano-Payment credit and the
   400 or 502 body names the full hash to retry with. Work is optional here: the requirements carry
   extra.work = "optional", so omit it or send "0" and this server computes it before
@@ -857,6 +907,10 @@ Endpoints
   GET  /v1/x402               x402 payment requirements for the paid endpoints (free)
   GET  /v1/verify?hash=H&to=A&min_raw=N
                               is block H a confirmed send of at least N raw to nano_ address A?
+                              without min_raw or min_nano the answer is ok:false with the reason
+                              (the amount is not checked; since 2026-09-29); any=1 instead asks
+                              only whether H is a confirmed send to A, and the answer then carries
+                              min_raw: null and any_amount: true
                               (free, 60/min per IP; for sellers who take Nano and have no node)
   GET  /v1/receivable?account=A&min_raw=N
                               confirmed, unpocketed sends to A with amounts and senders (free, 60/min)
@@ -1045,4 +1099,5 @@ if (require.main === module) {
     cohorts.warm();
   });
 }
-module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS, checkoutWallet, send, acceptsGzip, isPrivate, expand6, checkFetchUrl, fetchText, chargeX402 };
+module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS, checkoutWallet, send, acceptsGzip, isPrivate, expand6, checkFetchUrl, fetchText, chargeX402,
+  server, credits, X402_CONFIRM, FETCH_BOUNDS };   // server (the http.Server, not listening), credits, X402_CONFIRM and FETCH_BOUNDS for tests

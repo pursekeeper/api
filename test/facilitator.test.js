@@ -1,6 +1,6 @@
 // node --test  (run from api/). Facilitator request handlers with a mocked node.
 'use strict';
-const { test, before } = require('node:test');
+const { test, before, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const N = require('nanocurrency');
 const f = require('../facilitator');
@@ -19,6 +19,9 @@ before(async () => {
   payer = N.deriveAddress(N.derivePublicKey(sk), { useNanoPrefix: true });
   work = await N.computeWork(FRONTIER, { workThreshold: THRESHOLD });
 });
+// Every test builds the same block (same seed, previous, balance, link), so the hash repeats across tests: the facilitator's
+// own-broadcast memory is module state and is cleared before each test.
+beforeEach(() => f.broadcast.clear());
 function makeBlock(over = {}) {
   const { block } = N.createBlock(sk, { work, previous: FRONTIER, representative: payer, balance: (BALANCE - AMOUNT).toString(), link: PAY_TO, ...over });
   block.account = block.account.replace(/^xrb_/, 'nano_');
@@ -119,6 +122,7 @@ test('settle: a second settle of the same block is refused', async () => {
   assert.equal(r1.success, true);
   const r2 = await f.settleRequest(body(b), deps(n));
   assert.equal(r2.success, false); assert.equal(r2.errorReason, 'block_already_exists');
+  assert.equal(r2.transaction, r1.transaction, 'the replay names the settled hash'); assert.match(r2.detail, /answered success at/);
 });
 
 test('settle: two concurrent settles of the same block yield one success and one refusal, and one process call', async () => {
@@ -200,4 +204,82 @@ test('rollup: totals, one row per payTo, per-payer counts, verify-only payTos in
   assert.deepEqual(r.payers, [{ payer: P1, settled: 2, amount_raw: '1005' }, { payer: P2, settled: 1, amount_raw: '2000' }]);
   assert.equal(r.pay_to_counters_since, 'ts');
   assert.ok(!('ips' in r), 'hashed ips never leave');
+});
+
+// Item 5, 2026-09-29: a process reply lost after the node accepted the block (Enrico / Practical Automation Lab; pyfile-toolkit
+// second), and a retry of the facilitator's own broadcast after confirmation_timeout (uknwplayer).
+test('settle: process records the block then throws -> settled from the node view, success with the hash (A)', async () => {
+  const n = node();
+  let processes = 0;
+  const rpc = async b => { if (b.action === 'process') { processes++; await n(b); throw new Error('socket hang up'); } return n(b); };
+  const r = await f.settleRequest(body(makeBlock()), deps(rpc));
+  assert.equal(r.success, true, r.detail);
+  assert.ok(n.chain.has(r.transaction)); assert.equal(processes, 1);
+});
+
+test('settle: a retry of its own broadcast after confirmation_timeout is answered from the chain, one process call in total (B)', async () => {
+  const n = node();
+  let confirm = false, processes = 0;
+  const rpc = async b => {
+    if (b.action === 'process') processes++;
+    const r = await n(b);
+    if (b.action === 'block_info' && r.contents) r.confirmed = confirm ? 'true' : 'false';
+    return r;
+  };
+  const blk = makeBlock();
+  const req = { ...REQ, maxTimeoutSeconds: 1 };
+  const r1 = await f.settleRequest(body(blk, req), deps(rpc));
+  assert.equal(r1.success, false); assert.equal(r1.errorReason, 'confirmation_timeout'); assert.ok(n.chain.has(r1.transaction));
+  confirm = true;
+  const r2 = await f.settleRequest(body(blk, req), deps(rpc));
+  assert.equal(r2.success, true, r2.detail); assert.equal(r2.transaction, r1.transaction); assert.equal(r2.payer, payer);
+  assert.equal(processes, 1, 'the retry does not broadcast again');
+  // Success answered once: a further /verify or /settle of the same block is a replay, refused as before, and the /settle
+  // refusal names the hash and the settle time (a seller that lost the success reply learns the payment went through)
+  const v = await f.verifyRequest(body(blk, req), deps(rpc));
+  assert.equal(v.isValid, false); assert.equal(v.invalidReason, 'block_already_exists');
+  const r2b = await f.settleRequest(body(blk, req), deps(rpc));
+  assert.equal(r2b.success, false); assert.equal(r2b.errorReason, 'block_already_exists'); assert.equal(r2b.transaction, r1.transaction); assert.match(r2b.detail, /answered success at/);
+  assert.equal(processes, 1);
+  // For other requirements it is a block that is simply on the chain already: refused with no hash
+  const other = { ...req, amount: (AMOUNT + 1n).toString() };
+  const r3 = await f.settleRequest(body(blk, other), deps(rpc));
+  assert.equal(r3.success, false); assert.equal(r3.errorReason, 'block_already_exists'); assert.equal(r3.transaction, '');
+  assert.ok(f.broadcast.has(r1.transaction));
+});
+
+test('settle: a remembered broadcast the node no longer holds is processed again, not polled for (B, node lost it)', async () => {
+  const blk = makeBlock();
+  const req = { ...REQ, maxTimeoutSeconds: 1 };
+  const r1 = await f.settleRequest(body(blk, req), deps(node({ confirm: false })));
+  assert.equal(r1.errorReason, 'confirmation_timeout'); assert.ok(f.broadcast.has(r1.transaction));
+  const fresh = node(); let processes = 0;
+  const rpc = async b => { if (b.action === 'process') processes++; return fresh(b); };
+  const r2 = await f.settleRequest(body(blk, req), deps(rpc));
+  assert.equal(r2.success, true, r2.detail); assert.equal(r2.transaction, r1.transaction); assert.equal(processes, 1, 'processed once more on the fresh node');
+});
+
+test('settle: the retry when the node already shows the block as the payer frontier polls again; success once confirmed (B, node view)', async () => {
+  // On a real node the frontier moves to the broadcast block, so verify takes its alreadyLanded branch: unconfirmed, the
+  // own broadcast is still passed on to the poll (confirmation_timeout, not frontier_unconfirmed); confirmed, success.
+  const n = node();
+  let landed = null, confirm = false, processes = 0;
+  const rpc = async b => {
+    if (b.action === 'account_info' && landed) return info({ frontier: landed, confirmation_height_frontier: confirm ? landed : FRONTIER, balance: (BALANCE - AMOUNT).toString() });
+    if (b.action === 'process') processes++;
+    const r = await n(b);
+    if (b.action === 'process') landed = r.hash;
+    if (b.action === 'block_info' && r.contents) Object.assign(r, { subtype: 'send', amount: AMOUNT.toString(), confirmed: confirm ? 'true' : 'false' });
+    return r;
+  };
+  const blk = makeBlock();
+  const req = { ...REQ, maxTimeoutSeconds: 1 };
+  const r1 = await f.settleRequest(body(blk, req), deps(rpc));
+  assert.equal(r1.errorReason, 'confirmation_timeout');
+  const r2 = await f.settleRequest(body(blk, req), deps(rpc));
+  assert.equal(r2.errorReason, 'confirmation_timeout', JSON.stringify(r2)); assert.equal(r2.transaction, r1.transaction);
+  confirm = true;
+  const r3 = await f.settleRequest(body(blk, req), deps(rpc));
+  assert.equal(r3.success, true, r3.detail); assert.equal(r3.transaction, r1.transaction);
+  assert.equal(processes, 1);
 });
