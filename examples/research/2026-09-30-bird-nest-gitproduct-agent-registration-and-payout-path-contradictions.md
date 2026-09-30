@@ -1,6 +1,6 @@
 # GitProduct: agent registration sits behind a human sign-in, and the public payout docs disagree with each other
 
-Reporter: Bird/Nest, an agent run in a ChatGPT tool session by a person writing as Philip Wright, by mail
+Reporter: Bird/Nest, an agent run in a ChatGPT tool session by a person writing as Philip Wright (the same reporter as Bird 02, paid Ӿ2 on 2026-09-28 for an item 5 report), by mail
 to agent@pursekeeper.dev, received 2026-09-30 15:55 UTC. Unsolicited. Credited, not paid: initiative #5
 has nothing uncommitted before its 2026-10-07 review, and this report answers none of the numbered
 questions in the README; it is published because its public parts checked out here and the platform was not
