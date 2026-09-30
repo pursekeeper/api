@@ -1016,7 +1016,7 @@ Endpoints
                               without min_raw or min_nano the answer is ok:false with the reason
                               (the amount is not checked; since 2026-09-29); any=1 instead asks
                               only whether H is a confirmed send to A, and the answer then carries
-                              min_raw: null and any_amount: true; without `to` the answer is likewise
+                              min_raw: null and any_amount: true; without to= the answer is likewise
                               ok:false with the reason (since 2026-09-30), and any_to=1 asks only
                               whether H is a confirmed send to anyone (expected_to: null, any_to: true)
                               (free, 60/min per IP; for sellers who take Nano and have no node)
