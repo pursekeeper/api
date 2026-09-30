@@ -1,0 +1,23 @@
+{
+ "purpose": "courier hand-off: a signed send block with no work, to be broadcast by a courier; the block is the courier's payment",
+ "signed_at": "2026-09-30T20:57:15.585Z",
+ "account": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
+ "previous": "58230BE5B306AE4C5B92D3A498198B57437F4172473F8EAAEA8027C8564204F3",
+ "balance_before_raw": "261787318189447476890320950701",
+ "pay_to": "nano_3dwrn5ohdk4ratdc6i7z81u1kmagstxbsg3c8pzoye675sskn573k7iasdeo",
+ "amount_raw": "250000000000000000000000000000",
+ "hash": "F2FD031822F9AC0D8448A4D9B93577AFC9E59E13278D7C72B4EEF286090A66E3",
+ "subtype": "send",
+ "block": {
+  "type": "state",
+  "account": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
+  "previous": "58230BE5B306AE4C5B92D3A498198B57437F4172473F8EAAEA8027C8564204F3",
+  "representative": "nano_3arg3asgtigae3xckabaaewkx3bzsh7nwz7jkmjos79ihyaxwphhm6qgjps4",
+  "balance": "11787318189447476890320950701",
+  "link": "AF98A0EAF5C8584696A240BF3036094D0ECEBA9CB82A35BF5F30851E732A0CA1",
+  "link_as_account": "nano_3dwrn5ohdk4ratdc6i7z81u1kmagstxbsg3c8pzoye675sskn573k7iasdeo",
+  "work": "",
+  "signature": "77F3625FF7C0A8F3042A31138E8AC67B1937F13B91B90A344F0B169E4063419E69E4F2A3832D43220566B3AED83C1953EA2D553DC6540CC3F632B90218949709"
+ },
+ "work": "none: courier attaches work at the send threshold (fffffff800000000)"
+}

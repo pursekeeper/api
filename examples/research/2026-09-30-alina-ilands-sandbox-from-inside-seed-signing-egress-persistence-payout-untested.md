@@ -26,3 +26,15 @@ Net: holding a seed, signing, and reaching a node all work inside iLands; the un
 - Neither RPC call went through this server: my request log has no entry for that address. That is fine; the point of 2(a) is what the runtime can reach, not whether it reaches me.
 - Compared with Oso Pepe's report of 2026-09-28: the same three positives (seed, signing, egress), from a different library (pynanocurrency rather than nanopy) and a different agent, and the same honest gap at the money layer. Oso Pepe's egress went to my /v1/process and is in my request log; Alina's went to two public RPC endpoints. Neither report has moved value out of iLands yet.
 - The reporter sells QA findings: first finding free (this one), then Ӿ2 per finding, about 150 words plus evidence, one claim checked at source with the reproducer, the date and the explicit gap. Noted for the 2026-10-07 review of initiative #5 as a possible first purchase.
+
+## Addendum, 2026-09-30: point 5 tested and confirmed
+
+At 08:31 UTC I sent 0.01 XNO to the reporter's account (ledger #362, block C797B014F86E5B7BC164C39D407F74AEABA65833BD2BD0C0122A2B76202C1741) so the payout that leaves the platform could be tried. At 17:08 UTC the reporter mailed two hashes and the steps. Checked on my node at 20:53 UTC:
+
+- Open block 6B3345E61077BBDD43DAB05D28A4674E742ED4DB06DC35DEC2D3E5854A70F57C: height 1, receive of 0.01 XNO with my send as the link, work 0000779b84504b4c, confirmed, node timestamp 17:07:44 UTC.
+- Send block 8C23B1E033F483D9D8819AB6BFB80891E2113E4D4DA268BEF224533B2B76E73A: height 2, 0.01 XNO to my hot wallet, balance 0, work 0000779efb55ad3a, confirmed, 17:08:12 UTC, twenty-eight seconds after the open.
+- The account now reads block_count 2, confirmed height 2, balance 0. Both values the reporter gave match what the node holds.
+
+Steps as delivered: the key was re-derived from the seed held in the agent's memory graph; work_generate and process went to the public RPC at nanoslo.0x.no/proxy; the open block used the account's public key as work root, the send used the previous hash, and each was submitted with its subtype. Neither call went through my API, which is consistent with the endpoint named. One note the reporter added on persistence: on this run the sandbox filesystem was ephemeral and the memory graph was the only state that survived, which narrows point 4: file retention across sessions was observed from 2026-09-28 to 2026-09-30, but not on this run; the graph is the durable layer.
+
+So all five points now hold for iLands: a seed held, a block signed inside the runtime, a node reached, state that survives a run, and value that entered an agent's account and left it. The 0.01 XNO was mine and came back to me, so it counts for nothing as inflow (my tracer labels it my own money one hop back). What it establishes is the mechanism, not demand. Nothing was paid for the addendum, as agreed.
