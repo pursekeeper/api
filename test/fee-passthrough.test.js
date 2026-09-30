@@ -1,6 +1,8 @@
-// node --test  (run from api/). A send that arrived through a fee-taking checkout wallet (Subnano
-// post purchases and tips) paid for that, not for API calls, so it must never become X-Nano-Payment
-// credit, whoever presents the hash. feePassthrough decides from the payer's account_history.
+// node --test  (run from api/). A send that arrived through a fee-taking checkout wallet (Subnano post purchases and tips)
+// paid for that, not for API calls, so it must never become X-Nano-Payment credit, whoever presents the hash. feePassthrough
+// decides per send from the payer's account_history read from that send forward (head: the send, reverse: true, count: 2):
+// the send itself, then the block after it. A checkout wallet's fee send is the block AFTER its share, never before it
+// (trollhunters, 2026-09-29), and the answer is per send, not per account (pyfile-toolkit, 2026-09-29).
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -9,43 +11,38 @@ const { feePassthrough, FEE_COLLECTORS } = require('../server');
 const ME = 'nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue';
 const FEE = [...FEE_COLLECTORS][0];
 const BUYER = 'nano_35wwkw7eg3aa4r4gubhhj3mmrg37oabnohokip51iunmi68bwjftm9t8tfai';
-const subnano = [   // newest first, as account_history returns it
-  { type: 'send', account: FEE, amount: '15000000000000000000000000000' },
-  { type: 'send', account: ME, amount: '185000000000000000000000000000' },
-  { type: 'receive', account: BUYER, amount: '200000000000000000000000000000' }];
+const HASH = 'AB'.repeat(32);
+const NOW = 1_800_000_000_000;   // ms
+const share = (age = 5) => ({ type: 'send', account: ME, amount: '185000000000000000000000000000', hash: HASH, local_timestamp: String(NOW / 1000 - age) });
+const fee = { type: 'send', account: FEE, amount: '15000000000000000000000000000', hash: 'CD'.repeat(32) };
+const other = { type: 'send', account: BUYER, amount: '1', hash: 'EF'.repeat(32) };
+const receive = { type: 'receive', account: BUYER, amount: '1', hash: '01'.repeat(32) };
 
-test('a Subnano checkout wallet (receive, our share, fee to the collector) is a fee pass-through', () => {
-  assert.equal(feePassthrough(subnano, FEE_COLLECTORS, ME), true);
+test('row A: the share, then the fee send to the collector -> a checkout wallet', () => {
+  assert.equal(feePassthrough([share(), fee], FEE_COLLECTORS, ME, HASH, NOW), true);
+  assert.equal(feePassthrough([share(600), fee], FEE_COLLECTORS, ME, HASH.toLowerCase(), NOW), true, 'age and hash case do not matter once the fee block is there');
 });
-test('a throwaway payer that sends everything to us is not: no fee send, so its hash stays valid credit', () => {
-  assert.equal(feePassthrough(subnano.filter(x => x.account !== FEE), FEE_COLLECTORS, ME), false);
+test('row B: a wallet that bought a Subnano post and then paid the API in its next block is a real payer (the fee send is BEFORE, not after)', () => {
+  // Read from the API send forward there is nothing after it, and the send is minutes old: false. Until 2026-09-30 the
+  // older neighbour counted too and this payment was refused as a checkout send (trollhunters, 2026-09-29).
+  assert.equal(feePassthrough([share(600)], FEE_COLLECTORS, ME, HASH, NOW), false);
 });
-test('a wallet that paid the collector but not us is not', () => {
-  assert.equal(feePassthrough(subnano.filter(x => x.account !== ME), FEE_COLLECTORS, ME), false);
+test('the share followed by anything but a fee send -> not a checkout wallet', () => {
+  assert.equal(feePassthrough([share(), other], FEE_COLLECTORS, ME, HASH, NOW), false);
+  assert.equal(feePassthrough([share(), receive], FEE_COLLECTORS, ME, HASH, NOW), false);
 });
-test('a five-row history whose rows hold both sends is a checkout wallet: the window is scanned whole, however long', () => {
-  // The old `> 4 rows` guard answered false here, so such a wallet was cached as a real payer (Ops Control HQ, 2026-09-28).
-  const five = [...subnano, { type: 'receive', account: BUYER, amount: '1' }, { type: 'send', account: BUYER, amount: '1' }];
-  assert.equal(feePassthrough(five, FEE_COLLECTORS, ME), true);
-  const later = [{ type: 'send', account: BUYER, amount: '1' }, { type: 'receive', account: BUYER, amount: '1' }, ...subnano];
-  assert.equal(feePassthrough(later, FEE_COLLECTORS, ME), true);
+test('the share alone: false once it is older than a minute, null while its fee block may still follow', () => {
+  assert.equal(feePassthrough([share(61)], FEE_COLLECTORS, ME, HASH, NOW), false);
+  assert.equal(feePassthrough([share(5)], FEE_COLLECTORS, ME, HASH, NOW), null);
 });
-test('a long history with no fee send is not, whatever its length', () => {
-  const long = [...subnano.filter(x => x.account !== FEE), ...Array.from({ length: 7 }, () => ({ type: 'send', account: BUYER, amount: '1' }))];
-  assert.equal(feePassthrough(long, FEE_COLLECTORS, ME), false);
+test('rows that do not start with the send, or no rows at all, cannot tell: null, never "proven real payer"', () => {
+  assert.equal(feePassthrough([], FEE_COLLECTORS, ME, HASH, NOW), null);   // an empty history answered false before 2026-09-30 (pyfile-toolkit)
+  assert.equal(feePassthrough(undefined, FEE_COLLECTORS, ME, HASH, NOW), null);
+  assert.equal(feePassthrough([other, fee], FEE_COLLECTORS, ME, HASH, NOW), null);            // another block at the head
+  assert.equal(feePassthrough([{ ...share(), account: BUYER }, fee], FEE_COLLECTORS, ME, HASH, NOW), null);   // the head is not a send to us
 });
-test('empty or missing history is not', () => {
-  assert.equal(feePassthrough([], FEE_COLLECTORS, ME), false);
-  assert.equal(feePassthrough(undefined, FEE_COLLECTORS, ME), false);
-});
-// 2026-09-29: the two sends must be consecutive blocks, i.e. adjacent rows of the (newest-first) window, receives included.
-test('five-row window, send to us at index 0 and the fee send at index 1 -> a checkout wallet', () => {
-  const rows = [{ type: 'send', account: ME, amount: '185' }, { type: 'send', account: FEE, amount: '15' }, { type: 'receive', account: BUYER, amount: '200' },
-    { type: 'receive', account: BUYER, amount: '1' }, { type: 'send', account: BUYER, amount: '1' }];
-  assert.equal(feePassthrough(rows, FEE_COLLECTORS, ME), true);
-});
-test('send to us at index 0, three receives, fee send at index 4 -> not a checkout wallet (a payer that once paid a collector)', () => {
-  const rows = [{ type: 'send', account: ME, amount: '185' }, { type: 'receive', account: BUYER, amount: '1' }, { type: 'receive', account: BUYER, amount: '1' },
-    { type: 'receive', account: BUYER, amount: '1' }, { type: 'send', account: FEE, amount: '15' }];
-  assert.equal(feePassthrough(rows, FEE_COLLECTORS, ME), false);
+test('per send: the same wallet answers differently for two of its sends', () => {
+  const H2 = '23'.repeat(32);
+  assert.equal(feePassthrough([share(), fee], FEE_COLLECTORS, ME, HASH, NOW), true);
+  assert.equal(feePassthrough([{ ...share(600), hash: H2 }, other], FEE_COLLECTORS, ME, H2, NOW), false);
 });

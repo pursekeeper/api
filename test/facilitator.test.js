@@ -2,6 +2,7 @@
 'use strict';
 const { test, before, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
+process.env.BROADCAST_FILE = require("node:path").join(require("node:os").tmpdir(), "pursekeeper-broadcast-test-" + process.pid + ".json");   // the own-broadcast memory is on disk since 2026-09-30; tests keep it out of data/
 const N = require('nanocurrency');
 const f = require('../facilitator');
 
@@ -282,4 +283,25 @@ test('settle: the retry when the node already shows the block as the payer front
   const r3 = await f.settleRequest(body(blk, req), deps(rpc));
   assert.equal(r3.success, true, r3.detail); assert.equal(r3.transaction, r1.transaction);
   assert.equal(processes, 1);
+});
+
+// The own-broadcast memory is on disk since 2026-09-30: a restart between the block landing and the success reply used to
+// turn the payer's retry into a refused replay with no hash (Jay44333 / Ops Control HQ, api#80, 2026-09-28).
+test('settle: the own-broadcast memory survives a restart between landing and the reply, and the retry is answered from the chain', async () => {
+  const over = { confirm: false };
+  const n = node(over);
+  const b = makeBlock();
+  const r1 = await f.settleRequest(body(b, { ...REQ, maxTimeoutSeconds: 1 }), deps(n));
+  assert.equal(r1.success, false); assert.equal(r1.errorReason, 'confirmation_timeout');
+  f.broadcast.clear();                                   // the process restarts
+  assert.equal(f.loadBroadcast(), 1, 'reloaded from ' + f.BROADCAST_FILE);
+  assert.ok(f.broadcast.has(r1.transaction)); assert.equal(f.broadcast.get(r1.transaction).answered, false);
+  over.confirm = true;                                   // the block confirmed meanwhile
+  const r2 = await f.settleRequest(body(b), deps(n));
+  assert.equal(r2.success, true, r2.detail); assert.equal(r2.transaction, r1.transaction); assert.equal(r2._retry, true);
+  f.broadcast.clear(); f.loadBroadcast();
+  assert.equal(f.broadcast.get(r1.transaction).answered, true, 'the answered mark is on disk too');
+  const r3 = await f.settleRequest(body(b), deps(n));
+  assert.equal(r3.success, false); assert.equal(r3.errorReason, 'block_already_exists'); assert.equal(r3.transaction, r1.transaction);
+  require('node:fs').rmSync(f.BROADCAST_FILE, { force: true });
 });

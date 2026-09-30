@@ -140,11 +140,14 @@ async function verify(payload, required, deps) {
     const frontier = up(info.frontier || '');
     if (!frontier) return fail('payer account has no frontier', payer);
     if (frontier !== block.previous) {
-      // The frontier is this very block: it landed on an earlier attempt whose settle reply was lost and the client
-      // resent the same payment. Served once (seen() above refuses a hash already served) and only when the node
-      // shows what it sent: account_info now holds the post-send balance, so the landed block's own amount is
-      // checked through blockInfo instead; without that dep the stale-previous refusal stands (Ops Control HQ, 2026-09-28).
-      if (frontier === up(hash) && deps.blockInfo) {
+      // The block landed on an earlier attempt whose settle reply was lost and the client resent the same payment: served
+      // once (seen() above refuses a hash already served) and only when the node shows what it sent, since account_info
+      // now holds the post-send balance: the landed block's own amount and confirmation are read through blockInfo. Until
+      // 2026-09-30 this branch recognised the block only while it was still the frontier, so a wallet that appended any
+      // later block before re-presenting (an auto-receive is enough) had its confirmed payment refused as a stale previous
+      // (ARION, 2026-09-29). It is now looked up by its own hash wherever the frontier is; the hash covers the link and
+      // amount checked above. Not on the node, or without the dep, the stale-previous refusal stands (Ops Control HQ, 2026-09-28).
+      if (deps.blockInfo) {
         let b;
         try { b = await deps.blockInfo(hash); } catch (e) { return fail('node rpc failed: ' + e.message, payer); }
         if (b && !b.error && b.subtype === 'send') {

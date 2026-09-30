@@ -195,7 +195,8 @@ test('verify: a block that is already the frontier is ok with alreadyLanded when
   assert.equal(noDep.ok, false); assert.match(noDep.reason, /previous/);
   const served = await x.verify(payload(b), REQ, deps({ accountInfo: async () => landedInfo(), seen: async () => true, blockInfo: async () => ({ subtype: 'send', amount: AMOUNT.toString(), confirmed: 'true' }) }));
   assert.equal(served.ok, false); assert.match(served.reason, /already used/);
-  const plainStale = await x.verify(payload(b), REQ, deps({ accountInfo: async () => info({ frontier: 'A'.repeat(64), confirmation_height_frontier: 'A'.repeat(64) }), blockInfo: async () => ({ subtype: 'send', amount: AMOUNT.toString() }) }));
+  // A stale previous whose block is not on the node: the plain refusal (since 2026-09-30 the block is looked up by hash first).
+  const plainStale = await x.verify(payload(b), REQ, deps({ accountInfo: async () => info({ frontier: 'A'.repeat(64), confirmation_height_frontier: 'A'.repeat(64) }), blockInfo: async () => ({ error: 'Block not found' }) }));
   assert.equal(plainStale.ok, false); assert.match(plainStale.reason, /previous/);
 });
 
@@ -266,4 +267,22 @@ test('requirements can advertise optional work', () => {
   const req = x.requirements({ payTo: PAY_TO, amountRaw: AMOUNT, workOptional: true });
   assert.deepEqual(req.extra, { work: 'optional' });
   assert.deepEqual(REQ.extra, {});
+});
+
+// Since 2026-09-30 the landed block is recognised by its own hash wherever the frontier is: a wallet that appended a later
+// block (an auto-receive is enough) before re-presenting had its confirmed payment refused as a stale previous (ARION, 2026-09-29).
+test('verify: a landed block is served once after the wallet appended a later block, and refused when it is not on the node', async () => {
+  const b = makeBlock();
+  const hash = N.hashBlock({ account: payer, previous: FRONTIER, representative: payer, balance: b.balance, link: PAY_TO });
+  const later = 'C'.repeat(64);   // an auto-receive after the send: the frontier is neither previous nor the payment
+  const movedInfo = () => info({ frontier: later, confirmation_height_frontier: later, balance: (BALANCE - AMOUNT + 7n).toString() });
+  let asked = null;
+  const r = await x.verify(payload(b), REQ, deps({ accountInfo: async () => movedInfo(), blockInfo: async h => { asked = h; return h === hash ? { subtype: 'send', amount: AMOUNT.toString(), confirmed: 'true', contents: {} } : { error: 'Block not found' }; } }));
+  assert.equal(r.ok, true, r.reason); assert.equal(r.alreadyLanded, true); assert.equal(r.hash, hash); assert.equal(asked, hash);
+  const unconfirmed = await x.verify(payload(b), REQ, deps({ accountInfo: async () => movedInfo(), blockInfo: async () => ({ subtype: 'send', amount: AMOUNT.toString(), confirmed: 'false' }) }));
+  assert.equal(unconfirmed.ok, false); assert.match(unconfirmed.reason, /not confirmed/);
+  const notThere = await x.verify(payload(b), REQ, deps({ accountInfo: async () => movedInfo(), blockInfo: async () => ({ error: 'Block not found' }) }));
+  assert.equal(notThere.ok, false); assert.match(notThere.reason, /not the account frontier/);
+  const served = await x.verify(payload(b), REQ, deps({ accountInfo: async () => movedInfo(), seen: async () => true, blockInfo: async () => ({ subtype: 'send', amount: AMOUNT.toString(), confirmed: 'true' }) }));
+  assert.equal(served.ok, false); assert.match(served.reason, /already used/);
 });

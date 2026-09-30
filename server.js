@@ -110,17 +110,27 @@ async function loadPurposesNow() {
     if (reason) { noCredit.set(h, reason); credits[h] = '0'; save(); }
   }
 }
-const feeVia = new Map();     // payer account -> did it forward a fee to a known collector?
-// Pure: does an account_history window (newest first, whatever size the caller fetched) hold a send to us with a send to a
-// fee collector in the block right before or right after it? A marketplace checkout wallet sends the seller's share and the
-// fee in consecutive blocks, so the two rows are adjacent (array neighbours over all rows, receives included; the window is
-// newest first). A wallet that once paid a fee collector and separately pays this API is a real payer: until 2026-09-29 any
-// two such sends anywhere in the window counted, so such a payer's hash was refused as a checkout send. (The `> 4 rows`
-// guard before that refused to look at a five-row window at all; Ops Control HQ, 2026-09-28.)
-function feePassthrough(history, fees, address) {
-  if (!history || !history.length) return false;
-  const sendTo = (x, ok) => !!x && x.type === 'send' && ok(x.account);
-  return history.some((x, i) => sendTo(x, a => a === address) && (sendTo(history[i - 1], a => fees.has(a)) || sendTo(history[i + 1], a => fees.has(a))));
+const feeSend = new Map();    // send hash -> true (a fee send follows it: a checkout wallet's share) | false (positively not); null answers are not cached
+// Pure. rows = the payer's account_history from `head: <the send>, reverse: true, count: 2`, oldest first: the send that paid
+// us, then the block after it if there is one. A marketplace checkout wallet sends the seller's share and then the fee in
+// consecutive blocks, so the fee send is the block AFTER the share, never before it: until 2026-09-30 the fee on either side
+// counted, so an ordinary wallet that bought a Subnano post and then paid this API in its next block was refused as a checkout
+// send (trollhunters, 2026-09-29). Judged per send, not per account: a wallet's other sends say nothing about this one, and the
+// per-account cache repeated a refusal for every later hash from the same wallet (pyfile-toolkit, 2026-09-29). Answers true
+// (a fee send follows), false (another block follows, or nothing follows a send older than a minute), or null when it cannot
+// tell: nothing follows yet and the send is under a minute old (the fee block followed the share by 1-3 s in every case seen),
+// or the rows do not start with the send (an empty history included: not "proven real payer"; pyfile-toolkit, 2026-09-29).
+function feePassthrough(rows, fees, address, hash, now = Date.now()) {
+  if (!Array.isArray(rows) || !rows.length) return null;
+  const first = rows[0];
+  if (!first || String(first.hash || '').toUpperCase() !== String(hash || '').toUpperCase() || first.type !== 'send' || first.account !== address) return null;
+  const next = rows[1];
+  if (next) return next.type === 'send' && fees.has(next.account);
+  return now / 1000 - (Number(first.local_timestamp) || 0) > 60 ? false : null;
+}
+async function feeRows(account, hash) {
+  const a = await rpc({ action: 'account_history', account, head: hash, count: '2', reverse: 'true' });
+  return a && !a.error && Array.isArray(a.history) ? a.history : null;
 }
 async function markFeePassthroughs() {
   let rows;
@@ -130,40 +140,41 @@ async function markFeePassthroughs() {
   } catch (e) { console.error('markFeePassthroughs: ledger:', e.message); return; }
   for (const r of rows) {
     let src; try { src = JSON.parse(r.meta_json || '{}').source_hash; } catch { /* no source hash */ }
-    if (!src || noCredit.has(src.toUpperCase())) continue;
-    if (!feeVia.has(r.counterparty)) {
-      let hist;
-      try { hist = (await rpc({ action: 'account_history', account: r.counterparty, count: '10' })).history || []; } catch { continue; }   // node unavailable: next round
-      const isFee = feePassthrough(hist, FEE_COLLECTORS, ADDRESS);
-      if (hist.length >= 3) feeVia.set(r.counterparty, isFee);   // a checkout wallet has three blocks; fewer means it may still be settling
-      if (!isFee) continue;
-    } else if (!feeVia.get(r.counterparty)) continue;
-    noCredit.set(src.toUpperCase(), NO_CREDIT_REASON);
-    if (src.toUpperCase() in credits && credits[src.toUpperCase()] !== '0') { credits[src.toUpperCase()] = '0'; save(); }   // credited before the wallet's fee block was visible
+    if (!src) continue;
+    const h = src.toUpperCase();
+    if (noCredit.has(h)) continue;
+    let isFee = feeSend.get(h);
+    if (isFee === undefined) {
+      let rows;
+      try { rows = await feeRows(r.counterparty, h); } catch { continue; }   // node unavailable: next round
+      if (!rows) continue;
+      isFee = feePassthrough(rows, FEE_COLLECTORS, ADDRESS, h);
+      if (isFee === null) continue;   // nothing follows the send yet: next round
+      feeSend.set(h, isFee);
+    }
+    if (!isFee) continue;
+    noCredit.set(h, NO_CREDIT_REASON);
+    if (h in credits && credits[h] !== '0') { credits[h] = '0'; save(); }   // credited before the wallet's fee block was visible
   }
 }
-// Is `account` a checkout wallet (it forwarded a fee to a known collector in the block next to the one that paid us; the
-// predicate is per adjacent pair, the answer is cached per account)? Asked when a hash is
-// first presented, so a receipt cannot be spent in the minutes before the ten-minute round sees it.
-// A wallet that opened within the last minute with fewer than three blocks may still be settling
-// its fee block (it followed our share by 1-3 s in every case so far): look once more after 3 s.
-// true: a marketplace checkout wallet (cached). false only where it is positively observed: three or more blocks in
-// the newest ten with no fee send (cached), or fewer than three blocks in an account older than a minute (not cached).
-// null: could not tell: node unavailable, an RPC error, or an account under a minute old that is still shorter than
-// three blocks after the retry (its fee block may still be settling; not cached, the caller answers "retry in a minute").
-// A null must not become credit: it used to collapse to false, so a checkout send presented during an RPC outage
-// became bearer credit until the ten-minute pass caught it, and the young-and-short case answered false after the
-// retry and was cached as a real payer by the next round (Ops Control HQ, 2026-09-28).
-async function checkoutWallet(account) {
-  if (feeVia.has(account)) return feeVia.get(account);
+// Is the send `hash` from `account` a checkout wallet's share (a fee send to a known collector is the block right after it)?
+// Asked when a hash is first presented, so a receipt cannot be spent in the minutes before the ten-minute round sees it. The
+// answer is per send and cached per hash (feePassthrough says why). A send under a minute old with nothing after it yet may
+// still be followed by its fee block: look once more after 3 s. true: a checkout share (cached). false: positively not
+// (cached). null: could not tell: node unavailable, an RPC error, the send not found on the account, or still nothing after
+// a send under a minute old after the retry (not cached; the caller answers "retry in a minute"). A null must not become
+// credit: it used to collapse to false, so a checkout send presented during an RPC outage became bearer credit until the
+// ten-minute pass caught it (Ops Control HQ, 2026-09-28).
+async function checkoutWallet(account, hash) {
+  hash = String(hash || '').toUpperCase();
+  if (feeSend.has(hash)) return feeSend.get(hash);
   for (let attempt = 0; attempt < 2; attempt++) {
-    let hist;
-    try { const a = await rpc({ action: 'account_history', account, count: '10' }); if (!a || a.error || !Array.isArray(a.history)) return null; hist = a.history; } catch { return null; }
-    if (feePassthrough(hist, FEE_COLLECTORS, ADDRESS)) { feeVia.set(account, true); return true; }
-    if (hist.length >= 3) { feeVia.set(account, false); return false; }
-    const opened = hist.length ? Number(hist[hist.length - 1].local_timestamp) : 0;
-    if (Date.now() / 1000 - opened > 60) return false;   // a short but older account is a real payer
-    if (attempt) return null;   // still short and under a minute old after the retry: indeterminate, not cached
+    let rows;
+    try { rows = await feeRows(account, hash); } catch { return null; }
+    if (!rows) return null;
+    const r = feePassthrough(rows, FEE_COLLECTORS, ADDRESS, hash);
+    if (r !== null) { if (feeSend.size > 10_000) feeSend.clear(); feeSend.set(hash, r); return r; }
+    if (attempt) return null;   // still nothing after a send under a minute old: indeterminate, not cached
     await new Promise(r => setTimeout(r, 3000));
   }
   return null;
@@ -192,7 +203,7 @@ async function rpc(body) {
 const workStats = { generated: 0, by_source: {}, by_tier: {}, last_error: '' };
 // tier: 'paid' (GPU, no per-minute limit; at most four proofs at once), 'payer' (free call from an account that has paid before: GPU, no
 // shared budget), 'free' (GPU while the shared budget lasts), 'free-slow' (budget spent: hosted key, then node).
-async function workFor(hash, { timeoutMs = 30_000, paid = false, knownPayer = false } = {}) {
+async function workFor(hash, { timeoutMs = 30_000, paid = false, knownPayer = false, threshold = x402.WORK_THRESHOLD } = {}) {
   let tier = paid ? 'paid' : knownPayer ? 'payer' : takeFreeGpu() ? 'free' : 'free-slow';
   const gpuOk = tier !== 'free-slow' && Date.now() >= gpuDownUntil;
   const sources = [...(gpuOk ? PAID_WORK_URLS : []).map(u => ({ name: workName(u), url: u, timeoutMs: paid ? 15_000 : 10_000, gpu: true })),
@@ -206,11 +217,21 @@ async function workFor(hash, { timeoutMs = 30_000, paid = false, knownPayer = fa
         signal: AbortSignal.timeout(src.timeoutMs) });
       const j = await r.json();
       if (j && j.work) {
-        workStats.generated++; workStats.by_source[src.name] = (workStats.by_source[src.name] || 0) + 1;
-        workStats.by_tier[tier] = (workStats.by_tier[tier] || 0) + 1;
-        return { work: String(j.work).toLowerCase(), source: src.name, ms: Date.now() - t0, tier };
-      }
-      lastErr = src.name + ': ' + (j && (j.error || j.message) || 'no work in response');
+        // Every proof is checked against the hash and the threshold before it is passed on: a source answering with work for
+        // another hash, or below threshold, used to be served as if valid, and the block built on it was refused by the node
+        // after the call was paid for (uknwplayer, 2026-09-29). Such an answer falls through to the next source; when every
+        // source fails the caller hands the call back (502, price restored on the hash).
+        const w = String(j.work).toLowerCase();
+        let valid = false;
+        try { valid = nanocurrency.validateWork({ blockHash: hash, work: w, threshold }); } catch { valid = false; }
+        if (valid) {
+          workStats.generated++; workStats.by_source[src.name] = (workStats.by_source[src.name] || 0) + 1;
+          workStats.by_tier[tier] = (workStats.by_tier[tier] || 0) + 1;
+          return { work: w, source: src.name, ms: Date.now() - t0, tier };
+        }
+        lastErr = src.name + ': returned work that is not valid for this hash at ' + threshold;
+        workStats.invalid = (workStats.invalid || 0) + 1;
+      } else lastErr = src.name + ': ' + (j && (j.error || j.message) || 'no work in response');
     } catch (e) {
       lastErr = src.name + ': ' + e.message;
       if (src.gpu) { gpuDownUntil = Date.now() + 60_000; workStats.gpu_down_until = new Date(gpuDownUntil).toISOString(); }
@@ -274,10 +295,10 @@ async function creditForUnlocked(hash) {
   if (Number(b.local_timestamp) < NOT_BEFORE) return { error: 'block predates this service' };
   const known = purposeReg.hashes.get(hash) || purposeReg.accounts.get(b.block_account);   // a stake, an own move, a tranche, a donation (JoanAbad82, api#74)
   if (known) { noCredit.set(hash, known); return { error: known }; }
-  const checkout = await checkoutWallet(b.block_account);
-  // null is also a wallet under a minute old that is still shorter than three blocks after the retry (b438d56), so the
+  const checkout = await checkoutWallet(b.block_account, hash);
+  // null is also a send under a minute old with nothing after it yet (its fee block may still be settling), so the
   // reason names both and asks for a minute, not "shortly" (PlatinumVera, 2026-09-28 22:30 UTC).
-  if (checkout === null) return { error: 'cannot check the payer account right now (node unavailable, or the wallet is under a minute old and its fee block is still settling); nothing credited, retry in a minute' };
+  if (checkout === null) return { error: 'cannot check the payer account right now (node unavailable, or the send is under a minute old and a fee block may still follow it); nothing credited, retry in a minute' };
   if (checkout) { noCredit.set(hash, NO_CREDIT_REASON); return { error: NO_CREDIT_REASON }; }
   const amount = BigInt(b.amount);
   if (amount > MAX_CREDIT_RAW) return { error: 'send too large to be a payment; max 1 NANO per hash' };
@@ -314,7 +335,14 @@ function send(res, code, body, type = 'application/json') {
   const data = typeof body === 'string' ? body : JSON.stringify(body, null, 1);
   const headers = { 'content-type': type + '; charset=utf-8', 'access-control-allow-origin': '*',
     'access-control-allow-headers': 'X-Nano-Payment, PAYMENT-SIGNATURE, X-PAYMENT, X-Nano-Represent, Content-Type',
-    'access-control-expose-headers': 'PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-Nano-Credit-Remaining-Raw, X-Nano-Payment-Hash, X-Nano-Represent' };
+    'access-control-expose-headers': 'PAYMENT-REQUIRED, PAYMENT-RESPONSE, X-Nano-Credit-Remaining-Raw, X-Nano-Payment-Hash, X-Nano-Represent, X-Nano-Replay' };
+  // A reply served for a payment is remembered for a re-presentation of the same payment (replayIfServed).
+  if (res.paidHash && code >= 200 && code !== 304) {
+    const kept = {};
+    for (const k of ['payment-response', 'x-nano-credit-remaining-raw']) { const v = res.getHeader(k); if (v !== undefined) kept[k] = v; }
+    rememberServed(res.paidHash, res.replayKey, code, data, type, kept);
+    res.paidHash = null;
+  }
   // Declared length since 2026-09-26: a body cut by any proxy or sandbox between here and the reader is then an
   // HTTP error at the client, not a 200 with unparseable JSON (a reporter saw 16 KiB bodies on their own egress).
   // Compressed here, not by the proxy, since 2026-09-27: the proxy's encoder answered HEAD with Content-Length: 20
@@ -405,6 +433,7 @@ async function chargeX402(req, res, headerValue) {
   if (d.error) return paymentRequired(res, 'x402: ' + d.error, req), false;
   let key = null;
   try { key = x402.blockHash(d.payload.payload.block).toUpperCase(); } catch { /* verify names the fault */ }
+  if (key && replayIfServed(req, res, key)) return false;   // the same payment for the same call, served within ten minutes: the same reply again
   const run = () => chargeX402Locked(req, res, d.payload);
   return key ? withHashLock(key, run) : run();
 }
@@ -494,6 +523,7 @@ async function chargeX402Locked(req, res, payload) {
     stats.calls_paid++; stats.calls_x402++;
     res.setHeader(x402.RESPONSE_HEADER, x402.settleHeader(s));
     res.setHeader('x-nano-payment-hash', s.transaction);
+    res.paidHash = s.transaction; res.replayKey = replayKey(req);
     return true;
   } finally { settling.delete(v.hash); }
 }
@@ -630,6 +660,10 @@ async function verifyBlock(req, res, u) {
   // not a 400, so a caller that reads only `found` (the skill's no-node.js landed() check before 0.1.11) keeps working and
   // one that reads `ok` fails closed. any=1 asks only whether H is a confirmed send to A, and the answer says so.
   const anyAmount = u.searchParams.get('any') === '1' && minRaw === null;
+  // Without `to` the destination was never checked either, and ok:true read as "paid to me" to a seller that passed only a
+  // minimum (uknwplayer, 2026-09-29): since 2026-09-30 ok is false with the reason unless `to` is given or any_to=1 asks
+  // only whether H is a confirmed send to anyone. Same shape as the amount rule: never a 400, `found` unchanged.
+  const anyTo = u.searchParams.get('any_to') === '1' && !to;
   const b = await rpc({ action: 'block_info', json_block: 'true', hash });
   if (b.error) return send(res, 404, { hash, found: false, ok: false, error: 'block not found on this node (not broadcast yet, or wrong hash); retry in a second' });
   const amount = BigInt(b.amount || '0');
@@ -641,9 +675,10 @@ async function verifyBlock(req, res, u) {
   if (to && dest && dest !== to) reasons.push('sent to ' + dest + ', not to ' + to);
   if (minRaw !== null && amount < minRaw) reasons.push('amount ' + amount + ' raw is below min ' + minRaw + ' raw');
   if (minRaw === null && !anyAmount) reasons.push('no minimum given, so the amount was not checked: pass min_raw or min_nano, or any=1 to ask only whether the block is a confirmed send to the address');
+  if (!to && !anyTo) reasons.push('no recipient given, so the destination was not checked: pass to=<your nano_ address>, or any_to=1 to ask only whether the block is a confirmed send to anyone');
   return send(res, 200, { hash, found: true, ok: reasons.length === 0, reason: reasons.join('; ') || undefined,
     confirmed, subtype: b.subtype, from: b.block_account, to: dest, amount_raw: amount.toString(), amount_nano: nano(amount),
-    min_raw: minRaw === null ? null : minRaw.toString(), any_amount: anyAmount,
+    min_raw: minRaw === null ? null : minRaw.toString(), any_amount: anyAmount, expected_to: to || null, any_to: anyTo,
     height: Number(b.height), local_timestamp: Number(b.local_timestamp), checked_at: new Date().toISOString(), node: 'pursekeeper.dev' });
 }
 async function receivable(req, res, u) {
@@ -721,12 +756,16 @@ async function charge(req, res) {
   return withHashLock(String(hash).toUpperCase(), async () => {
     const c = await creditForUnlocked(hash);
     if (c.error) return paymentRequired(res, c.error, req), false;
-    if (c.remaining < PRICE_RAW) return paymentRequired(res, 'credit on this hash is used up', req), false;
+    if (c.remaining < PRICE_RAW) {
+      if (replayIfServed(req, res, hash)) return false;   // nothing left on the hash and the same call again: the reply it bought
+      return paymentRequired(res, 'credit on this hash is used up', req), false;
+    }
     const left = c.remaining - PRICE_RAW;
     credits[hash.toUpperCase()] = left.toString();
     save();
     stats.calls_paid++;
     res.setHeader('x-nano-credit-remaining-raw', left.toString());
+    res.paidHash = String(hash).toUpperCase(); res.replayKey = replayKey(req);
     return true;
   });
 }
@@ -888,9 +927,34 @@ function readBody(req, limit = 1_000_000) {
   return new Promise((resolve, reject) => {
     const chunks = []; let n = 0;
     req.on('data', c => { n += c.length; if (n > limit) reject(new Error('body too large')); else chunks.push(c); });
-    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('end', () => { req.bodyBuffer = Buffer.concat(chunks); resolve(req.bodyBuffer); });   // kept for the replay key (charge runs after the body on POST routes)
     req.on('error', reject);
   });
+}
+
+// Served replies, keyed by the payment hash and kept ten minutes: a client whose reply was lost in transit re-presents the
+// same payment (the unchanged PAYMENT-SIGNATURE, or X-Nano-Payment on a hash with nothing left on it) for the same method,
+// URL and body and gets the same reply back, marked x-nano-replay: true, instead of "already used" and no way to get what it
+// paid for (uknwplayer, 2026-09-29). A re-presentation for another route or body is not a lost reply and is refused as before;
+// a hash with credit left buys a new call as before. The facilitator's /settle answers its own replays with the settled hash
+// and time (facilitator.js) and is not cached here. Kept in memory only: a restart forgets, and the refusal stands.
+const REPLAY_TTL_MS = 10 * 60_000;
+const served = new Map();   // hash -> { key, code, body, type, headers, at }
+function replayKey(req) { return req.method + ' ' + req.url + ' ' + crypto.createHash('sha256').update(req.bodyBuffer || '').digest('hex'); }
+function rememberServed(hash, key, code, body, type, headers) {
+  const now = Date.now();
+  for (const [h, s] of served) if (now - s.at > REPLAY_TTL_MS) served.delete(h);
+  if (served.size > 5_000) served.clear();
+  served.set(hash, { key, code, body, type, headers, at: now });
+}
+function replayIfServed(req, res, hash) {
+  const s = served.get(String(hash || '').toUpperCase());
+  if (!s || Date.now() - s.at > REPLAY_TTL_MS || s.key !== replayKey(req)) return false;
+  for (const [k, v] of Object.entries(s.headers)) res.setHeader(k, v);
+  res.setHeader('x-nano-replay', 'true');
+  res.setHeader('x-nano-payment-hash', String(hash).toUpperCase());
+  send(res, s.code, s.body, s.type);
+  return true;
 }
 
 const DOCS = `Pay-per-call HTTP API, paid in Nano.
@@ -952,7 +1016,9 @@ Endpoints
                               without min_raw or min_nano the answer is ok:false with the reason
                               (the amount is not checked; since 2026-09-29); any=1 instead asks
                               only whether H is a confirmed send to A, and the answer then carries
-                              min_raw: null and any_amount: true
+                              min_raw: null and any_amount: true; without `to` the answer is likewise
+                              ok:false with the reason (since 2026-09-30), and any_to=1 asks only
+                              whether H is a confirmed send to anyone (expected_to: null, any_to: true)
                               (free, 60/min per IP; for sellers who take Nano and have no node)
   GET  /v1/receivable?account=A&min_raw=N
                               confirmed, unpocketed sends to A with amounts and senders (free, 60/min)
@@ -1141,5 +1207,5 @@ if (require.main === module) {
     cohorts.warm();
   });
 }
-module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS, checkoutWallet, send, acceptsGzip, isPrivate, expand6, checkFetchUrl, fetchText, chargeX402, creditFor,
+module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS, checkoutWallet, workFor, send, acceptsGzip, isPrivate, expand6, checkFetchUrl, fetchText, chargeX402, creditFor,
   server, credits, X402_CONFIRM, FETCH_BOUNDS };   // server (the http.Server, not listening), credits, X402_CONFIRM and FETCH_BOUNDS for tests

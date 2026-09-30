@@ -58,6 +58,20 @@ test('with a minimum: checked, echoed, any_amount false', async () => {
   assert.equal(ok.status, 200); assert.equal(ok.body.ok, true); assert.equal(ok.body.min_raw, '5000'); assert.equal(ok.body.any_amount, false);
   const low = await verify('hash=' + HASH + '&to=' + TO + '&min_raw=5001');
   assert.equal(low.status, 200); assert.equal(low.body.ok, false); assert.match(low.body.reason, /below min 5001 raw/);
-  const nanoMin = await verify('hash=' + HASH + '&min_nano=0.000000000000000000000000001');   // 1000 raw
+  const nanoMin = await verify('hash=' + HASH + '&to=' + TO + '&min_nano=0.000000000000000000000000001');   // 1000 raw; to is required for ok since 2026-09-30
   assert.equal(nanoMin.status, 200); assert.equal(nanoMin.body.ok, true); assert.equal(nanoMin.body.min_raw, '1000');
+});
+
+// Since 2026-09-30 the recipient is part of ok too: without `to` the destination was never checked and ok:true read as
+// "paid to me" (uknwplayer, 2026-09-29). any_to=1 asks only whether H is a confirmed send to anyone.
+test('without to -> 200, found, ok:false with a reason that names any_to=1', async () => {
+  const r = await verify('hash=' + HASH + '&min_raw=5000');
+  assert.equal(r.status, 200); assert.equal(r.body.found, true); assert.equal(r.body.ok, false);
+  assert.match(r.body.reason, /no recipient given/); assert.match(r.body.reason, /any_to=1/); assert.equal(r.body.expected_to, null); assert.equal(r.body.any_to, false);
+});
+test('any_to=1 without to -> ok:true when the amount passes; a given to still wins over any_to', async () => {
+  const r = await verify('hash=' + HASH + '&min_raw=5000&any_to=1');
+  assert.equal(r.status, 200); assert.equal(r.body.ok, true); assert.equal(r.body.any_to, true); assert.equal(r.body.to, TO);
+  const wrong = await verify('hash=' + HASH + '&min_raw=5000&any_to=1&to=' + FROM);
+  assert.equal(wrong.body.ok, false); assert.match(wrong.body.reason, /sent to .* not to/); assert.equal(wrong.body.any_to, false);
 });

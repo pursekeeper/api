@@ -73,11 +73,33 @@ const nanoPrefix = a => String(a || '').replace(/^xrb_/, 'nano_');
 // answers block_already_exists with no hash: only its own broadcasts are known to have paid these requirements.
 const BROADCAST_TTL_MS = 24 * 3600 * 1000;
 const broadcast = new Map();
+// On disk since 2026-09-30: the memory lived only in the process, so a restart between the block landing and the success
+// reply turned the payer's retry into a refused replay with no hash (Jay44333 / Ops Control HQ, api#80, 2026-09-28).
+// Written whole (temp file, then rename) on every remember and every answered mark, reloaded on start, entries past the TTL dropped.
+const BROADCAST_FILE = process.env.BROADCAST_FILE || path.join(__dirname, 'data', 'broadcast.json');
+function loadBroadcast(file = BROADCAST_FILE) {
+  broadcast.clear();
+  let stored = {};
+  try { stored = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return 0; }
+  const now = Date.now();
+  for (const [h, b] of Object.entries(stored)) if (b && typeof b === 'object' && now - b.at <= BROADCAST_TTL_MS) broadcast.set(h, b);
+  return broadcast.size;
+}
+function saveBroadcast(file = BROADCAST_FILE) {
+  try {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    const tmp = file + '.' + process.pid + '.tmp';
+    fs.writeFileSync(tmp, JSON.stringify(Object.fromEntries(broadcast)));
+    fs.renameSync(tmp, file);
+  } catch (e) { console.error('facilitator: broadcast memory not saved: ' + e.message); }
+}
+loadBroadcast();
 function ownBroadcast(hash, req) { const b = broadcast.get(up(hash)); return b && b.payTo === req.payTo && b.amount === req.amount ? b : null; }
 function rememberBroadcast(hash, payer, req) {
   const now = Date.now();
   for (const [h, b] of broadcast) if (now - b.at > BROADCAST_TTL_MS) broadcast.delete(h);
   broadcast.set(up(hash), { payer, payTo: req.payTo, amount: req.amount, at: now, answered: false, answeredAt: null });
+  saveBroadcast();
 }
 
 // Requirements the resource server sent us: only what this facilitator can serve.
@@ -189,7 +211,7 @@ async function settleLocked(body, deps) {
       await sleep(1000);
     }
     if (!confirmed) return { success: false, errorReason: 'confirmation_timeout', detail: 'block ' + s.transaction + ' was processed but not confirmed within the timeout; it may still confirm: retry the same /settle (answered from the chain by this facilitator for 24 hours) or check block_info', transaction: s.transaction, network, payer: v.payer };
-    const b = broadcast.get(up(s.transaction)); if (b) { b.answered = true; b.answeredAt = new Date().toISOString(); }
+    const b = broadcast.get(up(s.transaction)); if (b) { b.answered = true; b.answeredAt = new Date().toISOString(); saveBroadcast(); }
     return { success: true, transaction: s.transaction, network, payer: v.payer, _polls: polls, _retry: onNode };
   } finally { settling.delete(v._hash); }
 }
@@ -416,4 +438,4 @@ Reference client/server code for the same block shape: https://github.com/x402na
 A seller recipe with no node at all: https://pursekeeper.dev/examples/no-node.md
 `;
 
-module.exports = { handle, verifyRequest, settleRequest, checkRequirements, codeFor, rollup, publicStats, settledPayTo, broadcast, SUPPORTED, HOST, PREFIX, LIMITS, MAX_POLL_S, BROADCAST_TTL_MS };
+module.exports = { handle, verifyRequest, settleRequest, checkRequirements, codeFor, rollup, publicStats, settledPayTo, broadcast, loadBroadcast, saveBroadcast, BROADCAST_FILE, SUPPORTED, HOST, PREFIX, LIMITS, MAX_POLL_S, BROADCAST_TTL_MS };

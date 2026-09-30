@@ -19,7 +19,7 @@ const DATA_DIR = path.join(__dirname, '..', 'data') + path.sep;
 const realWrite = fs.writeFileSync, realAppend = fs.appendFileSync;
 fs.writeFileSync = (p, ...a) => { if (String(p).startsWith(DATA_DIR)) return; return realWrite(p, ...a); };
 fs.appendFileSync = (p, ...a) => { if (String(p).startsWith(DATA_DIR)) return; return realAppend(p, ...a); };
-const { chargeX402 } = require('../server');
+const { chargeX402, send } = require('../server');
 const x402 = require('../x402');
 
 const PAY_TO = 'nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue';   // ADDRESS in server.js
@@ -50,7 +50,7 @@ before(async () => {
 });
 after(() => { fs.writeFileSync = realWrite; fs.appendFileSync = realAppend; });
 
-const request = () => ({ url: '/v1/echo?msg=hi', headers: { host: 'pursekeeper.dev', 'payment-signature': header }, socket: { remoteAddress: '127.0.0.1' } });
+const request = () => ({ method: 'GET', url: '/v1/echo?msg=hi', headers: { host: 'pursekeeper.dev', 'payment-signature': header }, socket: { remoteAddress: '127.0.0.1' } });
 const response = () => ({ headers: {}, status: null, body: null,
   setHeader(k, v) { this.headers[String(k).toLowerCase()] = v; }, getHeader(k) { return this.headers[String(k).toLowerCase()]; },
   writeHead(s) { this.status = s; }, end(out) { this.body = out ? JSON.parse(String(out)) : null; } });
@@ -65,10 +65,17 @@ test('two concurrent charges with the same landed payment: one served, one refus
   assert.equal(refused.status, 402);
   assert.match(refused.body.error, /already used/);
   assert.equal(calls.includes('process'), false, 'a block that already landed is never broadcast again');
-  // A later presentation of the same block is refused the same way.
+  // A later presentation of the same block for the same call is a replay: the reply the block bought, marked as such, no
+  // second charge (uknwplayer, 2026-09-29; since 2026-09-30). For another call it is refused as already used.
+  send(served, 200, { echo: 'hi' });   // the route's reply, as the handler would send it after the charge
   const r3 = response();
   assert.equal(await chargeX402(request(), r3, header), false);
-  assert.equal(r3.status, 402); assert.match(r3.body.error, /already used/);
+  assert.equal(r3.status, 200, JSON.stringify(r3.body)); assert.deepEqual(r3.body, { echo: 'hi' });
+  assert.equal(r3.getHeader('x-nano-replay'), 'true'); assert.equal(r3.getHeader('x-nano-payment-hash'), hash);
+  assert.equal(decodePaymentResponseHeader(r3.getHeader(x402.RESPONSE_HEADER)).transaction, hash);
+  const r4 = response();
+  assert.equal(await chargeX402({ ...request(), url: '/v1/echo?msg=other' }, r4, header), false);
+  assert.equal(r4.status, 402); assert.match(r4.body.error, /already used/);
 });
 
 test('a block that does not hash runs unlocked and is refused by verify with its reason', async () => {

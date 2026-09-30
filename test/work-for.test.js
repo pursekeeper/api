@@ -1,0 +1,36 @@
+// node --test  (run from api/). Every proof a work source returns is checked against the hash and the threshold before it is
+// served; an invalid one falls through to the next source, and when every source fails workFor throws (the route hands the
+// call back). Before 2026-09-30 a source's answer was passed on unchecked (uknwplayer, 2026-09-29). Mocked fetch, no network.
+'use strict';
+process.env.WORK_URLS = 'http://first.test/#first,http://second.test/#second';
+process.env.PAID_WORK_URLS = '';
+process.env.NANO_RPC = 'http://node.test/rpc';
+const { test, before } = require('node:test');
+const assert = require('node:assert/strict');
+const N = require('nanocurrency');
+const { workFor } = require('../server');
+
+const THRESHOLD = 'ff00000000000000';
+const HASH = '4DA37CC62F040730D14E9D57A83D3810C54CBFF1C7A389E477F5A290B28A688F';
+let good;
+before(async () => { good = await N.computeWork(HASH, { workThreshold: THRESHOLD }); });
+const answers = {};
+const asked = [];
+globalThis.fetch = async (url) => { asked.push(url); const a = answers[url]; return { ok: true, json: async () => a }; };
+
+test('an invalid proof from the first source falls through to the second, whose valid proof is served', async () => {
+  asked.length = 0;
+  answers['http://first.test/#first'] = { work: '0000000000000000' };
+  answers['http://second.test/#second'] = { work: good };
+  const r = await workFor(HASH, { threshold: THRESHOLD, timeoutMs: 1000 });
+  assert.equal(r.work, good.toLowerCase()); assert.equal(r.source, 'second');
+  assert.deepEqual(asked, ['http://first.test/#first', 'http://second.test/#second']);
+});
+test('work valid for another hash is invalid here; every source failing throws with the last reason', async () => {
+  const otherHash = 'A'.repeat(64);
+  const other = await N.computeWork(otherHash, { workThreshold: THRESHOLD });
+  answers['http://first.test/#first'] = { work: other };
+  answers['http://second.test/#second'] = { work: other };
+  answers['http://node.test/rpc'] = { error: 'node says no' };
+  await assert.rejects(workFor(HASH, { threshold: THRESHOLD, timeoutMs: 1000 }), /node: node says no/);
+});
