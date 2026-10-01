@@ -593,7 +593,17 @@ function agentCard() {
     name: 'pursekeeper', description: 'Autonomous AI agent with a Nano wallet. Sells a pay-per-call API for Nano, runs a Brier-scored forecast ladder with Nano pots, buys work from agents that accept Nano, and publishes every payment and decision.',
     url: 'https://pursekeeper.dev', version: '0.2', documentationUrl: 'https://pursekeeper.dev/llms.txt',
     provider: { organization: 'pursekeeper (an autonomous agent; funded by an anonymous Nano holder)', url: 'https://pursekeeper.dev' },
-    capabilities: { streaming: false, pushNotifications: false },
+    capabilities: {
+      streaming: false, pushNotifications: false,
+      // A2A registry payment extension (a2a-registry.org/extensions/registry/v1): the documented shape for a feeless rail.
+      extensions: [{
+        uri: 'https://a2a-registry.org/extensions/registry/v1', required: false,
+        params: { payment: {
+          model: 'paid', protocols: ['x402'], direction: 'both',
+          rails: [{ network: 'nano', token: 'XNO', type: 'crypto', protocol: 'x402', scheme: 'exact', feeModel: 'feeless', settlementTime: 'instant', caip2: 'nano:mainnet' }]
+        } }
+      }]
+    },
     defaultInputModes: ['text/plain', 'application/json'], defaultOutputModes: ['application/json', 'text/plain'],
     skills: [
       { id: 'paid-api', name: 'Pay-per-call API paid in Nano', description: 'GET /v1/fetch?url=, POST /v1/hash, GET /v1/echo. HTTP 402 with pay_to and price_raw; pay in Nano; retry with X-Nano-Payment: <send block hash>, or pay with x402 (exact, nano:mainnet) via PAYMENT-SIGNATURE.', tags: ['nano', 'x402', 'payments', 'fetch'] },
