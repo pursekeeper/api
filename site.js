@@ -450,7 +450,8 @@ const KEEP_MS = 30 * 24 * 3600_000;
 let sellersCache = { at: 0, data: null };
 function probeLogAppend(checked_at, list, probes) {
   try {
-    fs.appendFileSync(PROBE_LOG, list.map((sel, i) => JSON.stringify({ t: checked_at, id: sel.id, ok: probes[i].reachable, status: probes[i].status, ms: probes[i].ms })).join('\n') + '\n');
+    const rows = list.map((sel, i) => probes[i].door === 'mail' ? null : JSON.stringify({ t: checked_at, id: sel.id, ok: probes[i].reachable, status: probes[i].status, ms: probes[i].ms })).filter(Boolean);
+    if (rows.length) fs.appendFileSync(PROBE_LOG, rows.join('\n') + '\n');
   } catch {}
 }
 function probeHistory() {
@@ -470,6 +471,9 @@ function sellersFile() {
   try { return JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'sellers.json'), 'utf8')); } catch { return []; }
 }
 async function probe(sel) {
+  // A seller reached only by mail (probe: null, reach: "mail") has nothing to probe: no HTTP endpoint, no reachability
+  // column, no history row. First such seller: Oso Pepe's block courier inside iLands, 2026-10-01.
+  if (sel.probe === null || sel.reach === 'mail') return { reachable: null, status: null, ms: 0, door: 'mail' };
   const t0 = Date.now();
   try {
     const r = await fetch(sel.probe.url || sel.endpoint, { method: sel.probe.method || 'GET', headers: sel.probe.headers || {}, body: sel.probe.body, redirect: 'manual', signal: AbortSignal.timeout(8000) });
@@ -487,7 +491,7 @@ async function sellers(force) {
   probeLogAppend(checked_at, list, probes);
   const hist = probeHistory();
   sellersCache = { at: Date.now(), data: { checked_at,
-    probe: { what: 'one unpaid request per seller, expecting the status the seller declared (normally 402; a seller whose paid route is not a plain GET may name a separate free status route, shown in the entry); it pays nothing and measures no settlement', every_minutes: 10, timeout_ms: 8000, states: ['reachable', 'unreachable'], history_days: 7, history_since: '2026-09-20', delisting: 'never for downtime; only when the seller asks. The only time-based rule is the second half of the newcomer credit, which needs 14 days of answered probes.' },
+    probe: { what: 'one unpaid request per seller, expecting the status the seller declared (normally 402; a seller whose paid route is not a plain GET may name a separate free status route, shown in the entry); it pays nothing and measures no settlement; a seller reached only by mail is not probed and shows live.door = "mail"', every_minutes: 10, timeout_ms: 8000, states: ['reachable', 'unreachable'], history_days: 7, history_since: '2026-09-20', delisting: 'never for downtime; only when the seller asks. The only time-based rule is the second half of the newcomer credit, which needs 14 days of answered probes.' },
     sellers: list.map((sel, i) => ({ ...sel, live: probes[i], history_7d: hist[sel.id] || null })) } };
   return sellersCache.data;
 }
@@ -498,7 +502,7 @@ function sellerRows(sd) {
   if (!sd.sellers.length) return '<p class="muted">None yet.</p>';
   return `<table>${sd.sellers.map(s => {
     const l = s.live;
-    const live = l.reachable ? `<b>reachable</b>, answered ${l.status} in ${l.ms} ms` : `<b>unreachable</b> at last check${l.status ? ` (HTTP ${l.status})` : l.error ? ` (${esc(l.error)})` : ''}`;
+    const live = l.door === 'mail' ? `<b>mail door</b>, not probed` : l.reachable ? `<b>reachable</b>, answered ${l.status} in ${l.ms} ms` : `<b>unreachable</b> at last check${l.status ? ` (HTTP ${l.status})` : l.error ? ` (${esc(l.error)})` : ''}`;
     const h = s.history_7d;
     const hist = h ? `<br>7 d: ${h.reachable}/${h.probes} probes reachable` : '';
     return `<tr><td class="num"><small>${live}<br>${sd.checked_at.slice(11, 16)} UTC${hist}</small></td><td><b>${esc(s.name)}</b> by ${esc(s.operator)}${s.built_for_this ? ' <small class="muted">(Nano added after pursekeeper asked)</small>' : ''}<br>${esc(s.what)}<br><small>Price: ${esc(s.price)}. Endpoint: <code>${esc(s.endpoint)}</code>. ${esc(s.pay)}</small><br><small>Verified ${s.verified.date} by a real payment, block ${hash(s.verified.block)} (ledger #${s.verified.ledger_id}): ${esc(s.verified.how)}. ${s.docs ? `<a href="${esc(s.docs)}">Docs</a>` : ''}${s.source ? ` · <a href="${esc(s.source)}">Source</a>` : ''}</small>${s.note ? `<br><small class="muted">${esc(s.note)}</small>` : ''}</td></tr>`;

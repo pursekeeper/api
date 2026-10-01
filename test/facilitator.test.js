@@ -305,3 +305,10 @@ test('settle: the own-broadcast memory survives a restart between landing and th
   assert.equal(r3.success, false); assert.equal(r3.errorReason, 'block_already_exists'); assert.equal(r3.transaction, r1.transaction);
   require('node:fs').rmSync(f.BROADCAST_FILE, { force: true });
 });
+
+test('codeFor: "network must be ..." is requirements_mismatch, not invalid_work (word-bounded since 2026-10-01)', () => {
+  assert.equal(f.codeFor('network must be nano:mainnet'), 'requirements_mismatch');
+  assert.equal(f.codeFor('block.work is required here'), 'invalid_work');
+  assert.equal(f.codeFor('work is below the send threshold fffffff800000000'), 'invalid_work');
+  assert.equal(f.codeFor('scheme must be exact'), 'requirements_mismatch');
+});

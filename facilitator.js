@@ -50,7 +50,7 @@ const CODES = [
   [/not opened|no frontier/i, 'account_not_found'],
   [/sends .* raw|does not send anything|bad balance/i, 'amount_mismatch'],
   [/signature/i, 'invalid_signature'],
-  [/work/i, 'invalid_work'],
+  [/\bwork\b/i, 'invalid_work'], // word-bounded: 'network must be nano:mainnet' coded invalid_work until 2026-10-01 (found generating spec test vectors)
   [/link|payTo/i, 'invalid_payto'],
   [/x402Version/i, 'unsupported_x402_version'],
   [/scheme|network|asset|amount must be/i, 'requirements_mismatch'],
