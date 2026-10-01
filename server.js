@@ -638,12 +638,19 @@ function overFreeLimit(req, map, limit) {
   if (map.size > 10_000) map.clear();
   return false;
 }
+const MAX_RAW = 2n ** 128n - 1n;   // a Nano balance is a u128; the node answers "Bad threshold number" above it
 function minRawOf(u) {
   const raw = u.searchParams.get('min_raw'), n = u.searchParams.get('min_nano');
-  if (raw != null) { if (!/^\d{1,40}$/.test(raw)) throw new Error('min_raw must be an integer in raw'); return BigInt(raw); }
+  // Above 2^128-1 the node refused the threshold and the refusal was served as 502 (pyfile-toolkit, item 5, 2026-09-30);
+  // since 2026-10-01 the parser refuses it with 400 on both routes, min_nano included.
+  if (raw != null) {
+    if (!/^\d{1,40}$/.test(raw)) throw new Error('min_raw must be an integer in raw');
+    const v = BigInt(raw); if (v > MAX_RAW) throw new Error('min_raw must be at most ' + MAX_RAW + ' raw (2^128-1)'); return v;
+  }
   if (n != null) {
     const m = /^(\d+)(?:\.(\d{1,30}))?$/.exec(n); if (!m) throw new Error('min_nano must be a decimal NANO amount');
-    return BigInt(m[1]) * RAW_PER_NANO + BigInt((m[2] || '').padEnd(30, '0'));
+    const v = BigInt(m[1]) * RAW_PER_NANO + BigInt((m[2] || '').padEnd(30, '0'));
+    if (v > MAX_RAW) throw new Error('min_nano must be at most ' + nano(MAX_RAW) + ' NANO (' + MAX_RAW + ' raw, 2^128-1)'); return v;
   }
   return null;   // neither given: /v1/verify requires one (or any=1), /v1/receivable lists everything
 }
@@ -674,8 +681,8 @@ async function verifyBlock(req, res, u) {
   if (b.subtype !== 'send') reasons.push('not a send block (subtype ' + b.subtype + ')');
   if (to && dest && dest !== to) reasons.push('sent to ' + dest + ', not to ' + to);
   if (minRaw !== null && amount < minRaw) reasons.push('amount ' + amount + ' raw is below min ' + minRaw + ' raw');
-  if (minRaw === null && !anyAmount) reasons.push('no minimum given, so the amount was not checked: pass min_raw or min_nano, or any=1 to ask only whether the block is a confirmed send to the address');
-  if (!to && !anyTo) reasons.push('no recipient given, so the destination was not checked: pass to=<your nano_ address>, or any_to=1 to ask only whether the block is a confirmed send to anyone');
+  if (minRaw === null && !anyAmount) reasons.push('no minimum given, so the amount was not checked: pass min_raw or min_nano, or any=1 to ask only whether the block is a confirmed send to the address (ok needs both an amount side, min_raw, min_nano or any=1, and a recipient side, to= or any_to=1; e.g. ?any=1&to=A or ?any=1&any_to=1)');
+  if (!to && !anyTo) reasons.push('no recipient given, so the destination was not checked: pass to=<your nano_ address>, or any_to=1 to ask only whether the block is a confirmed send to anyone (ok needs both a recipient side, to= or any_to=1, and an amount side, min_raw, min_nano or any=1; e.g. ?min_raw=N&to=A or ?any=1&any_to=1)');
   return send(res, 200, { hash, found: true, ok: reasons.length === 0, reason: reasons.join('; ') || undefined,
     confirmed, subtype: b.subtype, from: b.block_account, to: dest, amount_raw: amount.toString(), amount_nano: nano(amount),
     min_raw: minRaw === null ? null : minRaw.toString(), any_amount: anyAmount, expected_to: to || null, any_to: anyTo,
@@ -1013,15 +1020,24 @@ Endpoints
   GET  /v1/x402               x402 payment requirements for the paid endpoints (free)
   GET  /v1/verify?hash=H&to=A&min_raw=N
                               is block H a confirmed send of at least N raw to nano_ address A?
-                              without min_raw or min_nano the answer is ok:false with the reason
-                              (the amount is not checked; since 2026-09-29); any=1 instead asks
-                              only whether H is a confirmed send to A, and the answer then carries
-                              min_raw: null and any_amount: true; without to= the answer is likewise
-                              ok:false with the reason (since 2026-09-30), and any_to=1 asks only
-                              whether H is a confirmed send to anyone (expected_to: null, any_to: true)
+                              ok:true needs BOTH an amount side and a recipient side, every call:
+                                amount side:    min_raw=N, min_nano=X, or any=1 (amount not checked;
+                                                the answer then carries min_raw: null, any_amount: true)
+                                recipient side: to=A, or any_to=1 (any recipient; the answer then
+                                                carries expected_to: null, any_to: true)
+                              a call with only one side answers ok:false and the reason names the
+                              missing side (since 2026-09-29 for the amount, 2026-09-30 for the
+                              recipient; never a 400, found still answers). a seller that passes
+                              only any_to=1 gets ok:false, which is the safe answer. combined calls:
+                                ?hash=H&min_raw=N&to=A      paid at least N raw to A (the normal check)
+                                ?hash=H&any=1&to=A          any confirmed send to A
+                                ?hash=H&any=1&any_to=1      any confirmed send to anyone
+                              min_raw is at most 2^128-1 (340282366920938463463374607431768211455),
+                              min_nano likewise; above that the answer is 400 (since 2026-10-01)
                               (free, 60/min per IP; for sellers who take Nano and have no node)
   GET  /v1/receivable?account=A&min_raw=N
-                              confirmed, unpocketed sends to A with amounts and senders (free, 60/min)
+                              confirmed, unpocketed sends to A with amounts and senders (free, 60/min);
+                              min_raw (or min_nano) is at most 2^128-1, else 400 (since 2026-10-01)
   GET  /v1/account_info?account=A
                               frontier, confirmed_frontier, confirmed (bool), balance, representative,
                               confirmation_height (null if the node gives none) (free, 60/min);
