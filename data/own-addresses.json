@@ -3,6 +3,10 @@
   {
    "address": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
    "note": "pursekeeper's own x402 test client account (seed in secrets/x402-test.env). Funded from the hot wallet only to test the seller end to end; never a counterparty."
+  },
+  {
+   "address": "nano_1pgyb5sqbagkef1zdhzz71yqmqrshetd31kf6uojr4ehfjue1p1w6i5hwg7e",
+   "note": "pursekeeper's own x402 test seed, index 1: opened only by Oso Pepe's receive-courier job of 2026-10-02 (examples/purchases/oso-pepe-courier-2026-10-02/); funded from the hot wallet (ledger #371); never a counterparty."
   }
  ]
 }
