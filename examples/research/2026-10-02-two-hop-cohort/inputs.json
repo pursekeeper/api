@@ -1,0 +1,129 @@
+{
+ "_comment": "Inputs the author used beside the public ledger. exchanges: nanolooker known-accounts snapshot (28) plus two accounts the author labelled from chain pattern; donations: send hashes labelled as support on pursekeeper.dev (not agent usage); hot: the wallet every receipt landed in.",
+ "hot": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+ "donations": [
+  "C665A9289D909C59C44EE00F0DCD6E606B46447BA615FB8F37492EA7FBE0ECC0"
+ ],
+ "exchanges": [
+  {
+   "account": "nano_3jwrszth46rk1mu7rmb4rhm54us8yg1gw3ipodftqtikf5yqdyr7471nsg1k",
+   "name": "Binance Hot Wallet"
+  },
+  {
+   "account": "nano_3kef5c3ahkwf3qcyw61qcnma668z8ez4ocnm55gkiaqeure3ghcfqunfynug",
+   "name": "Binance Hot Wallet #2"
+  },
+  {
+   "account": "nano_17oc98sqccfqqfah8jggkziu8i6ar8biq7syxqcd6e1sagje11gts88gfj95",
+   "name": "Binance US Hot Wallet"
+  },
+  {
+   "account": "nano_3yej4c6s5ddwk8bq1o3945jgzx7axh94p813dmnq1aywh8ekufhfsgw68cbg",
+   "name": "Binance US Hot Wallet #2"
+  },
+  {
+   "account": "nano_3x4ui45q1cw8hydmfdn4ec5ijsdqi4ryp14g4ayh71jcdkwmddrq7ca9xzn9",
+   "name": "Binance Cold Wallet"
+  },
+  {
+   "account": "nano_14cuejfpr58epnpxenirusimsrbwxbecin7a3izq1injptecc31qsjwquoe6",
+   "name": "Binance Cold Wallet #2"
+  },
+  {
+   "account": "nano_3cpz7oh9qr5b7obbcb5867omqf8esix4sdd5w6mh8kkknamjgbnwrimxsaaf",
+   "name": "Kraken Hot Wallet"
+  },
+  {
+   "account": "nano_1niabkx3gbxit5j5yyqcpas71dkffggbr6zpd3heui8rpoocm5xqbdwq44oh",
+   "name": "KuCoin Hot Wallet"
+  },
+  {
+   "account": "nano_3iypqe87d399qnsgejk6jx11u334ep77ipgsrtg9zi31onpz9a4yfypjxnau",
+   "name": "KuCoin Hot Wallet #2"
+  },
+  {
+   "account": "nano_3kc4zij11m87u6rs1kx3c4xrajufrw45b9nawruxu3t7yfcxcaui9r9gpqqg",
+   "name": "KuCoin Hot Wallet #3"
+  },
+  {
+   "account": "nano_1c3nz77f3t5bz346je4bwtcfxgfnp6habs9to4utfeuhjfpxdhkd593kn5gn",
+   "name": "KuCoin Cold Wallet"
+  },
+  {
+   "account": "nano_1oxho99gkeczaweapwfkoqq465c1apr4fq5qmnmrwb3u5cjebq5rctqqikhf",
+   "name": "Huobi Hot Wallet"
+  },
+  {
+   "account": "nano_1kiw5p5kfsypbf5cjhrmbkq5xjrufhjawaz1i691yw4tfsn14ssjx64orfdb",
+   "name": "Huobi Cold Wallet"
+  },
+  {
+   "account": "nano_3jyt9ye4yerydg91twwgxo7edke84a7cbjtomq4bg7uh5anqwiture4h1saa",
+   "name": "Huobi Hot Wallet #2"
+  },
+  {
+   "account": "nano_1e3t7fh57qozn1fkcdzatypygbcoxs9r3ku9tsqx69fn5za4fqfjrihf5w7c",
+   "name": "Mercatox Cold Wallet"
+  },
+  {
+   "account": "nano_3ebd88zzysrkqpo8ey5yyxfpkfr39abmiyeihqn8b5ong9dkga1kbtd7gs4x",
+   "name": "Crypto.com"
+  },
+  {
+   "account": "nano_3fmx3sytpyo3hya1bpfetgs6en4fzib3m66c5stb5g8nq1z61doanzmxuo8h",
+   "name": "Crypto.com Deposits"
+  },
+  {
+   "account": "nano_1etto78drszxhtb5jhswzzm5m98ffqxwjzwg3gr8ajt5sq4ahdj4bjhni9we",
+   "name": "OKEx Deposits"
+  },
+  {
+   "account": "nano_1o5rr464r8bgu4h3jnt5yn4a6tbd5shbbpwk6aj6sunf8dzdpmke6q4tgtkj",
+   "name": "OKEx Withdrawals"
+  },
+  {
+   "account": "nano_3wat6ci5a55s895eec64i4ihfd9ry3bdxnpb776mj1srjedqfdf4k11rcmg4",
+   "name": "Bitvavo Hot Wallet"
+  },
+  {
+   "account": "nano_1qiwzd7usjjsthnxe38nsz4jobyw35iiwkot6rpodsnfkeufyykmkrhqy4kp",
+   "name": "Bitvavo Cold Wallet"
+  },
+  {
+   "account": "nano_35bidny8nqtn18uptkntcezcks3m4d8amz9jnnbjdd9aejpz86a788pfwgrz",
+   "name": "CoinEx"
+  },
+  {
+   "account": "nano_1mbx4ep68xx9k5n8dr6imt5n67eqos4ukbyfsxs8df48ojyx6r1x3cxe54bj",
+   "name": "CoinEx Hot Wallet #2"
+  },
+  {
+   "account": "nano_3h9633hp5ox5ejsmcip7mnm9ej5g8wppyig8ckzcgwus9p4bezoogwystb99",
+   "name": "CoinEx Cold Wallet #1"
+  },
+  {
+   "account": "nano_3aknpqaajsexriisrs3srzzr6cpw3y1cunwt4mxzagn8dg14xa9e5i3uaasd",
+   "name": "CoinEx Cold Wallet #2"
+  },
+  {
+   "account": "nano_3b1hjazupgwycgachczp7namyk1r7gwyu1q7duyh44h3axqjjksto9pkz6nf",
+   "name": "Wirex Hot Wallet"
+  },
+  {
+   "account": "nano_1ed95h4er3wotpjksn1aemq3m1y5677qfzi9be6zumkjo3wxw5oy7j8zm6mo",
+   "name": "ChangeNow.io"
+  },
+  {
+   "account": "nano_1td9t7i3dj6xayhzf9t6xndqfj34crunefmig1fbxf9wna56eincgwm1tzi7",
+   "name": "HitBTC Hot Wallet"
+  },
+  {
+   "account": "nano_1banexkcfuieufzxksfrxqf6xy8e57ry1zdtq9yn7jntzhpwu4pg4hajojmq",
+   "name": "unidentified collector (163k blocks, 186 depositors in 8.5 h; swap or exchange sweep pattern)"
+  },
+  {
+   "account": "nano_115hp31z6kh5d66pggb15s4mxchqx1aah9jtqbeuhjdwaoqxoxo7o1yzpodk",
+   "name": "Nanswap hot wallet (the exchange that sent the labelled donation, ledger #226)"
+  }
+ ]
+}
