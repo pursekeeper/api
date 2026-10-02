@@ -19,6 +19,8 @@ print(f'payer {payer}: {len(ts)} receipts, {ts[0]:%Y-%m-%d %H:%M}Z to {ts[-1]:%Y
 print(f'gaps (h): median {statistics.median(gaps):.3f}, min {min(gaps):.3f}, max {max(gaps):.3f}')
 within = sum(1 for x in res if abs(x) * 60 <= 1.0)
 print(f'{within} of {len(gaps)} gaps within 1 minute of a multiple of {grid:g} h')
+within4 = sum(1 for x in res if abs(x) * 60 <= 4.0)
+print(f'{within4} of {len(gaps)} gaps within 4 minutes of a multiple of {grid:g} h')
 print('residual vs nearest multiple (minutes):', [round(x * 60, 1) for x in res])
 print(f'phase (minutes past the {grid:g} h grid, UTC):', [round(p, 1) for p in phase])
 tick = collections.Counter(round(g / grid) for g in gaps)
