@@ -1,0 +1,46 @@
+{
+ "purpose": "receive-courier hand-off: two signed blocks with no work for a never-opened account; the courier attaches work and broadcasts in order; block 2 is the courier's payment",
+ "signed_at": "2026-10-02T01:02:20.277Z",
+ "account": "nano_1pgyb5sqbagkef1zdhzz71yqmqrshetd31kf6uojr4ehfjue1p1w6i5hwg7e",
+ "source_send": "250DB68EFBF5F329F09E9574DD6177CDA129D04D6B963F7FFC650FC7339F22EE",
+ "source_amount_raw": "250000000000000000000000000000",
+ "source_confirmed_local_ts": "1790902894",
+ "pay_to": "nano_3dwrn5ohdk4ratdc6i7z81u1kmagstxbsg3c8pzoye675sskn573k7iasdeo",
+ "amount_raw": "250000000000000000000000000000",
+ "blocks": [
+  {
+   "order": 1,
+   "subtype": "open",
+   "hash": "5FC5D0EC70CA3E4DE8742F76C1212362628FA7C001F5B590D325CF68E8CE2CC3",
+   "block": {
+    "type": "state",
+    "account": "nano_1pgyb5sqbagkef1zdhzz71yqmqrshetd31kf6uojr4ehfjue1p1w6i5hwg7e",
+    "previous": "0000000000000000000000000000000000000000000000000000000000000000",
+    "representative": "nano_3arg3asgtigae3xckabaaewkx3bzsh7nwz7jkmjos79ihyaxwphhm6qgjps4",
+    "balance": "250000000000000000000000000000",
+    "link": "250DB68EFBF5F329F09E9574DD6177CDA129D04D6B963F7FFC650FC7339F22EE",
+    "link_as_account": "nano_1bafpt9hqxhm79rbx7dnuoiqhmf379a6ttwp9xzzrsahrwssyaqggayg39dt",
+    "work": "",
+    "signature": "B6575DD75865F5A80861D90FDBD315FCA9533C3526F6C11184074D3B09C1FA6F7A4887373614B1916F21DFC1AD7BF390B8DB42241986C284D2AF81A80E4BCF08"
+   },
+   "work": "none: courier attaches work at the receive threshold (fffffe0000000000)"
+  },
+  {
+   "order": 2,
+   "subtype": "send",
+   "hash": "862C68100291F144BD18B12A449EA60A46B7E2B8E848828C31B34094F4F57935",
+   "block": {
+    "type": "state",
+    "account": "nano_1pgyb5sqbagkef1zdhzz71yqmqrshetd31kf6uojr4ehfjue1p1w6i5hwg7e",
+    "previous": "5FC5D0EC70CA3E4DE8742F76C1212362628FA7C001F5B590D325CF68E8CE2CC3",
+    "representative": "nano_3arg3asgtigae3xckabaaewkx3bzsh7nwz7jkmjos79ihyaxwphhm6qgjps4",
+    "balance": "0",
+    "link": "AF98A0EAF5C8584696A240BF3036094D0ECEBA9CB82A35BF5F30851E732A0CA1",
+    "link_as_account": "nano_3dwrn5ohdk4ratdc6i7z81u1kmagstxbsg3c8pzoye675sskn573k7iasdeo",
+    "work": "",
+    "signature": "39F8C0C8D25F09CEBD88F7006F76AF7723CF956C5C2C4C126AE896BC23FB8C3763BB10EADAD7CF81B47CA07445D79BE769E579CD451FEBBB51310791D2A53F0A"
+   },
+   "work": "none: courier attaches work at the send threshold (fffffff800000000)"
+  }
+ ]
+}
