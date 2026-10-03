@@ -92,6 +92,37 @@ test('never confirmed within the bound -> 402 naming the hash, not marked spent;
   assert.equal(calls.filter(a => a === 'process').length, processesBefore + 1, 'one broadcast in total');
 });
 
+test('re-presented with the token while the block is still unconfirmed -> 402 with the note and the same token, so the loop goes on; without the token -> 402 naming the wait and no token; confirmed later -> served once (PlatinumVera, 2026-10-03)', async () => {
+  const rep = N.deriveAddress(N.derivePublicKey(N.deriveSecretKey(await N.generateSeed(), 0)), { useNanoPrefix: true });
+  const { hash, header } = payment(rep);   // another representative: another block
+  moved = null; confirm = () => 'false';
+  const res = response();
+  assert.equal(await chargeX402(request(header), res, header), false);
+  assert.equal(res.status, 402, JSON.stringify(res.body));
+  const token = res.getHeader('x-nano-represent'); assert.ok(token);
+  // The block is now on the node (the frontier moved) but still unconfirmed: verify takes the alreadyLanded gate. Until
+  // 2026-10-03 this 402 carried neither note nor token and the client loop stopped on it.
+  moved = hash;
+  const q2 = request(header); q2.headers['x-nano-represent'] = token;
+  const res2 = response();
+  assert.equal(await chargeX402(q2, res2, header), false);
+  assert.equal(res2.status, 402, JSON.stringify(res2.body));
+  assert.match(res2.body.note, /broadcast but not yet confirmed/); assert.ok(res2.body.note.includes(hash));
+  assert.equal(res2.body.represent_token, token); assert.equal(res2.getHeader('x-nano-represent'), token);
+  assert.equal(credits[hash], undefined, 'nothing marked spent');
+  // Without the token (anyone who read the block off the chain): the wait is named, the token is not.
+  const res3 = response();
+  assert.equal(await chargeX402(request(header), res3, header), false);
+  assert.equal(res3.status, 402, JSON.stringify(res3.body));
+  assert.match(res3.body.error, /waiting for its payer/); assert.equal(res3.body.represent_token, undefined); assert.equal(res3.getHeader('x-nano-represent'), undefined);
+  // Confirmed: the same re-presentation with the token is served once.
+  confirm = h => h === hash ? 'true' : 'false';
+  const q4 = request(header); q4.headers['x-nano-represent'] = token;
+  const res4 = response();
+  assert.equal(await chargeX402(q4, res4, header), true, JSON.stringify(res4.body));
+  assert.equal(res4.getHeader('x-nano-payment-hash'), hash); assert.equal(credits[hash], '0');
+});
+
 test('a broadcast block is public: re-presented from another address without the token -> refused, not marked spent; with the token -> served once', async () => {
   const { hash, header } = payment('nano_3arg3asgtigae3xckabaaewkx3bzsh7nwz7jkmjos79ihyaxwphhm6qgjps4');   // another representative: another block
   moved = null; confirm = () => 'false';   // the account is back at FRONTIER for this block

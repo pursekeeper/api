@@ -28,7 +28,7 @@ const REQ = x402.requirements({ payTo: PAY_TO, amountRaw: AMOUNT, maxTimeoutSeco
 const FRONTIER = '4DA37CC62F040730D14E9D57A83D3810C54CBFF1C7A389E477F5A290B28A688F';
 const BALANCE = 5n * 10n ** 27n;
 
-let payer, block, hash, header;
+let payer, block, hash, header, headerOtherSession, headerNoSession;
 const calls = [];
 before(async () => {
   const sk = N.deriveSecretKey(await N.generateSeed(), 0);
@@ -36,7 +36,11 @@ before(async () => {
   block = N.createBlock(sk, { work: '0', previous: FRONTIER, representative: payer, balance: (BALANCE - AMOUNT).toString(), link: PAY_TO }).block;
   block.account = block.account.replace(/^xrb_/, 'nano_');
   hash = x402.blockHash(block);
-  header = encodePaymentSignatureHeader({ x402Version: 2, accepted: REQ, payload: { block } });
+  // The payload echoes the 402's extra.session (a v2 client copies the accepted entry); the replay cache is bound to it
+  // (PlatinumVera, 2026-10-03). The two other headers wrap the same public block with another session and with none.
+  header = encodePaymentSignatureHeader({ x402Version: 2, accepted: { ...REQ, extra: { ...REQ.extra, session: 'a'.repeat(32) } }, payload: { block } });
+  headerOtherSession = encodePaymentSignatureHeader({ x402Version: 2, accepted: { ...REQ, extra: { ...REQ.extra, session: 'b'.repeat(32) } }, payload: { block } });
+  headerNoSession = encodePaymentSignatureHeader({ x402Version: 2, accepted: REQ, payload: { block } });
   // The node: the block is already the payer's confirmed frontier, so verify takes the alreadyLanded branch and process
   // must never be called; anything else the handler asks for is an error.
   globalThis.fetch = async (url, opts) => {
@@ -76,6 +80,40 @@ test('two concurrent charges with the same landed payment: one served, one refus
   const r4 = response();
   assert.equal(await chargeX402({ ...request(), url: '/v1/echo?msg=other' }, r4, header), false);
   assert.equal(r4.status, 402); assert.match(r4.body.error, /already used/);
+  // The block is public: the same call with the same block wrapped by someone who does not hold the session (another one,
+  // or none) is not replayed but refused as already used, and the refusal says what a replay needs (PlatinumVera, 2026-10-03).
+  for (const h of [headerOtherSession, headerNoSession]) {
+    const r5 = response();
+    assert.equal(await chargeX402({ ...request(), headers: { host: 'pursekeeper.dev', 'payment-signature': h } }, r5, h), false);
+    assert.equal(r5.status, 402, JSON.stringify(r5.body)); assert.match(r5.body.error, /already used/); assert.match(r5.body.error, /extra\.session/);
+    assert.equal(r5.getHeader('x-nano-replay'), undefined);
+  }
+});
+
+test('a payment whose payload echoed no session is served but never replayed (nothing binds the replay to its payer)', async () => {
+  // A fresh block from the same account at the same frontier: another representative, another hash, already landed.
+  const sk2 = N.deriveSecretKey(await N.generateSeed(), 0);
+  const payer2 = N.deriveAddress(N.derivePublicKey(sk2), { useNanoPrefix: true });
+  const b2 = N.createBlock(sk2, { work: '0', previous: FRONTIER, representative: payer2, balance: (BALANCE - AMOUNT).toString(), link: PAY_TO }).block;
+  b2.account = b2.account.replace(/^xrb_/, 'nano_');
+  const h2 = x402.blockHash(b2);
+  const prev = globalThis.fetch;
+  globalThis.fetch = async (url, opts) => {
+    const b = JSON.parse(opts.body);
+    if (b.action === 'account_info' && b.account === payer2) return { ok: true, json: async () => ({ frontier: h2, confirmed_frontier: h2, balance: (BALANCE - AMOUNT).toString(), representative: payer2, block_count: '2' }) };
+    if (b.action === 'block_info' && b.hash === h2) return { ok: true, json: async () => ({ block_account: payer2, subtype: 'send', amount: AMOUNT.toString(), confirmed: 'true', contents: b2 }) };
+    return prev(url, opts);
+  };
+  try {
+    const hdr = encodePaymentSignatureHeader({ x402Version: 2, accepted: REQ, payload: { block: b2 } });
+    const req = () => ({ method: 'GET', url: '/v1/echo?msg=hi', headers: { host: 'pursekeeper.dev', 'payment-signature': hdr }, socket: { remoteAddress: '127.0.0.1' } });
+    const r1 = response();
+    assert.equal(await chargeX402(req(), r1, hdr), true, JSON.stringify(r1.body));
+    send(r1, 200, { echo: 'hi' });
+    const r2 = response();
+    assert.equal(await chargeX402(req(), r2, hdr), false);
+    assert.equal(r2.status, 402, JSON.stringify(r2.body)); assert.match(r2.body.error, /already used/); assert.match(r2.body.error, /extra\.session/);
+  } finally { globalThis.fetch = prev; }
 });
 
 test('a block that does not hash runs unlocked and is refused by verify with its reason', async () => {

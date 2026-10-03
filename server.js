@@ -340,7 +340,7 @@ function send(res, code, body, type = 'application/json') {
   if (res.paidHash && code >= 200 && code !== 304) {
     const kept = {};
     for (const k of ['payment-response', 'x-nano-credit-remaining-raw']) { const v = res.getHeader(k); if (v !== undefined) kept[k] = v; }
-    rememberServed(res.paidHash, res.replayKey, code, data, type, kept);
+    rememberServed(res.paidHash, res.replayKey, code, data, type, kept, res.replayBind);
     res.paidHash = null;
   }
   // Declared length since 2026-09-26: a body cut by any proxy or sandbox between here and the reader is then an
@@ -383,7 +383,13 @@ function hostOf(req) { return String(req.headers['x-forwarded-host'] || req.head
 // x402 v2 PaymentRequired for this request: header value plus the same object for the JSON body.
 function x402Required(req, hint) {
   const u = new URL(req.url, 'http://x');
-  return x402.paymentRequired({ requirements: X402_REQ, url: 'https://' + hostOf(req) + req.url,
+  // Every 402 carries a fresh extra.session in its accepts entry. A v2 client copies the entry it accepted into the
+  // payload (`accepted`), so the value comes back with the payment over the same connection and never touches the chain:
+  // it is the one thing a reader of the public block cannot rebuild, and the replay cache is bound to it (replayIfServed;
+  // PlatinumVera, 2026-10-03, from the source). Neither stored nor checked for origin: any echoed value binds the replay
+  // to the client that sent it, and a payload that echoes none gets no replay.
+  const requirements = { ...X402_REQ, extra: { ...X402_REQ.extra, session: crypto.randomBytes(16).toString('hex') } };
+  return x402.paymentRequired({ requirements, url: 'https://' + hostOf(req) + req.url,
     description: DESCRIPTIONS[u.pathname] || 'pursekeeper.dev paid call', error: hint || 'payment required' });
 }
 
@@ -433,9 +439,15 @@ async function chargeX402(req, res, headerValue) {
   if (d.error) return paymentRequired(res, 'x402: ' + d.error, req), false;
   let key = null;
   try { key = x402.blockHash(d.payload.payload.block).toUpperCase(); } catch { /* verify names the fault */ }
-  if (key && replayIfServed(req, res, key)) return false;   // the same payment for the same call, served within ten minutes: the same reply again
-  const run = () => chargeX402Locked(req, res, d.payload);
+  // The replay check (the same payment for the same call, served within ten minutes: the same reply again) runs under
+  // the per-hash lock, so a duplicate that arrives while the first presentation is still being served waits for it
+  // instead of racing it to "already used" (PlatinumVera, 2026-10-03).
+  const run = async () => (key && replayIfServed(req, res, key, { secret: replaySecret(d.payload) })) ? false : chargeX402Locked(req, res, d.payload, key);
   return key ? withHashLock(key, run) : run();
+}
+// The session the client echoes from the 402 it paid (accepted.extra.session, see x402Required); null when it echoes none.
+function replaySecret(payload) {
+  try { const v = payload.accepted && payload.accepted.extra && payload.accepted.extra.session; return typeof v === 'string' && v.length >= 16 && v.length <= 128 ? v : null; } catch { return null; }
 }
 // After the broadcast the call is served only once the node reports the block confirmed: block_info is polled every
 // X402_CONFIRM.intervalMs up to X402_CONFIRM.boundMs (250 ms, 8 s; both injectable for tests). Until 2026-09-29 the call was
@@ -476,7 +488,7 @@ async function confirmedWithin(hash) {
     await new Promise(r => setTimeout(r, X402_CONFIRM.intervalMs));
   }
 }
-async function chargeX402Locked(req, res, payload) {
+async function chargeX402Locked(req, res, payload, key) {
   const v = await x402.verify(payload, X402_REQ, {
     accountInfo: account => rpc({ action: 'account_info', account, representative: 'true', include_confirmed: 'true' }),
     seen: async h => (h in credits) || settling.has(h),
@@ -484,7 +496,27 @@ async function chargeX402Locked(req, res, payload) {
     blockInfo: h => rpc({ action: 'block_info', json_block: 'true', hash: h }),   // amount and confirmation of a block that already landed (alreadyLanded)
     workGenerate: async hash => (await workFor(hash, { paid: true })).work   // a paying block earns its work
   });
-  if (!v.ok) return paymentRequired(res, 'x402: ' + v.reason, req), false;
+  if (!v.ok) {
+    // A re-presentation that arrives while the broadcast block is still unconfirmed fails verify's alreadyLanded gate
+    // ("on the node but not confirmed yet"), and until 2026-10-03 that 402 carried neither the note nor the token, so the
+    // skill's loop stopped on it and the payer was left with a landed block and no token to re-present it with
+    // (PlatinumVera, 2026-10-03 00:29 UTC, from the source and a mock). The holder of the token gets the note and the same
+    // token again, so its loop goes on; anyone else gets a 402 that names the wait and not the token, since the block is
+    // public from the broadcast and the token is the only binding.
+    const rep = key && represent[key];
+    if (rep && /on the node but not confirmed yet/.test(v.reason)) {
+      const given = String(req.headers['x-nano-represent'] || '').trim();
+      if (given === rep.token) {
+        res.setHeader('x-nano-represent', rep.token);
+        const note = 'block ' + key + ' was broadcast but not yet confirmed (' + Math.round((Date.now() - rep.at) / 1000) + ' s since the broadcast); nothing was charged for this call; re-present the same PAYMENT-SIGNATURE with the same header X-Nano-Represent: ' + rep.token + ' (this reply carries it again as the x-nano-represent header and as represent_token) and it is served once the block is confirmed; do not sign a new block, that would pay twice';
+        return paymentRequired(res, 'x402: block ' + key + ' was broadcast but not yet confirmed; re-present the same PAYMENT-SIGNATURE with X-Nano-Represent', req, { note, represent_token: rep.token }), false;
+      }
+      return paymentRequired(res, 'x402: block ' + key + ' was broadcast through this server, is not confirmed yet and is waiting for its payer to re-present it with the X-Nano-Represent token from the 402 that announced the broadcast; nothing served, nothing marked spent', req), false;
+    }
+    // A used block whose reply is still in the replay cache but was refused there: say what the replay needs.
+    const hint = key && served.has(key) && /already used/.test(v.reason) ? '; the reply it bought is replayed within ten minutes only to the client whose payload echoes the extra.session of the 402 it paid (a v2 client copies the accepted entry, so this is automatic), for the same method, URL and body' : '';
+    return paymentRequired(res, 'x402: ' + v.reason + hint, req), false;
+  }
   // In `settling` for the whole serve, the alreadyLanded branch included: the facilitator shares the set, so its /verify
   // refuses the hash meanwhile (Ops Control HQ, 2026-09-28 22:34 UTC); its /settle queues on the same per-hash lock
   // (hashlock.js) and runs after this serve, when block_info finds the block (2026-09-29).
@@ -523,7 +555,7 @@ async function chargeX402Locked(req, res, payload) {
     stats.calls_paid++; stats.calls_x402++;
     res.setHeader(x402.RESPONSE_HEADER, x402.settleHeader(s));
     res.setHeader('x-nano-payment-hash', s.transaction);
-    res.paidHash = s.transaction; res.replayKey = replayKey(req);
+    res.paidHash = s.transaction; res.replayKey = replayKey(req); res.replayBind = { secret: replaySecret(payload) };
     return true;
   } finally { settling.delete(v.hash); }
 }
@@ -748,7 +780,7 @@ async function processBlock(req, res) {
   const r = await rpc({ action: 'process', json_block: 'true', ...(sub ? { subtype: sub } : {}), block });
   logReq(req, { kind: 'process', hash: r.hash || null, previous: String(block.previous || '').toUpperCase(), account: block.account, subtype: sub || null, ok: !r.error, error: r.error || null });
   if (r.error) return send(res, 400, { ok: false, error: 'node: ' + r.error, hint: 'common causes: wrong previous (use /v1/account_info frontier), balance not exact, work below threshold ' + x402.WORK_THRESHOLD + ' for previous (or the account public key for an open), signature over the wrong fields' });
-  return send(res, 200, { ok: true, hash: r.hash, subtype: sub, note: 'broadcast; check confirmation with /v1/verify?hash=' + r.hash, node: 'pursekeeper.dev' });
+  return send(res, 200, { ok: true, hash: r.hash, subtype: sub, note: 'broadcast; check confirmation with /v1/verify?hash=' + r.hash + '&any=1&any_to=1', node: 'pursekeeper.dev' });
 }
 
 async function charge(req, res) {
@@ -764,7 +796,7 @@ async function charge(req, res) {
     const c = await creditForUnlocked(hash);
     if (c.error) return paymentRequired(res, c.error, req), false;
     if (c.remaining < PRICE_RAW) {
-      if (replayIfServed(req, res, hash)) return false;   // nothing left on the hash and the same call again: the reply it bought
+      if (replayIfServed(req, res, hash, { bearer: true })) return false;   // nothing left on the hash and the same call again: the reply it bought
       return paymentRequired(res, 'credit on this hash is used up', req), false;
     }
     const left = c.remaining - PRICE_RAW;
@@ -772,7 +804,7 @@ async function charge(req, res) {
     save();
     stats.calls_paid++;
     res.setHeader('x-nano-credit-remaining-raw', left.toString());
-    res.paidHash = String(hash).toUpperCase(); res.replayKey = replayKey(req);
+    res.paidHash = String(hash).toUpperCase(); res.replayKey = replayKey(req); res.replayBind = { bearer: true };
     return true;
   });
 }
@@ -945,18 +977,25 @@ function readBody(req, limit = 1_000_000) {
 // paid for (uknwplayer, 2026-09-29). A re-presentation for another route or body is not a lost reply and is refused as before;
 // a hash with credit left buys a new call as before. The facilitator's /settle answers its own replays with the settled hash
 // and time (facilitator.js) and is not cached here. Kept in memory only: a restart forgets, and the refusal stands.
+// Binding (PlatinumVera, 2026-10-03, from the source): the key above is public data, since the block is on the chain from
+// the broadcast and a payload wrapping it can be rebuilt by anyone, so an x402 reply is replayed only to the client whose
+// payload echoes the extra.session of the 402 it paid (x402Required); a payment that echoed none is never replayed. A bearer
+// hash (X-Nano-Payment) is replayed to whoever presents it for the same call, as the credit itself goes to whoever presents
+// the hash first; that path is bearer by design and documented as such.
 const REPLAY_TTL_MS = 10 * 60_000;
-const served = new Map();   // hash -> { key, code, body, type, headers, at }
+const served = new Map();   // hash -> { key, code, body, type, headers, at, bind: { secret } | { bearer: true } }
 function replayKey(req) { return req.method + ' ' + req.url + ' ' + crypto.createHash('sha256').update(req.bodyBuffer || '').digest('hex'); }
-function rememberServed(hash, key, code, body, type, headers) {
+function rememberServed(hash, key, code, body, type, headers, bind) {
   const now = Date.now();
   for (const [h, s] of served) if (now - s.at > REPLAY_TTL_MS) served.delete(h);
   if (served.size > 5_000) served.clear();
-  served.set(hash, { key, code, body, type, headers, at: now });
+  served.set(hash, { key, code, body, type, headers, at: now, bind: bind || {} });
 }
-function replayIfServed(req, res, hash) {
+function replayIfServed(req, res, hash, bind) {
   const s = served.get(String(hash || '').toUpperCase());
   if (!s || Date.now() - s.at > REPLAY_TTL_MS || s.key !== replayKey(req)) return false;
+  if (s.bind.bearer) { if (!bind || !bind.bearer) return false; }
+  else if (!bind || !bind.secret || !s.bind.secret || bind.secret !== s.bind.secret) return false;
   for (const [k, v] of Object.entries(s.headers)) res.setHeader(k, v);
   res.setHeader('x-nano-replay', 'true');
   res.setHeader('x-nano-payment-hash', String(hash).toUpperCase());
@@ -990,8 +1029,13 @@ x402
   (the same block, not a new one, which would pay twice) with the single-use X-Nano-Represent
   token that 402 carries, and it is served once confirmed. The block is public on the chain from
   the broadcast; the token is what binds the re-presentation to the payer, so nobody else can be
-  served on it, and a block waiting for its token is not X-Nano-Payment credit for anyone either.
-  No external facilitator, no account. The block pays for one call and is not otherwise
+  served on it, and a block waiting for its token is not X-Nano-Payment credit for anyone either;
+  a re-presentation that arrives while the block is still unconfirmed gets the same 402 and the
+  same token again. A reply served for a payment is kept for ten minutes: re-present the same
+  PAYMENT-SIGNATURE for the same method, URL and body and the same reply comes back with
+  X-Nano-Replay: true (a reply given again, never a refusal); it goes only to the client whose
+  payload echoes the extra.session of the 402 it paid, which a v2 client does by copying the
+  accepted entry, because the block is public and anyone could wrap it. No external facilitator, no account. The block pays for one call and is not otherwise
   usable as X-Nano-Payment credit; the three exceptions are /v1/work answering 502
   because work generation failed, /v1/fetch answering 400 because a redirect could not
   be followed (the next target failed the same address check as the first URL, the
