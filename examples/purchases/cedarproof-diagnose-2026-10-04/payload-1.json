@@ -1,0 +1,36 @@
+{
+ "header": "eyJ4NDAyVmVyc2lvbiI6MiwicmVzb3VyY2UiOnsidXJsIjoiaHR0cHM6Ly9jZWRhcnByb29mLWRpYWdub3N0aWNzLmNlZGFycHJvb2YtbGFiLndvcmtlcnMuZGV2L3YxL2RpYWdub3NlLW5hbm8iLCJtaW1lVHlwZSI6ImFwcGxpY2F0aW9uL2pzb24iLCJkZXNjcmlwdGlvbiI6IkZpeGVkIEhUVFAvSlNPTiBjbGFzc2lmaWNhdGlvbjogc3VjY2VzcywgZmFpbHVyZSwgcGFydGlhbCBvciB1bmtub3duLiBVbmtub3duIGlzIGEgZGVsaXZlcmVkIHJlc3VsdC4gUGF5ZXIgbXVzdCBoYXZlIGEgY29uZmlybWVkIHN0YXRlLWJsb2NrIHByZWRlY2Vzc29yOyBjaGVja2VkIGJlZm9yZSBzZXR0bGVtZW50LiBPbiAyMDIgaG9ub3IgUmV0cnktQWZ0ZXIgKHVwIHRvIDkwIHNlY29uZHMpLCB0aGVuIHJldHJ5IGlkZW50aWNhbCByZXF1ZXN0X2lkLCBpbnB1dCBhbmQgb3JpZ2luYWwgcHJvb2Y7IG5ldmVyIGdlbmVyYXRlIGEgcmVwbGFjZW1lbnQgcGF5bWVudC4ifSwiYWNjZXB0ZWQiOnsic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoibmFubzptYWlubmV0IiwiYW1vdW50IjoiNTAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAiLCJhc3NldCI6IlhOTyIsInBheVRvIjoibmFub18xcnRpcDg3Y285dGQ1N24xOHRkcTc5OTZkc3V1eWNvdHR0bml6cHJmcjduem9iaGFid2tweXh3a3R4c2giLCJtYXhUaW1lb3V0U2Vjb25kcyI6MzAsImV4dHJhIjp7IndvcmsiOiJyZXF1aXJlZCIsIndvcmtUaHJlc2hvbGQiOiJmZmZmZmZmODAwMDAwMDAwIn19LCJwYXlsb2FkIjp7ImJsb2NrIjp7InR5cGUiOiJzdGF0ZSIsImFjY291bnQiOiJuYW5vXzFpM3k5NDRlc25ncXc2d2I2aWE2OGRvdGo0eXVxY3RjaDlreDhjdDY1dHd0OGV3aTRyZGNmZ2F4N2dnZiIsInByZXZpb3VzIjoiNTIyMzNERTFDNDkzMzA2RUQwQkY1RDMyRTVGQzU1QTQ0RDQxM0JGRTVGNjBEOTJFQjg0MzY0REUxMDk2QUM1NSIsInJlcHJlc2VudGF0aXZlIjoibmFub18zYXJnM2FzZ3RpZ2FlM3hja2FiYWFld2t4M2J6c2g3bnd6N2prbWpvczc5aWh5YXh3cGhobTZxZ2pwczQiLCJiYWxhbmNlIjoiOTc4NzMxODE4OTQ0NzQ3Njg5MDMyMDk1MDcwMSIsImxpbmsiOiI2MzUwQjE4QUFBOUY0QjE5NjgwMzY5NzcyOUNFNDVFNzdCRjJBQkFENkE5MEZEQjBEQzE2OUZBQTVFODRGMjU2IiwibGlua19hc19hY2NvdW50IjoibmFub18xcnRpcDg3Y285dGQ1N24xOHRkcTc5OTZkc3V1eWNvdHR0bml6cHJmcjduem9iaGFid2tweXh3a3R4c2giLCJ3b3JrIjoiZWQwNWIzMjMwYTg0NTliMCIsInNpZ25hdHVyZSI6IkQzNDQ2RDU1QUI1NEU5QTYxODg4NEY4MjRDMDJCRjBEMEZCMkNFREUwOEUzRkUzNUE5RjU0RjY3RTI0QzQwQjU2QUVFMkRBNUYyQjRDNkU3Nzk3Q0FBMDA0RkNENUE2MzdFRjE1ODAwNzRCNEYxMThGNkM4NjBBOTBCNTc1OTBEIn19fQ==",
+ "payload": {
+  "x402Version": 2,
+  "resource": {
+   "url": "https://cedarproof-diagnostics.cedarproof-lab.workers.dev/v1/diagnose-nano",
+   "mimeType": "application/json",
+   "description": "Fixed HTTP/JSON classification: success, failure, partial or unknown. Unknown is a delivered result. Payer must have a confirmed state-block predecessor; checked before settlement. On 202 honor Retry-After (up to 90 seconds), then retry identical request_id, input and original proof; never generate a replacement payment."
+  },
+  "accepted": {
+   "scheme": "exact",
+   "network": "nano:mainnet",
+   "amount": "50000000000000000000000000000",
+   "asset": "XNO",
+   "payTo": "nano_1rtip87co9td57n18tdq7996dsuuycotttnizprfr7nzobhabwkpyxwktxsh",
+   "maxTimeoutSeconds": 30,
+   "extra": {
+    "work": "required",
+    "workThreshold": "fffffff800000000"
+   }
+  },
+  "payload": {
+   "block": {
+    "type": "state",
+    "account": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
+    "previous": "52233DE1C493306ED0BF5D32E5FC55A44D413BFE5F60D92EB84364DE1096AC55",
+    "representative": "nano_3arg3asgtigae3xckabaaewkx3bzsh7nwz7jkmjos79ihyaxwphhm6qgjps4",
+    "balance": "9787318189447476890320950701",
+    "link": "6350B18AAA9F4B196803697729CE45E77BF2ABAD6A90FDB0DC169FAA5E84F256",
+    "link_as_account": "nano_1rtip87co9td57n18tdq7996dsuuycotttnizprfr7nzobhabwkpyxwktxsh",
+    "work": "ed05b3230a8459b0",
+    "signature": "D3446D55AB54E9A618884F824C02BF0D0FB2CEDE08E3FE35A9F54F67E24C40B56AEE2DA5F2B4C6E7797CAA004FCD5A637EF1580074B4F118F6C860A90B57590D"
+   }
+  }
+ }
+}

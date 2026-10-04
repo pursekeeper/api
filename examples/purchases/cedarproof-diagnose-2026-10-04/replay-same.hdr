@@ -1,0 +1,17 @@
+HTTP/2 200 
+date: Sun, 04 Oct 2026 16:31:25 GMT
+content-type: application/json; charset=utf-8
+content-length: 146
+access-control-allow-origin: *
+cache-control: no-store
+access-control-allow-headers: Content-Type, PAYMENT-SIGNATURE, Access-Control-Expose-Headers
+access-control-allow-methods: POST, OPTIONS
+access-control-expose-headers: PAYMENT-REQUIRED, PAYMENT-RESPONSE, Retry-After
+payment-response: eyJzdWNjZXNzIjp0cnVlLCJ0cmFuc2FjdGlvbiI6IjJCMUE5RDg5QTg0MEI5QkY4MjBBNUM4RjcyODY1RjFDQjg2NEU1MTJENzBDQ0RDNThGNDZGQkNGMTNERjZEMjkiLCJuZXR3b3JrIjoibmFubzptYWlubmV0IiwicGF5ZXIiOiJuYW5vXzFpM3k5NDRlc25ncXc2d2I2aWE2OGRvdGo0eXVxY3RjaDlreDhjdDY1dHd0OGV3aTRyZGNmZ2F4N2dnZiJ9
+x-content-type-options: nosniff
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=rfaxQZzNV2j%2FFupTSb2SmjvCgOIPry5o%2BrEhWMLLCclZIk9f41ianly3NUWU6uA4x9%2FPaKLi127qeInBZONWwo%2Fulo8yarXnjDsiPbGljrLVDlCpx32VV1yCUCUporyeYSjQXBca5FvHbe5gHejWuEuwx5dkZ8adZLpsDz68GdnJzbr4tRQQYWbLEi%2B9Iem3"}]}
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+server: cloudflare
+cf-ray: a45593a6881499fc-ARN
+alt-svc: h3=":443"; ma=86400
+

@@ -1,0 +1,17 @@
+HTTP/2 402 
+date: Sun, 04 Oct 2026 16:28:03 GMT
+content-type: application/json; charset=utf-8
+content-length: 755
+access-control-allow-origin: *
+cache-control: no-store
+access-control-allow-headers: Content-Type, PAYMENT-SIGNATURE, Access-Control-Expose-Headers
+access-control-allow-methods: POST, OPTIONS
+access-control-expose-headers: PAYMENT-REQUIRED, PAYMENT-RESPONSE, Retry-After
+payment-required: eyJ4NDAyVmVyc2lvbiI6MiwicmVzb3VyY2UiOnsidXJsIjoiaHR0cHM6Ly9jZWRhcnByb29mLWRpYWdub3N0aWNzLmNlZGFycHJvb2YtbGFiLndvcmtlcnMuZGV2L3YxL2RpYWdub3NlLW5hbm8iLCJtaW1lVHlwZSI6ImFwcGxpY2F0aW9uL2pzb24iLCJkZXNjcmlwdGlvbiI6IkZpeGVkIEhUVFAvSlNPTiBjbGFzc2lmaWNhdGlvbjogc3VjY2VzcywgZmFpbHVyZSwgcGFydGlhbCBvciB1bmtub3duLiBVbmtub3duIGlzIGEgZGVsaXZlcmVkIHJlc3VsdC4gUGF5ZXIgbXVzdCBoYXZlIGEgY29uZmlybWVkIHN0YXRlLWJsb2NrIHByZWRlY2Vzc29yOyBjaGVja2VkIGJlZm9yZSBzZXR0bGVtZW50LiBPbiAyMDIgaG9ub3IgUmV0cnktQWZ0ZXIgKHVwIHRvIDkwIHNlY29uZHMpLCB0aGVuIHJldHJ5IGlkZW50aWNhbCByZXF1ZXN0X2lkLCBpbnB1dCBhbmQgb3JpZ2luYWwgcHJvb2Y7IG5ldmVyIGdlbmVyYXRlIGEgcmVwbGFjZW1lbnQgcGF5bWVudC4ifSwiYWNjZXB0cyI6W3sic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoibmFubzptYWlubmV0IiwiYW1vdW50IjoiNTAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAiLCJhc3NldCI6IlhOTyIsInBheVRvIjoibmFub18xcnRpcDg3Y285dGQ1N24xOHRkcTc5OTZkc3V1eWNvdHR0bml6cHJmcjduem9iaGFid2tweXh3a3R4c2giLCJtYXhUaW1lb3V0U2Vjb25kcyI6MzAsImV4dHJhIjp7IndvcmsiOiJyZXF1aXJlZCIsIndvcmtUaHJlc2hvbGQiOiJmZmZmZmZmODAwMDAwMDAwIn19XX0=
+x-content-type-options: nosniff
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=dh5ydC%2BbJPDIjQeTUwY06XIZcmykEKO7XvA%2FM0b85f%2Fh17zA4kRe9tkcPhWuK2%2F%2Bj6EADudr3KzEjxxV1Q7T%2BZeL06PTVgGiftQW70piZBzgbUHTFYDq5vhfxxKRK58FaXNH5YKCuad534Euce%2F3FP3TEX2fthxKI2zU5uzG53PoNU6YMxqq7rPQi0LtMzM9"}]}
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+server: cloudflare
+cf-ray: a4558eb67f54c5d1-ARN
+alt-svc: h3=":443"; ma=86400
+

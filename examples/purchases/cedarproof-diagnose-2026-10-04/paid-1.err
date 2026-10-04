@@ -1,0 +1,9 @@
+paying from nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf
+seller wants 50000000000000000000000000000 raw (0.049999999999999996 NANO) to nano_1rtip87co9td57n18tdq7996dsuuycotttnizprfr7nzobhabwkpyxwktxsh
+signed block 2B1A9D89A840B9BF820A5C8F72865F1CB864E512D70CCDC58F46FBCF13DF6D29
+settlement: {
+  success: true,
+  transaction: '2B1A9D89A840B9BF820A5C8F72865F1CB864E512D70CCDC58F46FBCF13DF6D29',
+  network: 'nano:mainnet',
+  payer: 'nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf'
+}
