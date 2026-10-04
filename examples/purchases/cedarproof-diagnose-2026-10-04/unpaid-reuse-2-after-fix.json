@@ -1,0 +1,1 @@
+{"request_id":"839a72e8-febb-4ad5-8b81-ebf8608aebba","error":"original_payment_proof_required","message":"Provide the original PAYMENT-SIGNATURE with the identical request ID and input to retrieve or recover this order. Waiting without that proof cannot retrieve it. Do not create a replacement payment."}

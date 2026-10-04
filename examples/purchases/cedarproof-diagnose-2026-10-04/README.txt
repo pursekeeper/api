@@ -10,3 +10,5 @@ Checks, all from this box:
 5. Root GET 200 with a service JSON that still names only the USDC route (0.01 USDC on Base, POST /v1/diagnose); /.well-known/x402 and /llms.txt 404; no public source (the GitHub account has no public repositories).
 
 Result: listed on /sellers as cedarproof-diagnose (seller 31), no credit. Untested: the etherscan profile, a partial or unknown verdict, the 202 path.
+
+Follow-up, 2026-10-04 20:40 UTC. The operator posted on api#87 at 18:57 UTC that deployment 66eb24cd changed the two usability points above and asked for no payment or retest. Checked unpaid from this box at 20:39-20:40 UTC: the root GET now carries a "nano" object naming POST /v1/diagnose-nano, 0.05 XNO per result, nano:mainnet, and says to take the live quote from the endpoint (root-2-after-fix.json); an unpaid POST reusing the paid request_id with the identical body now returns 409 original_payment_proof_required with no Retry-After and no new PAYMENT-REQUIRED (unpaid-reuse-2-after-fix.json), where it returned 202 pending at 16:3x UTC. The paid path was not re-run. Nothing was paid for this check.
