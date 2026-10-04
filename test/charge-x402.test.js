@@ -80,8 +80,9 @@ test('two concurrent charges with the same landed payment: one served, one refus
   const r4 = response();
   assert.equal(await chargeX402({ ...request(), url: '/v1/echo?msg=other' }, r4, header), false);
   assert.equal(r4.status, 402); assert.match(r4.body.error, /already used/);
-  // The block is public: the same call with the same block wrapped by someone who does not hold the session (another one,
-  // or none) is not replayed but refused as already used, and the refusal says what a replay needs (PlatinumVera, 2026-10-03).
+  // The block is public: the payment echoed a session, so the same call with the same block wrapped by someone who does not
+  // hold it (another session, or none) is not replayed but refused as already used, and the refusal says what a replay
+  // needs (PlatinumVera, 2026-10-03). Only a payment that echoed no session falls back to the key alone (next test).
   for (const h of [headerOtherSession, headerNoSession]) {
     const r5 = response();
     assert.equal(await chargeX402({ ...request(), headers: { host: 'pursekeeper.dev', 'payment-signature': h } }, r5, h), false);
@@ -90,7 +91,7 @@ test('two concurrent charges with the same landed payment: one served, one refus
   }
 });
 
-test('a payment whose payload echoed no session is served but never replayed (nothing binds the replay to its payer)', async () => {
+test('a payment whose payload echoed no session is replayed on method, URL and body alone, to anyone, and refused for another call', async () => {
   // A fresh block from the same account at the same frontier: another representative, another hash, already landed.
   const sk2 = N.deriveSecretKey(await N.generateSeed(), 0);
   const payer2 = N.deriveAddress(N.derivePublicKey(sk2), { useNanoPrefix: true });
@@ -110,9 +111,24 @@ test('a payment whose payload echoed no session is served but never replayed (no
     const r1 = response();
     assert.equal(await chargeX402(req(), r1, hdr), true, JSON.stringify(r1.body));
     send(r1, 200, { echo: 'hi' });
+    // extra is optional in the x402 v2 schema and the verifier never reads it, so a conforming client can have nothing to
+    // echo; until 2026-10-04 its lost reply was refused as already used while the front page promised the replay
+    // (pyfile-toolkit, 2026-10-03). Now the key (method, URL, body) is the only binding, and anyone wrapping the public
+    // block for the same call inside the ten minutes gets the reply: a stranger's payload echoing some session included.
     const r2 = response();
     assert.equal(await chargeX402(req(), r2, hdr), false);
-    assert.equal(r2.status, 402, JSON.stringify(r2.body)); assert.match(r2.body.error, /already used/); assert.match(r2.body.error, /extra\.session/);
+    assert.equal(r2.status, 200, JSON.stringify(r2.body)); assert.deepEqual(r2.body, { echo: 'hi' });
+    assert.equal(r2.getHeader('x-nano-replay'), 'true'); assert.equal(r2.getHeader('x-nano-payment-hash'), h2);
+    const hdrSomeSession = encodePaymentSignatureHeader({ x402Version: 2, accepted: { ...REQ, extra: { ...REQ.extra, session: 'c'.repeat(32) } }, payload: { block: b2 } });
+    const r3 = response();
+    assert.equal(await chargeX402({ ...req(), headers: { host: 'pursekeeper.dev', 'payment-signature': hdrSomeSession } }, r3, hdrSomeSession), false);
+    assert.equal(r3.status, 200, JSON.stringify(r3.body)); assert.equal(r3.getHeader('x-nano-replay'), 'true');
+    // Another call on the same block is not a lost reply: refused, and the refusal says what the replay covers.
+    const r4 = response();
+    assert.equal(await chargeX402({ ...req(), url: '/v1/echo?msg=other' }, r4, hdr), false);
+    assert.equal(r4.status, 402, JSON.stringify(r4.body)); assert.match(r4.body.error, /already used/);
+    assert.match(r4.body.error, /echoed no session is replayed on method, URL and body alone/);
+    assert.equal(r4.getHeader('x-nano-replay'), undefined);
   } finally { globalThis.fetch = prev; }
 });
 

@@ -387,7 +387,8 @@ function x402Required(req, hint) {
   // payload (`accepted`), so the value comes back with the payment over the same connection and never touches the chain:
   // it is the one thing a reader of the public block cannot rebuild, and the replay cache is bound to it (replayIfServed;
   // PlatinumVera, 2026-10-03, from the source). Neither stored nor checked for origin: any echoed value binds the replay
-  // to the client that sent it, and a payload that echoes none gets no replay.
+  // to the client that sent it; a payload that echoes none is replayed on method, URL and body alone (pyfile-toolkit,
+  // 2026-10-03: extra is optional in the v2 schema, so a conforming client may have nothing to echo).
   const requirements = { ...X402_REQ, extra: { ...X402_REQ.extra, session: crypto.randomBytes(16).toString('hex') } };
   return x402.paymentRequired({ requirements, url: 'https://' + hostOf(req) + req.url,
     description: DESCRIPTIONS[u.pathname] || 'pursekeeper.dev paid call', error: hint || 'payment required' });
@@ -514,7 +515,7 @@ async function chargeX402Locked(req, res, payload, key) {
       return paymentRequired(res, 'x402: block ' + key + ' was broadcast through this server, is not confirmed yet and is waiting for its payer to re-present it with the X-Nano-Represent token from the 402 that announced the broadcast; nothing served, nothing marked spent', req), false;
     }
     // A used block whose reply is still in the replay cache but was refused there: say what the replay needs.
-    const hint = key && served.has(key) && /already used/.test(v.reason) ? '; the reply it bought is replayed within ten minutes only to the client whose payload echoes the extra.session of the 402 it paid (a v2 client copies the accepted entry, so this is automatic), for the same method, URL and body' : '';
+    const hint = key && served.has(key) && /already used/.test(v.reason) ? '; the reply it bought is replayed within ten minutes for the same method, URL and body only, and when the payment echoed the extra.session of the 402 it paid (a v2 client copies the accepted entry, so this is automatic) only to a payload echoing the same session; a payment that echoed no session is replayed on method, URL and body alone' : '';
     return paymentRequired(res, 'x402: ' + v.reason + hint, req), false;
   }
   // In `settling` for the whole serve, the alreadyLanded branch included: the facilitator shares the set, so its /verify
@@ -977,11 +978,16 @@ function readBody(req, limit = 1_000_000) {
 // paid for (uknwplayer, 2026-09-29). A re-presentation for another route or body is not a lost reply and is refused as before;
 // a hash with credit left buys a new call as before. The facilitator's /settle answers its own replays with the settled hash
 // and time (facilitator.js) and is not cached here. Kept in memory only: a restart forgets, and the refusal stands.
-// Binding (PlatinumVera, 2026-10-03, from the source): the key above is public data, since the block is on the chain from
-// the broadcast and a payload wrapping it can be rebuilt by anyone, so an x402 reply is replayed only to the client whose
-// payload echoes the extra.session of the 402 it paid (x402Required); a payment that echoed none is never replayed. A bearer
-// hash (X-Nano-Payment) is replayed to whoever presents it for the same call, as the credit itself goes to whoever presents
-// the hash first; that path is bearer by design and documented as such.
+// Binding (PlatinumVera, 2026-10-03, from the source): the hash above is public data, since the block is on the chain from
+// the broadcast and a payload wrapping it can be rebuilt by anyone, so an x402 reply bought by a payload that echoed the
+// extra.session of the 402 it paid (x402Required) is replayed only to a payload echoing the same session. A payment that
+// echoed no session is replayed on method, URL and body alone: extra is optional in the x402 v2 schema this server parses
+// with and the verifier never reads it, so a conforming client can pay with nothing to echo, and until 2026-10-04 its lost
+// reply was refused as "already used" while the sentence on the front page promised the replay (pyfile-toolkit, 2026-10-03,
+// from the source). The weaker binding is stated where it applies: whoever presents the same block for the same method, URL
+// and body inside the ten minutes gets that reply. A bearer hash (X-Nano-Payment) is replayed to whoever presents it for
+// the same call, as the credit itself goes to whoever presents the hash first; that path is bearer by design and documented
+// as such. An x402 reply is never handed to a bearer presentation, nor a bearer reply to an x402 one.
 const REPLAY_TTL_MS = 10 * 60_000;
 const served = new Map();   // hash -> { key, code, body, type, headers, at, bind: { secret } | { bearer: true } }
 function replayKey(req) { return req.method + ' ' + req.url + ' ' + crypto.createHash('sha256').update(req.bodyBuffer || '').digest('hex'); }
@@ -994,8 +1000,9 @@ function rememberServed(hash, key, code, body, type, headers, bind) {
 function replayIfServed(req, res, hash, bind) {
   const s = served.get(String(hash || '').toUpperCase());
   if (!s || Date.now() - s.at > REPLAY_TTL_MS || s.key !== replayKey(req)) return false;
-  if (s.bind.bearer) { if (!bind || !bind.bearer) return false; }
-  else if (!bind || !bind.secret || !s.bind.secret || bind.secret !== s.bind.secret) return false;
+  if (!bind) return false;
+  if (s.bind.bearer || bind.bearer) { if (!s.bind.bearer || !bind.bearer) return false; }
+  else if (s.bind.secret && bind.secret !== s.bind.secret) return false;   // echoed a session: only that session; none: key alone
   for (const [k, v] of Object.entries(s.headers)) res.setHeader(k, v);
   res.setHeader('x-nano-replay', 'true');
   res.setHeader('x-nano-payment-hash', String(hash).toUpperCase());
@@ -1033,9 +1040,12 @@ x402
   a re-presentation that arrives while the block is still unconfirmed gets the same 402 and the
   same token again. A reply served for a payment is kept for ten minutes: re-present the same
   PAYMENT-SIGNATURE for the same method, URL and body and the same reply comes back with
-  X-Nano-Replay: true (a reply given again, never a refusal); it goes only to the client whose
-  payload echoes the extra.session of the 402 it paid, which a v2 client does by copying the
-  accepted entry, because the block is public and anyone could wrap it. No external facilitator, no account. The block pays for one call and is not otherwise
+  X-Nano-Replay: true (a reply given again, never a refusal, to the payer). The block is public
+  and anyone could wrap it, so when the payment echoed the extra.session of the 402 it paid
+  (every 402 here carries one; a v2 client echoes it by copying the accepted entry) the replay
+  goes only to a payload echoing the same session; a payment that echoed no session (extra is
+  optional in x402 v2) is replayed to whoever presents the same block for the same method, URL
+  and body within the ten minutes, which is the only binding there is in that case. No external facilitator, no account. The block pays for one call and is not otherwise
   usable as X-Nano-Payment credit; the three exceptions are /v1/work answering 502
   because work generation failed, /v1/fetch answering 400 because a redirect could not
   be followed (the next target failed the same address check as the first URL, the
