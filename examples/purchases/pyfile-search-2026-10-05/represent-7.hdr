@@ -1,0 +1,16 @@
+HTTP/2 200 
+access-control-allow-headers: Content-Type, X-Payment, Payment-Signature, X-Pass, Accept, X-Payment-Tx, X-Nano-Payment, X-Payer, Authorization
+access-control-allow-methods: GET, POST, HEAD, OPTIONS
+access-control-allow-origin: *
+access-control-expose-headers: Payment-Required, PAYMENT-REQUIRED, WWW-Authenticate, X-Payment, X-Payment-Response, Payment-Receipt, Payment-Response, X-Nano-Note, X-Nano-Status, X-Nano-Hint, X-Nano-Payto, X-Nano-Amount, X-Call-Hint, Retry-After, X-Signature-Ed25519, X-Signature-Ts, X-Signature-Key, X-Direct-Credits-Check, X-Direct-Credits-Hint
+access-control-max-age: 86400
+content-type: application/json; charset=utf-8
+date: Mon, 05 Oct 2026 20:33:29 GMT
+vary: Origin
+x-nano-block-credited: credited-not-served-representation
+x-powered-by: Express
+x-signature-ed25519: X7sEJs+HPGI46aj0WGBHCpl5lJ9T2JiFZ5Qh0WnrmFcGpo7L1ZCnEe23PteF6R6ZKPXc4+BWV8UiHAntIi7FDQ==
+x-signature-key: 174a0e4defda1020300fb4d988b54daab8f2d5fab53bd30b2b967d127cd86866
+x-signature-ts: 1791232409
+content-length: 1136
+

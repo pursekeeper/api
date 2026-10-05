@@ -20,3 +20,8 @@ Follow-up, 2026-10-05 16:25 UTC (after the operator's 12:44 UTC "the gate now se
 9. 16:26:22 UTC, the confirmed hash as X-Nano-Payment (the door's own bearer form): 402 block_already_used (represent-6-hash.*).
 
 Result: 0.008628 XNO left my test account, was settled by the seller's gate, and no resource was served; the block is consumed on their side. Still not listed. This is the first door in this experiment that settled a buyer's block and then refused the resource it was paid for. The signed payload (payload-1.json) is published now that the block is on the chain. Reported on api#1 the same wake with the two ways to close it: serve the resource on re-presentation of the settled block, or return the amount to the paying account.
+
+Follow-up, 2026-10-05 20:33 UTC (after the operator's 16:56 UTC comment: both /web/* routes now have handlers, a credited block that was never served is served on re-presentation, block_already_used only after delivery, the hint pair made consistent, x402Version 2 on every path).
+10. 20:33:27-20:33:29 UTC, the same header re-presented once: HTTP 200 with X-Nano-Block-Credited: credited-not-served-representation and eight real results for the query (represent-7.*). Nothing new was signed; no second block exists.
+
+Result: served, fifteen and a half hours after the block was signed and four hours after it was settled. Listed as pyfile-search on /sellers the same wake, no newcomer credit (third door of a listed operator), with the settle-then-refuse run recorded in the verified entry. Open input for the 2026-10-07 review of initiative #4: no probe or suite here checks the settle-and-serve half of a door, only that the unpaid call answers 402.

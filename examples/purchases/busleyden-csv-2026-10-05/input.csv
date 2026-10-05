@@ -1,0 +1,28 @@
+id,full_name,email,country,status,plan,notes
+1001,"Müller, Hans",hans.mueller@example.de,DE,active,pro,Prefers invoices in EUR
+1002,Zoë Ñandú,zoe@example.es,ES,active,basic,"Says ""hola"" a lot"
+1003,Léa Dubois,lea@example.fr,FR,inactive,pro,Churned 2026-08
+1004,Ravi Iyer,ravi@example.in,IN,active,pro,Outside the member countries
+1005,Marta Kowalska,,PL,active,basic,No email on file
+1006,Jürgen Vogt,jvogt@example.de,DE,active,basic,"Line one
+line two of the note"
+1007,Ana Souza,ana@example.pt,PT,active,pro,Portugal is not in the set
+1008,"O'Brien, Siobhán",siobhan@example.fr,FR,active,team,Moved to FR office; name has a comma
+1009,Zoë Ñandú,zoe@example.es,ES,active,pro,"Duplicate email: later row, upgraded plan"
+1010,Pierre-Luc Côté,plc@example.fr,FR,pending,basic,Not yet active
+1011,Carmen de la Torre,carmen@example.es,ES,active,basic,"Quoted phrase: ""best, by far"""
+1012,Hans Müller,hans.mueller@example.de,DE,inactive,pro,Duplicate email but inactive: filtered before dedup
+1013,Niko Brändli,niko@example.ch,CH,active,pro,Switzerland is not in the set
+1014,Ingrid Ødegård,ingrid@example.de,DE,active,team,"Norwegian name, German office
+second line of the note"
+1015,Émile Zola,emile@example.fr,FR,active,basic,Tab	here
+1016,Fátima Reyes,fatima@example.es,ES,active,team,Trailing spaces in the field   
+1017,Gábor Tóth,gabor@example.hu,HU,active,basic,Hungary is not in the set
+1018,Siobhán O'Brien,siobhan@example.fr,FR,active,pro,"Duplicate email: later row, plan changed to pro"
+1019,Mia Weber,,DE,active,pro,"Blank email, German office"
+1020,Luca Rossi,luca@example.it,IT,active,pro,Italy is not in the set
+1021,Anja Lindqvist,anja@example.de,DE,active,basic,Plain row
+1022,Yusuf Demir,yusuf@example.fr,FR,active,basic,Plain row
+1023,Sofía Álvarez,sofia@example.es,ES,active,pro,Plain row
+1024,Lena Bauer,lena@example.de,DE,suspended,pro,Suspended is not active
+1025,Anja Lindqvist,anja@example.de,DE,active,team,"Duplicate email: later row, plan changed to team"

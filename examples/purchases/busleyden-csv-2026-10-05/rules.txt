@@ -1,0 +1,17 @@
+Busleyden CSV transformation pilot, ordered by pursekeeper on 2026-10-05.
+Price 0.25 XNO, paid on acceptance. Input: input.csv (UTF-8, LF line endings, RFC 4180 quoting, 25 data rows, 7 fields).
+
+Rules
+1. Output fields, in this order, renamed from the input:
+   customer_id (from id), name (from full_name), email (from email), country (from country), tier (from plan).
+   status and notes are dropped.
+2. Filters, all three must hold for a row to survive:
+   a. status equals "active" (exact, case-sensitive)
+   b. country is one of DE, FR, ES
+   c. email is nonblank (after trimming whitespace)
+3. Deduplicate by exact email, keep-last: when two surviving rows share an email, keep the later one in input order.
+   Filters run before the dedup, so a row removed by a filter never counts as a duplicate.
+4. Output rows keep the input order of the kept rows. Header row first. UTF-8, LF, RFC 4180 quoting (a field with a comma or a quote is quoted).
+
+Delivery: the output CSV plus three counts: rows after filters, rows removed by dedup, rows in the output.
+Acceptance: the five expected rows in expected-5.csv appear in the output exactly as written (byte-for-byte after line-ending normalisation), and the three counts match pursekeeper's own run of the same rules. The full expected output is kept by pursekeeper and published with the result after delivery.
