@@ -85,7 +85,25 @@ The method is not new. ChainWard applied a seller-funded and round-trip test to 
 ## Files
 
 - `cadence.py`: the inter-arrival test in response 1 (added 2026-10-02).
+- `bins.py`: the ISO-week series of response 5 (added 2026-10-05): reads a run's `cohort-<date>.json` and the public ledger, writes `bins-<date>.json`, prints the table.
 - `cohort.py`: the classifier, standalone, Python 3, no dependencies. `python3 cohort.py --rpc <node RPC> --max-id 370`.
 - `inputs.json`: hot wallet, donation hash, exchange list used.
 - `cohort-2026-10-02.json`: every receipt with its class, attributed payer, pre-receipt funders and labels.
 - `cohort-2026-10-02.md`: the same as a table.
+
+## Runs
+
+### Run #1, 2026-10-05 08:07 UTC (epoch: every `payment_in` with ledger id up to 373, the last receipt before the run)
+
+- 102 receipts, one more than the pinned table: #373 (Ӿ0.16, 2026-10-04 02:24 UTC), the ladder stake Zoidberg flagged on 10-04, classed *seeded-direct* by first-match as the reach check in response 2 said it would be. Every one of the 101 earlier receipts keeps its 2026-10-02 class and sub-label under the two-hop windows re-read at this epoch (same 2,000-block history depth), and no funding account of pursekeeper's appeared in any payer's history, so the public run and the box run give the same classes. Totals by class: donation 1 (Ӿ100), own 11 (Ӿ0.0191), seeded-direct 10 (Ӿ1.1403, was 9 and Ӿ0.9803), seeded-indirect 8 (Ӿ1.28), unseeded 72 (Ӿ19.27932, 26 payers), unchanged except for the one new row. Commands: `python3 cohort.py --rpc http://127.0.0.1:7076` then `python3 bins.py cohort-2026-10-05.json`; outputs `cohort-2026-10-05.json`, `cohort-2026-10-05.md`, `bins-2026-10-05.json`.
+- The series (primary = receipt count; Ӿ in parentheses). Route: *checkout* = attributed through a pass-through wallet, *direct* = paid pursekeeper's account itself. Primary funder is read per receipt from that receipt's own pre-receipt funders (the label with the largest amount; *unlisted* is cohort.py's "other"; *no funder* = no receive before the send in the history read). *Prospective* is the response-2 sub-label, counted separately and also inside the other columns.
+
+| bin | unseeded receipts (Ӿ) | checkout | direct | exchange-primary | unlisted-primary | high-traffic-primary | no funder | prospective |
+|---|---|---|---|---|---|---|---|---|
+| 2026-W37 | 2 (0.002) | 0 | 2 (0.002) | 0 | 2 (0.002) | 0 | 0 | 0 |
+| 2026-W38 | 43 (17.598) | 24 (17.58) | 19 (0.018) | 11 (3.75) | 31 (13.663) | 1 (0.185) | 0 | 0 |
+| 2026-W39 | 25 (1.58682) | 8 (1.4125) | 17 (0.17432) | 5 (0.39157) | 20 (1.19525) | 0 | 0 | 3 (0.16032) |
+| 2026-W40 | 2 (0.0925) | 2 (0.0925) | 0 | 1 (0.04625) | 0 | 1 (0.04625) | 0 | 0 |
+
+- Reading, under the pre-registered rule (a crossover is called only when the leading route or funder class holds the larger count in two consecutive bins): **no crossover**. Route: direct led W37 and W39, checkout led W38 and W40; neither held two bins running. Funder: unlisted-primary led W37 through W39; in W40 the two receipts split one exchange-primary and one high-traffic-primary, so nothing led. W40 closed as the smallest full bin so far, two checkout receipts and no direct wallet-to-wallet send at all: the six-hourly loop of response 1 stopped after 2026-09-27 12:08 UTC and nothing replaced it. The prospective line is still the three 2026-09-26 receipts (Ӿ0.16032, one payer) in W39. W41 (from 2026-10-05) is open; run #2 at the next Monday report, 2026-10-12.
+
