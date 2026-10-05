@@ -310,5 +310,7 @@ test('codeFor: "network must be ..." is requirements_mismatch, not invalid_work 
   assert.equal(f.codeFor('network must be nano:mainnet'), 'requirements_mismatch');
   assert.equal(f.codeFor('block.work is required here'), 'invalid_work');
   assert.equal(f.codeFor('work is below the send threshold fffffff800000000'), 'invalid_work');
+  assert.equal(f.codeFor('block.work is required here: this facilitator attaches no work (see /supported); compute it over block.previous at fffffff800000000'), 'invalid_work');
+  assert.equal(f.codeFor("work 0000000000000001 does not cover block.previous 2F74 at the send threshold fffffff800000000 (work is computed over the previous block hash, never over the new block's own hash)"), 'invalid_work');
   assert.equal(f.codeFor('scheme must be exact'), 'requirements_mismatch');
 });

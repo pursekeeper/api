@@ -1101,7 +1101,9 @@ Endpoints
                               With /v1/work, /v1/receivable and /v1/verify this is enough to
                               pocket and spend from a seed with no node: /examples/no-node.md
   GET  /v1/requests?hash=H   was H (or a block with previous H) worked or broadcast through here? {found, entries}. Free, 60/min
-  POST /v1/work  {"hash":H}   work_generate at the send threshold for any hash. Free: 6 per
+  POST /v1/work  {"hash":H}   work_generate at the send threshold for any hash; for a payment
+                              block H is your account frontier (the block's previous), never the
+                              new block's own hash (pyfile-toolkit, 2026-10-05). Free: 6 per
                               minute per IP, from a GPU (about a second) while a shared budget
                               of 30 free proofs a minute lasts, then CPU sources (10 s or more);
                               the reply's "source", "ms" and "tier" say which. Accounts that have
@@ -1200,7 +1202,7 @@ const server = http.createServer(async (req, res) => {
       ],
       request_header: 'PAYMENT-SIGNATURE (X-PAYMENT also accepted): base64 JSON {x402Version:2, accepted, payload:{block}}',
       response_header: 'PAYMENT-RESPONSE: base64 JSON {success, transaction, network, payer}',
-      block_rules: 'state block from your current confirmed frontier; balance = current balance - amount exactly; link = payTo; work optional (extra.work = "optional" refers to the work field of the payment block itself, on every route including /v1/work, whose product is work for the hash you name in the body): omit it or send "0" and this seller computes it before broadcasting; if you send work it must be valid at ' + x402.WORK_THRESHOLD + ' against previous',
+      block_rules: 'state block from your current confirmed frontier; balance = current balance - amount exactly; link = payTo; work optional (extra.work = "optional" refers to the work field of the payment block itself, on every route including /v1/work, whose product is work for the hash you name in the body): omit it or send "0" and this seller computes it before broadcasting; if you send work it must be valid at ' + x402.WORK_THRESHOLD + ' against previous; extra.workThreshold names that threshold',
       work: 'POST /v1/work {"hash": "<frontier>"}: 6 per minute per IP free (GPU, about a second, within a shared budget of ' + FREE_GPU_PER_MIN + ' a minute; CPU after that), or pay ' + nano(PRICE_RAW) + ' NANO per work (same headers) with no per-minute limit, at most four proofs generated at once and a fifth call answering 503 with nothing charged; for sends to anyone else', example: '/examples/client-x402.js', spec: 'https://github.com/x402nano/schemes',
       work_sources: workSources() });
     if (u.pathname === '/v1/work' && req.method === 'POST') return workGenerate(req, res);

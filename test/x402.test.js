@@ -257,6 +257,16 @@ test('missing work without a workGenerate dep is rejected, and a bad source fail
   assert.equal(r3.ok, false); assert.match(r3.reason, /below threshold/);
 });
 
+// pyfile-toolkit, 2026-10-05: a workless block at a facilitator with no work source used to fail the shape
+// check ("not a Nano state block"); work computed over the new block's own hash used to read as "below the
+// send threshold". Both refusals now name what is missing.
+test('a workless block without a work source names the field; work for the wrong hash names block.previous', async () => {
+  const r = await x.verify(payload(makeBlock({ work: '' })), REQ, deps());
+  assert.equal(r.ok, false); assert.match(r.reason, /^block\.work is required here/); assert.match(r.reason, /block\.previous at [0-9a-f]{16}$/);
+  const r2 = await x.verify(payload(makeBlock({ work: '0000000000000001' })), REQ, deps());
+  assert.equal(r2.ok, false); assert.match(r2.reason, /does not cover block\.previous/); assert.ok(r2.reason.includes(FRONTIER), r2.reason);
+});
+
 test('work is only generated after the cheap checks pass', async () => {
   let called = 0;
   const r = await x.verify(payload(makeBlock({ work: '0', balance: '1' })), REQ, deps({ workGenerate: async () => { called++; return work; } }));
@@ -265,8 +275,8 @@ test('work is only generated after the cheap checks pass', async () => {
 
 test('requirements can advertise optional work', () => {
   const req = x.requirements({ payTo: PAY_TO, amountRaw: AMOUNT, workOptional: true });
-  assert.deepEqual(req.extra, { work: 'optional' });
-  assert.deepEqual(REQ.extra, {});
+  assert.deepEqual(req.extra, { work: 'optional', workThreshold: 'fffffff800000000' });
+  assert.deepEqual(REQ.extra, { work: 'required', workThreshold: 'fffffff800000000' });
 });
 
 // Since 2026-09-30 the landed block is recognised by its own hash wherever the frontier is: a wallet that appended a later

@@ -1,0 +1,23 @@
+HTTP/2 405 
+access-control-allow-headers: Content-Type, X-Payment, Payment-Signature, X-Pass, Accept, X-Payment-Tx, X-Nano-Payment, X-Payer, Authorization
+access-control-allow-methods: GET, POST, HEAD, OPTIONS
+access-control-allow-origin: *
+access-control-expose-headers: Payment-Required, PAYMENT-REQUIRED, WWW-Authenticate, X-Payment, X-Payment-Response, Payment-Receipt, Payment-Response, X-Nano-Note, X-Nano-Status, X-Nano-Hint, X-Nano-Payto, X-Nano-Amount, X-Call-Hint, Retry-After, X-Signature-Ed25519, X-Signature-Ts, X-Signature-Key, X-Direct-Credits-Check, X-Direct-Credits-Hint
+access-control-max-age: 86400
+allow: GET, OPTIONS
+content-type: application/json; charset=utf-8
+date: Mon, 05 Oct 2026 05:01:04 GMT
+payment-required: eyJ4NDAyVmVyc2lvbiI6MSwiYWNjZXB0cyI6W3sic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoiZWlwMTU1Ojg0NTMiLCJwYXlUbyI6IjB4QTQzNzc0ZkQyZTg2N0ZDNDViNzgyNDU2ZDc4RjEzNWEyMTVENTU2MSIsInByaWNlIjoiJDAuMDAzIiwiYXNzZXQiOiIweDgzMzU4OWZDRDZlRGI2RTA4ZjRjN0MzMkQ0ZjcxYjU0YmRBMDI5MTMiLCJtYXhUaW1lb3V0U2Vjb25kcyI6OTAwLCJleHRyYSI6eyJuYW1lIjoiVVNEIENvaW4iLCJ2ZXJzaW9uIjoiMiJ9fSx7InNjaGVtZSI6ImV4YWN0IiwibmV0d29yayI6ImVpcDE1NToxMzciLCJwYXlUbyI6IjB4QTQzNzc0ZkQyZTg2N0ZDNDViNzgyNDU2ZDc4RjEzNWEyMTVENTU2MSIsInByaWNlIjoiJDAuMDAzIiwiYXNzZXQiOiIweDNjNDk5YzU0MmNFRjVFMzgxMWUxMTkyY2U3MGQ4Y0MwM2Q1YzMzNTkiLCJtYXhUaW1lb3V0U2Vjb25kcyI6OTAwLCJleHRyYSI6eyJuYW1lIjoiVVNEIENvaW4iLCJ2ZXJzaW9uIjoiMiJ9fSx7InNjaGVtZSI6ImV4YWN0IiwibmV0d29yayI6ImVpcDE1NTo0MjE2MSIsInBheVRvIjoiMHhBNDM3NzRmRDJlODY3RkM0NWI3ODI0NTZkNzhGMTM1YTIxNUQ1NTYxIiwicHJpY2UiOiIkMC4wMDMiLCJhc3NldCI6IjB4YWY4OGQwNjVlNzdjOGNDMjIzOTMyN0M1RURiM0E0MzIyNjhlNTgzMSIsIm1heFRpbWVvdXRTZWNvbmRzIjo5MDAsImV4dHJhIjp7Im5hbWUiOiJVU0QgQ29pbiIsInZlcnNpb24iOiIyIn19LHsic2NoZW1lIjoiZXhhY3QiLCJuZXR3b3JrIjoibmFubzptYWlubmV0IiwicGF5VG8iOiJuYW5vXzN1b2pibjQ3YjV4cWNiczR5aWJiYXNhbW44YWV5cXhneWkxejhwZW9nd3RkbjZ6M2thZ2phbmpwejRzcyIsInByaWNlIjoiMC4wMDg2MjgiLCJhc3NldCI6IlhOTyIsIm1heFRpbWVvdXRTZWNvbmRzIjozNjAwLCJleHRyYSI6eyJhc3NldCI6IlhOTyIsIndvcmsiOiJyZXF1aXJlZCIsIndvcmtUaHJlc2hvbGQiOiJmZmZmZmZmODAwMDAwMDAwIn19XX0=
+vary: Origin
+x-nano-block-status: not_confirmed
+x-powered-by: Express
+x-signature-ed25519: 8b+hMprI/CiIk9bLyFs2Fxtgj/amyoI3086UjCvxVr70kYWluwGyHLsqLHI9l8UuM9rAYaEKLOrEwyd5xgFjCg==
+x-signature-key: 174a0e4defda1020300fb4d988b54daab8f2d5fab53bd30b2b967d127cd86866
+x-signature-ts: 1791176464
+x-x402-hint: The presented payment did not verify. Read x-x402-reason; the challenge in this 402 body is authoritative. Sign a fresh authorization and retry immediately.
+x-x402-max-timeout-seconds: 900
+x-x402-reason: method_not_allowed
+x-x402-retry: Sign again at request time and retry; nonces are single-use, so a fresh nonce is required.
+x-x402-status: rejected
+content-length: 1510
+

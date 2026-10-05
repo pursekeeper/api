@@ -39,9 +39,11 @@ const REQUEST_HEADERS = ['payment-signature', 'x-payment'];
 
 // extra.work = 'optional' tells clients they may omit block.work (or send "0"): the seller
 // computes it before broadcasting. Work is not part of the signed hash, so this is safe.
+// extra.workThreshold names the send threshold either way, so a payer knows the target before
+// signing (pyfile-toolkit, 2026-10-05; the same keys pyfile-toolkit and CedarProof quote).
 function requirements({ payTo, amountRaw, maxTimeoutSeconds = 60, workOptional = false }) {
   return { scheme: SCHEME, network: NETWORK, amount: String(amountRaw), asset: ASSET, payTo, maxTimeoutSeconds,
-    extra: workOptional ? { work: 'optional' } : {} };
+    extra: { work: workOptional ? 'optional' : 'required', workThreshold: WORK_THRESHOLD } };
 }
 
 const NO_WORK = w => w === undefined || w === null || /^0*$/.test(String(w));
@@ -104,7 +106,9 @@ async function verify(payload, required, deps) {
 
     // block shape
     const raw = p.payload && p.payload.block;
-    if (raw && typeof raw === 'object' && NO_WORK(raw.work) && deps.workGenerate) raw.work = '0';
+    // A workless block passes the shape check whether or not a work source exists, so the work
+    // check below names the missing field instead of "not a Nano state block" (pyfile-toolkit, 2026-10-05).
+    if (raw && typeof raw === 'object' && NO_WORK(raw.work)) raw.work = '0';
     if (!NANO_SEND_BLOCK.safeParse(raw).success) return fail('payload.block is not a Nano state block');
     const block = {
       type: 'state', account: nanoPrefix(raw.account), previous: up(raw.previous), representative: nanoPrefix(raw.representative),
@@ -114,7 +118,7 @@ async function verify(payload, required, deps) {
     if (!N.checkAddress(block.account)) return fail('block.account is not a valid nano_ address', payer);
     if (!N.checkAddress(block.representative)) return fail('block.representative is not a valid nano_ address', payer); // (f)
     const needWork = NO_WORK(block.work);
-    if (needWork && !deps.workGenerate) return fail('block.work is required here', payer);
+    if (needWork && !deps.workGenerate) return fail('block.work is required here: this facilitator attaches no work (see /supported); compute it over block.previous at ' + (deps.workThreshold || WORK_THRESHOLD), payer);
     if (!needWork && !/^[0-9A-F]{16}$/i.test(block.work)) return fail('block.work must be 16 hex characters', payer);
 
     // (c) link must be the public key of payTo; link_as_account, if given, must agree
@@ -182,7 +186,7 @@ async function verify(payload, required, deps) {
     let workBy = 'client';
     const validWork = w => { try { return N.validateWork({ blockHash: block.previous, work: w, threshold }); } catch { return false; } };
     if (needWork || !validWork(block.work)) {
-      if (!deps.workGenerate) return fail('work is below the send threshold ' + threshold, payer);
+      if (!deps.workGenerate) return fail('work ' + block.work + ' does not cover block.previous ' + block.previous + ' at the send threshold ' + threshold + ' (work is computed over the previous block hash, never over the new block\'s own hash)', payer);
       let w;
       try { w = await deps.workGenerate(block.previous); } catch (e) { return fail('could not generate work: ' + e.message, payer); }
       if (!w || !validWork(w)) return fail('could not generate work' + (w ? ' (source returned work below threshold)' : ''), payer);

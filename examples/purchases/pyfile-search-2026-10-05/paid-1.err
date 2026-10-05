@@ -1,0 +1,4 @@
+paying from nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf
+seller wants 8628000000000000000000000000 raw (0.008628 NANO) to nano_3uojbn47b5xqcbs4yibbasamn8aeyqxgyi1z8peogwtdn6z3kagjanjpz4ss
+signed block 1A3AD1DCC8CFE80D65F1379F81A93349A6CA25D320F7701D204A79496F9ED560
+not served; the block is on the chain: hash 1A3AD1DCC8CFE80D65F1379F81A93349A6CA25D320F7701D204A79496F9ED560, no X-Nano-Represent token was issued; re-present the same PAYMENT-SIGNATURE for the same call with that token, do not sign a new block
