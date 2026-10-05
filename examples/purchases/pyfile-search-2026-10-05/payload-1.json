@@ -1,0 +1,44 @@
+{
+ "header": "eyJ4NDAyVmVyc2lvbiI6MiwicmVzb3VyY2UiOnsidXJsIjoiaHR0cHM6Ly9weWZpbGUtYWdlbnQudGFpbGUzZmYzNS50cy5uZXQ6MTAwMDAvd2ViL3NlYXJjaD9xPXg0MDIrYWdlbnQrcGF5bWVudHMmbGltaXQ9OCIsImRlc2NyaXB0aW9uIjoiV2ViIHNlYXJjaDogcmFua2VkIHJlc3VsdHMgKHRpdGxlICsgdXJsKSBmb3IgYSBxdWVyeS4gP3E9eDQwMithZ2VudCtwYXltZW50cyZsaW1pdD04IiwibWltZVR5cGUiOiJhcHBsaWNhdGlvbi9qc29uIiwic2VydmljZU5hbWUiOiJQeWZpbGUgeDQwMiBBUEkiLCJ0YWdzIjpbIndlYiIsInNlYXJjaCIsInJlYWRlciIsInNjcmFwaW5nIl19LCJhY2NlcHRlZCI6eyJzY2hlbWUiOiJleGFjdCIsIm5ldHdvcmsiOiJuYW5vOm1haW5uZXQiLCJhbW91bnQiOiI4NjI4MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwIiwiYXNzZXQiOiJYTk8iLCJwYXlUbyI6Im5hbm9fM3VvamJuNDdiNXhxY2JzNHlpYmJhc2FtbjhhZXlxeGd5aTF6OHBlb2d3dGRuNnoza2FnamFuanB6NHNzIiwibWF4VGltZW91dFNlY29uZHMiOjM2MDAsImV4dHJhIjp7ImFzc2V0IjoiWE5PIiwid29yayI6InJlcXVpcmVkIiwid29ya1RocmVzaG9sZCI6ImZmZmZmZmY4MDAwMDAwMDAifX0sInBheWxvYWQiOnsiYmxvY2siOnsidHlwZSI6InN0YXRlIiwiYWNjb3VudCI6Im5hbm9fMWkzeTk0NGVzbmdxdzZ3YjZpYTY4ZG90ajR5dXFjdGNoOWt4OGN0NjV0d3Q4ZXdpNHJkY2ZnYXg3Z2dmIiwicHJldmlvdXMiOiIyQjFBOUQ4OUE4NDBCOUJGODIwQTVDOEY3Mjg2NUYxQ0I4NjRFNTEyRDcwQ0NEQzU4RjQ2RkJDRjEzREY2RDI5IiwicmVwcmVzZW50YXRpdmUiOiJuYW5vXzNhcmczYXNndGlnYWUzeGNrYWJhYWV3a3gzYnpzaDdud3o3amttam9zNzlpaHlheHdwaGhtNnFnanBzNCIsImJhbGFuY2UiOiIxMTU5MzE4MTg5NDQ3NDc2ODkwMzIwOTUwNzAxIiwibGluayI6IkVFQjE0RDA0NTQ4RkI3NTI3MjJGNDEyOTQ2NTEzQTE5MENGNUZBRUY0MDFGMzU5OTU3NzM0QkExM0UxOTIxRDEiLCJsaW5rX2FzX2FjY291bnQiOiJuYW5vXzN1b2pibjQ3YjV4cWNiczR5aWJiYXNhbW44YWV5cXhneWkxejhwZW9nd3RkbjZ6M2thZ2phbmpwejRzcyIsIndvcmsiOiJiNGNmNWU0NTgxOTkzZGY2Iiwic2lnbmF0dXJlIjoiMUUxMDU5NUE1RkMzOEM4OEFEMjcwRjEwRjhGQUMyRjVCODAxNDkxNDZEMDg0MkI4QjBFQkU3RDM2MTZDNjA2M0JENERFMEQ2QkEzNzNBQzUzMjcyMDdFNUQwNTIyNTY1NDZGMTA5QzI5QTIyMDM1OUM3NDk3RDFBRjVDMDQ0MDgifX19",
+ "payload": {
+  "x402Version": 2,
+  "resource": {
+   "url": "https://pyfile-agent.taile3ff35.ts.net:10000/web/search?q=x402+agent+payments&limit=8",
+   "description": "Web search: ranked results (title + url) for a query. ?q=x402+agent+payments&limit=8",
+   "mimeType": "application/json",
+   "serviceName": "Pyfile x402 API",
+   "tags": [
+    "web",
+    "search",
+    "reader",
+    "scraping"
+   ]
+  },
+  "accepted": {
+   "scheme": "exact",
+   "network": "nano:mainnet",
+   "amount": "8628000000000000000000000000",
+   "asset": "XNO",
+   "payTo": "nano_3uojbn47b5xqcbs4yibbasamn8aeyqxgyi1z8peogwtdn6z3kagjanjpz4ss",
+   "maxTimeoutSeconds": 3600,
+   "extra": {
+    "asset": "XNO",
+    "work": "required",
+    "workThreshold": "fffffff800000000"
+   }
+  },
+  "payload": {
+   "block": {
+    "type": "state",
+    "account": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
+    "previous": "2B1A9D89A840B9BF820A5C8F72865F1CB864E512D70CCDC58F46FBCF13DF6D29",
+    "representative": "nano_3arg3asgtigae3xckabaaewkx3bzsh7nwz7jkmjos79ihyaxwphhm6qgjps4",
+    "balance": "1159318189447476890320950701",
+    "link": "EEB14D04548FB752722F412946513A190CF5FAEF401F359957734BA13E1921D1",
+    "link_as_account": "nano_3uojbn47b5xqcbs4yibbasamn8aeyqxgyi1z8peogwtdn6z3kagjanjpz4ss",
+    "work": "b4cf5e4581993df6",
+    "signature": "1E10595A5FC38C88AD270F10F8FAC2F5B80149146D0842B8B0EBE7D3616C6063BD4DE0D6BA373AC5327207E5D052256546F109C29A220359C7497D1AF5C04408"
+   }
+  }
+ }
+}
