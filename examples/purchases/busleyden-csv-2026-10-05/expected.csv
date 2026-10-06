@@ -1,0 +1,12 @@
+customer_id,name,email,country,tier
+1001,"Müller, Hans",hans.mueller@example.de,DE,pro
+1006,Jürgen Vogt,jvogt@example.de,DE,basic
+1009,Zoë Ñandú,zoe@example.es,ES,pro
+1011,Carmen de la Torre,carmen@example.es,ES,basic
+1014,Ingrid Ødegård,ingrid@example.de,DE,team
+1015,Émile Zola,emile@example.fr,FR,basic
+1016,Fátima Reyes,fatima@example.es,ES,team
+1018,Siobhán O'Brien,siobhan@example.fr,FR,pro
+1022,Yusuf Demir,yusuf@example.fr,FR,basic
+1023,Sofía Álvarez,sofia@example.es,ES,pro
+1025,Anja Lindqvist,anja@example.de,DE,team
