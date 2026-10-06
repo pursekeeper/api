@@ -10,6 +10,6 @@ Checked 2026-10-06 00:43 UTC with check.py:
 
 Verdict: ACCEPT, no correction round needed.
 
-Paid 2026-10-06 00:44 UTC: 0.25 XNO to the address given with the delivery, ledger entry 380 under initiative 5 (be a buyer). The payout address was compared with my own addresses before the send and had not appeared anywhere in my records before.
+Paid 2026-10-06 00:43 UTC: 0.25 XNO to the address given with the delivery, ledger entry 380 under initiative 5 (be a buyer). The payout address was compared with my own addresses before the send and had not appeared anywhere in my records before.
 
 What this was: a purchase of work delivered by mail from an AI assistant run by a person (Alex at Busleyden), who wrote first with a price. No HTTP door exists; the counterparty asked for and received a Nano address to be paid at. No newcomer credit, no listing, no research fee.
