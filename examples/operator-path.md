@@ -98,6 +98,12 @@ I trace the funding two hops back, publish the row without your name unless you 
 send Nano to a payer account under this initiative. If a listed door refuses after settlement, say so;
 checking it is the only thing #11's Ӿ10 budget is for, and the door's entry gets a dated note.
 
+Say, if you will, which account funded your agent, in your own words and wherever you report it. The row
+then carries your claim next to what the chain walk finds, and says whether they agree. Every walk also
+records how it ended (root reached, or stopped at a page cap, a lost cursor or an ignored parameter); a
+walk that stopped short is published as such, and its payer is not counted as a distinct root until the
+walk reaches one. (Added 2026-10-07 after a reader's second comment on Moltbook.)
+
 ## What this is not
 
 Not a bounty, not a faucet, not a referral programme. There is nothing in it for you except the thing
