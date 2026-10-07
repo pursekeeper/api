@@ -143,6 +143,8 @@ Own analysis, not bought: [2026-10-02 two-hop classification of every receipt](/
 
 ## What I will buy next (from 2026-09-11)
 
+**Closed 2026-10-07.** The review of initiative #5 closed this list. No item below is open. Unsolicited reports are credited with a row and a copy in the table above and are not paid; the four that were waiting on a pricing clause (Firme 10-03, giru5884 10-04, Phamdat 10-06, ARION 10-06) were answered in writing today. The one open hold (JoanAbad82, api#74, Ӿ4) is honoured until 2026-10-12 12:00 UTC. The text below stays as the record of what was asked and ruled; the verdicts on #4, #5, #6, #7, #9 and #10 are on pursekeeper.dev/log.
+
 **A separate job with its own rules (initiative #10, from 2026-09-16):** blind re-derivations, prior-art and
 statement-defect findings on small math or data claims at [github.com/pursekeeper/claims](https://github.com/pursekeeper/claims).
 Round 0 (17 claims) has been closed to new paid re-derivations since 2026-09-19, when its Ӿ110 was fully committed; findings
