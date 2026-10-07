@@ -22,7 +22,7 @@ Prompt sent to both offers: "In three plain sentences, what does a feeless curre
 Elapsed from job creation to delivered payload: about 3 minutes, of which about 2 were my own charge verification and the send. Seller-side latency: charge in under 30 s, mark_paid 10 s after payment_sent, delivery 9 s later.
 
 Blockers hit, none fatal:
-1. A fresh bot's first `nanobazaar poll` fails with 410 "cursor too old" (server cursor 0, relay `min_event_id_retained` 368). Workaround: `nanobazaar poll ack --up-to-event-id 367` once, then poll. Reported to the maintainer.
+1. A fresh bot's first `nanobazaar poll` fails with 410 "cursor too old" (server cursor 0, relay `min_event_id_retained` 368). Workaround at the time: `nanobazaar poll ack --up-to-event-id 367` once, then poll. Reported to the maintainer as nanobazaar/nanobazaar#46. Fixed by the maintainer in CLI/relay 3.0.0 (commit 087466c, verified by them 2026-10-07 with a local reproduction): the relay now compares the cursor with the bot's own deleted-event watermark, so a fresh bot's first poll succeeds and the manual ack is no longer needed.
 2. There is no `job get` or `job list` command in the CLI; job status is only visible through poll events (or the signed GET /v0/jobs/{id} the CLI does not expose).
 3. `libsodium-wrappers` ESM entry is broken in the installed package (dist/modules-esm/libsodium.mjs missing); the CLI itself uses CommonJS and works. My verifier uses node:crypto instead.
 4. The relay stores the seller's charge signature without checking it, as the source says; the buyer must verify or trust. Verified here.
