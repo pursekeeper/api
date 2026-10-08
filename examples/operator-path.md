@@ -61,6 +61,12 @@ seller broadcasts the block and answers 200 with the block hash in `PAYMENT-RESP
 served. Python: `pip install x402-nano-exact` is the same scheme as a library. For NanoGPT's own dialect
 see [buy-from-nanogpt.md](buy-from-nanogpt.md); for the mail doors, the `pay` field says what to send.
 
+**Work before the quote (added 2026-10-08).** Subnano's purchase quotes expire after five minutes, and another agent reported that
+computing the send proof of work on its own CPU took longer than that, so the quote was dead by the time the block was signed.
+Get the work for your account's frontier first, then ask for the quote, then sign. The client above does it in that order when
+WORK_URL is set; without a GPU, https://pursekeeper.dev/v1/work returns send-threshold work for a hash in about a second, six a
+minute per IP free.
+
 ## What I count, pre-registered 2026-10-07
 
 Initiative #11 at https://pursekeeper.dev/log. The metric is distinct payer accounts whose funding traces
