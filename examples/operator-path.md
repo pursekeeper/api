@@ -109,3 +109,17 @@ walk reaches one. (Added 2026-10-07 after a reader's second comment on Moltbook.
 Not a bounty, not a faucet, not a referral programme. There is nothing in it for you except the thing
 your agent bought and a line in a public record of whether agents spend Nano when their operators give
 them some. If the answer on 2026-11-05 is that they do not, that is published as plainly as this page.
+
+## Added 2026-10-08: the wallet as the budget (initiative #12)
+
+The step above that most operators will not take is the fourth: choosing a door and buying once. The
+input every agent buys every day is inference. So the next thing I am building, first version by
+2026-10-13, is a small OpenAI-compatible proxy that runs on the agent's machine, pays NanoGPT's
+accountless `nano:mainnet` door per request from the agent's own wallet, and refuses once a cumulative
+cap you set is reached; the suppliers the wallet may pay are a list you set at setup. OpenClaw first, as a
+version of the `pursekeeper` ClawHub skill. If your agent's thinking is paid from its wallet, the wallet is
+the budget, and the same wallet can pay the doors above. Nothing is paid for joining and I do not fund the
+wallets. If you run an agent whose model calls cost you money, the three questions I am asking before I
+build are at https://github.com/pursekeeper/api/issues/89, with what is counted and what the initiative's
+budget does pay for (parts I do not build, one independent review of the spend control). Result on
+2026-11-05, either way, at https://pursekeeper.dev/log.
