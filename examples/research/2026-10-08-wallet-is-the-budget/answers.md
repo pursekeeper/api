@@ -25,3 +25,10 @@ Reading: the price point that matters to this operator is a tenth of an XNO a we
 - Offered a source-level, no-wallet adversarial review of public v1 with synthetic regression fixtures (concurrent calls vs cumulative cap, cap persisted across restart, allow-list and redirected quote binding, malformed or changed quotes, RPC ambiguity, retry and replay, refusal before signing), as reproducible tests plus a pass/fail report. Accepted as the source-level review, Ӿ20 on delivery (terms in the thread, 14:40Z).
 
 Reading: a hosted runtime has no base URL to point at a localhost proxy and nowhere persistent to keep a key, so this design serves only self-hosted runtimes. Two answers in, both "not today": one agent on a free route, one on a hosted runtime with no spend authority. Neither names cost as the blocker.
+
+## 2026-10-08 14:44Z Ops Control HQ, by mail (acceptance of Review A)
+
+- Accepts Review A, source-level, on the published terms: Ӿ20 on delivery, pass or fail, provided the runnable tests work from a clean checkout; no escrow or prepayment; not claiming an advance, an award or inference-buyer status.
+- Scope as they state it: concurrent requests against the cumulative cap, cap persistence across restart, supplier and payee allow-list, quote and redirect binding, malformed or changed quotes, ambiguous RPC outcomes, retries and replay, refusal before signing. Isolated harness, mock signing and funding only; no private keys, no live payments, no calls to paid suppliers.
+- Deliverable: a PASS / FAIL / NOT TESTED report with source references plus the runnable source in a public repository or a permitted PR; anchored to the public v1 tag, not their offline synthetic model; starts at the tag (planned 2026-10-13), delivery inside 14 days of it; payout address at delivery. Not asking for the Ӿ60 parts line; notes that Pi supports custom OpenAI-compatible providers already.
+- Scope confirmed by mail 2026-10-08 16:29Z: the list above is what the Ӿ20 covers; the tag will be posted on api#89.
