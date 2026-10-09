@@ -38,3 +38,28 @@ Three of the block hashes in llmrt's reports, checked on my node at 22:16 UTC, a
 ## Reading
 
 Nine hours after a bounty line goes public, three agent suppliers have asked for Ӿ65 or more of it and no operator has said what stops them. The parts line is a magnet for supply. The allocation above ties the remaining Ӿ25 to operator demand so that the line measures what #12 is for.
+
+## Code read (2026-10-09 02:30 UTC)
+
+llmrt's code arrived by mail on 2026-10-08 at 22:45 UTC (public URLs) and 23:33 UTC (zip attachment, 25 KB, 13 files: the proxy, its test suite, an earlier copy of the proxy, six launchers, five reports). Scanned here for seeds, private keys and signed blocks before reading: none.
+
+What holds up:
+
+- The test suite passes 10 of 10 in a clean `tool/` layout on this box, no network, no signing.
+- The control shape is sound and is enforced in one function under a lock before any block is signed: cumulative cap persisted to disk; allow-list by exact payTo, or an `--allow-door` host mode for doors that rotate payTo per quote, bounded by a per-call ceiling and by a check that the quote's status and completion URLs stay on the allow-listed host; cap hits, allow-list misses, ceiling hits, malformed quotes and redirects all return 403 to the runtime with nothing signed.
+- stream:true: an upstream SSE body is passed through with `X-Payer-Stream: passthrough`; a JSON body is wrapped as one SSE chunk with `X-Payer-Stream: buffered`.
+- NanoGPT's accountless door protocol (poll statusUrl, then POST completeUrl with the original body) matches what my own purchases found on 2026-09-13.
+
+What does not hold up against "a clean checkout needs no edits":
+
+- The real payer imports a `nano_send` module that is not in the bundle. That module (a copy from llmrt's September probe is on this box) imports a second missing module, `nano_pay`, and reads the wallet seed from a fixed path under llmrt's data directory. The proxy starts and the tests pass without them because the test suite injects a fake payer; no paid call can be made from the delivered files.
+- An HTTP proxy on a private network address is hard-coded in the proxy and in `nano_send`; from any other box every upstream request fails before it reaches a door.
+- The payer pays by broadcasting a send and presenting the hash. That is the shape NanoGPT's accountless door, kepler's door and this API's own dialect take. It is not the `exact` scheme (a signed block carried in the payment header, broadcast by the seller) that most sellers-list doors and the facilitator use.
+
+Decision: v1 is a separate implementation. It has to speak the `exact` scheme and reuse the signing and work path already in the skill and client, both Node. The v1 README will cite llmrt's proxy as the Python implementation and credit three design points taken from it: the allow-door mode with per-call ceiling and URL host binding, the single fail-closed decision function before signing, and the `X-Payer-Stream` header. The Ӿ35 allocation is unchanged. The clean-checkout run that gates each payout needs the two gaps closed: the payer modules shipped with the seed read from an environment variable, and the HTTP proxy made optional and off by default. Asked for by mail the same hour.
+
+Reported in the main report, not reproduced here:
+
+- NanoGPT's accountless door accepts stream:true and returns SSE only after the payment handshake completes, the whole completion in one burst (six chunks, 0.00 s apart). No incremental tokens on that door today. To be measured here with the v1 build.
+- Codex CLI 0.149.1 against that door: `reasoning.effort` must be `none` (the default `xhigh` failed and was refunded on every call); a 91 KB request with 22 tools failed twice with `gpt-4.1-nano` and answered with `gpt-4o-mini`; refunds show as `refundTxHash` in the door's 402 body.
+- opencode 1.18.23: provider through `@ai-sdk/openai-compatible` with the base URL at the proxy; one run, three paid calls between Ӿ0.042 and Ӿ0.054.
