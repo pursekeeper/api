@@ -1,0 +1,33 @@
+HTTP/1.0 200 OK
+Server: BaseHTTP/0.6 Python/3.14.4
+Date: Sat, 10 Oct 2026 09:28:23 GMT
+Access-Control-Allow-Headers: Content-Type, Content-Encoding, Authorization, x-api-key, X-Require-No-Logging, Idempotency-Key, x-request-id, x-client, x-app, x-billing-mode, x-nanogpt-billing-mode, x-payment, x-x402, x-x402-payment-id, x-provider, X-Title, x-title, Referer, referer, http-referer, X-Requested-With, x-seer-ai, anthropic-beta, anthropic-version, x-use-byok, x-byok-provider, x-byok-disable-fallbacks, x-byok-fallback-to-credits, x-prompt-caching-cut-after, x-prompt-caching-sticky-provider, x-anthropic-cache-depth, x-cache-depth, x-nanogpt-legacy-reasoning, x-nanogpt-single-tool-call, X-NanoGPT-Coalesce-Tool-Calls, x-partner-referral, x-partner-source, x-partner, x-affiliate, x-team-id, x-whitelabel, redaction, piiredaction, redacted, piiredacted, x-nanogpt-redaction-source, X-TEE-Verification-Route
+Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: X-PAYMENT-REQUIRED, X-PAYMENT-RESPONSE, Retry-After, Location, WWW-Authenticate, X-Request-ID, X-TypeSafe-Request-ID, x-nanogpt-byok-fallback, x-nanogpt-byok-attempt-provider, x-nanogpt-failure-classification, X-TEE-Verification-Route
+Access-Control-Max-Age: 86400
+Cache-Control: public, max-age=0, must-revalidate
+Content-Type: application/json
+Date: Sat, 10 Oct 2026 09:28:23 GMT
+Origin-Agent-Cluster: ?1
+Referrer-Policy: strict-origin-when-cross-origin
+Server: Vercel
+Set-Cookie: _vcrr_fafc54b7329c8029=dpl_FKK1shSHoMbPSqAZ5p8KG2USu1DJ|0.7756; Path=/; Secure; HttpOnly; SameSite=None
+Strict-Transport-Security: max-age=63072000
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+X-Matched-Path: /api/x402/v1/chat/completions
+X-Request-Id: req_4eb06540-7478-4524-b2cc-f27c4831d393
+X-Robots-Tag: noindex, nofollow
+X-Vercel-Cache: MISS
+X-Vercel-Id: arn1:arn1:fra1::fra1::fra1::cqsln-1791624501314-9535f9f0ce45
+X-X402-Actual-Cost-Usd: 0.000006
+X-X402-Amount-Paid: 0.00002335
+X-X402-Amount-Paid-Usd: 0.000008085000000000001
+X-X402-Payment-Id: pay_941fdb47454bc5cbf83de274be95288d
+X-X402-Quoted-Cost-Usd: 0.000008
+X-X402-Scheme: nano
+X-X402-Status: completed
+X-Xss-Protection: 1; mode=block
+content-length: 1225
+

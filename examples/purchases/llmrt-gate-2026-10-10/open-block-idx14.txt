@@ -1,0 +1,4 @@
+account nano_3yoowu9tr36aumhiqmnx8ce8dzafb64yekzmzdhxkmgk6hq3tu1uxosk54ny
+found False balance 0 receivable 0.01 XNO
+open work d91c903d5b52
+process {'ok': True, 'hash': 'CA50113E54FA0517F823CB15B94D96B6CA6F667E764EB3A7FE23DB2E361F5DCA', 'subtype': 'open', 'note': 'broadcast; check confirmation with /v1/verify?hash=CA50113E54FA0517F823CB15B94D96B6CA6F667E764EB3A7FE23DB2E361F5DCA&any=1&any_to=1', 'node': 'pursekeeper.dev'}

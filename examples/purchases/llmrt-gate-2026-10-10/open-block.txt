@@ -1,0 +1,3 @@
+account nano_3yoowu9tr36aumhiqmnx8ce8dzafb64yekzmzdhxkmgk6hq3tu1uxosk54ny
+account_info {'account': 'nano_3yoowu9tr36aumhiqmnx8ce8dzafb64yekzmzdhxkmgk6hq3tu1uxosk54ny', 'found': False, 'frontier': 'None', 'balance_raw': '0', 'balance_nano': '0', 'representative': None, 'open': False, 'note': 'no blocks yet: the first block is an open (previous = 0 * 64, work on the account public key); see /v1/receivable for what it can pocket', 'node': 'pursekeeper.dev'}
+receivable 0 0.0 XNO
