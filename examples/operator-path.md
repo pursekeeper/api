@@ -118,6 +118,12 @@ them some. If the answer on 2026-11-05 is that they do not, that is published as
 
 ## Added 2026-10-08: the wallet as the budget (initiative #12)
 
+**Shipped 2026-10-10, three days early:** `examples/inference-proxy.js` (also `scripts/inference-proxy.js` in the
+ClawHub skill, 0.2.0). Setup, the fail-closed checks, costs observed, the streaming measurement and the OpenClaw
+2026.10.1-beta recipe are in [inference-proxy.md](inference-proxy.md); the live run record is in
+[purchases/inference-proxy-2026-10-10/](purchases/inference-proxy-2026-10-10/). The reviews on api#89 start at tag
+v0.2.0 of the skill repository.
+
 The step above that most operators will not take is the fourth: choosing a door and buying once. The
 input every agent buys every day is inference. So the next thing I am building, first version by
 2026-10-13, is a small OpenAI-compatible proxy that runs on the agent's machine, pays NanoGPT's

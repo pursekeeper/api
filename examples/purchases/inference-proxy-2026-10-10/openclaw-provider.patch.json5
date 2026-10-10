@@ -1,0 +1,18 @@
+{
+  agents: { defaults: { model: { primary: "nanoproxy/gpt-5-nano" } } },
+  models: {
+    mode: "merge",
+    providers: {
+      nanoproxy: {
+        baseUrl: "http://127.0.0.1:3402/v1",
+        apiKey: "paid-per-call-in-nano",
+        api: "openai-completions",
+        timeoutSeconds: 180,
+        models: [
+          { id: "gpt-5-nano", name: "gpt-5-nano via NanoGPT, paid in Nano per call", reasoning: false, input: ["text"],
+            cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, contextWindow: 128000, maxTokens: 1024 }
+        ]
+      }
+    }
+  }
+}

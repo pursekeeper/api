@@ -1,0 +1,73 @@
+{
+ "account": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
+ "upstream": "https://nano-gpt.com/api/x402",
+ "spent_raw": "3861480000000000000000000000",
+ "received_raw": "0",
+ "calls": 7,
+ "paid": 5,
+ "refused": 2,
+ "payments": [
+  {
+   "t": "2026-10-10T05:04:24.011Z",
+   "kind": "nano",
+   "amount_raw": "8050000000000000000000000",
+   "payTo": "nano_16set971ixqtmmrepmyzp8zydnxkpwd5455415151qn5zuxrrm9ic3fjqq3h",
+   "paymentId": "pay_d01a4f141419273db7a3bdd12aa83ace",
+   "hash": "CCB7085BE3C8D0A72CD109DDE58636CA2175922A6CF9BB889FD10BA9334682B2",
+   "status": "served",
+   "path": "/v1/chat/completions"
+  },
+  {
+   "t": "2026-10-10T05:04:40.879Z",
+   "kind": "nano",
+   "amount_raw": "106150000000000000000000000",
+   "payTo": "nano_1jjy5ieif11cmk7xqsjghdtx5bs3haz7jim3y6pt44dgfma5dewquse6fgsr",
+   "paymentId": "pay_9316e0b45cda8a408c57722346c5e1c7",
+   "hash": "2C9ECEEB3CE8BA6D573F16289D3EF549CC71779492BE98BE32537E2C8B860B6D",
+   "status": "served",
+   "path": "/v1/chat/completions"
+  },
+  {
+   "t": "2026-10-10T05:06:00.975Z",
+   "kind": "nano",
+   "amount_raw": "117740000000000000000000000",
+   "payTo": "nano_3yhc7kza3w7j5sskukr7jpsp1kgiarcx78fc34oddghhgsopcqe43c7x3uer",
+   "paymentId": "pay_f7aae173497093d71f500d55a7bfdf66",
+   "hash": "ADCC13B78C6BD45FC2B9F83B9A3B206A77867157AC602608B45EC2ADE5D6C528",
+   "status": "served_after_manual_complete_2026-10-10T05:06:45Z",
+   "path": "/v1/chat/completions"
+  },
+  {
+   "t": "2026-10-10T05:10:39.947Z",
+   "kind": "nano",
+   "amount_raw": "117800000000000000000000000",
+   "payTo": "nano_1azotsph7h8mrakb7npp4tuiz8d3qgzybsfriqx18wgzwk19ncbpfwaionao",
+   "paymentId": "pay_f36c07d1072fb881d834c26e8a98921d",
+   "hash": "E35A6443823A8CDB5D8D4A0D5587C4BDF1F1F856F4FEB7164F395DC80850C62E",
+   "status": "served",
+   "path": "/v1/chat/completions"
+  },
+  {
+   "t": "2026-10-10T05:13:18.407Z",
+   "kind": "nano",
+   "amount_raw": "3511740000000000000000000000",
+   "payTo": "nano_3rg6cu4xbgic71ja7km6fq3if8ieeoc7yr98ku948x6e5jd6ko1cjcs9xyni",
+   "paymentId": "pay_739e71dc5e231d49db786167ab52572a",
+   "hash": "AB837E1D9DF4300C952E0A985255AE3A79CACC75D3119A5965A5B652960171BC",
+   "status": "served",
+   "path": "/v1/chat/completions"
+  }
+ ],
+ "receipts": [],
+ "refusals": [
+  {
+   "t": "2026-10-10T05:12:35.993Z",
+   "code": "over_per_call_limit",
+   "detail": {
+    "amount": "0.00745258",
+    "limit": "0.005"
+   },
+   "path": "/v1/chat/completions"
+  }
+ ]
+}

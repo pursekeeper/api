@@ -1,0 +1,27 @@
+{
+ "payloads": [
+  {
+   "text": "NANO_PROXY_OK",
+   "mediaUrl": null
+  }
+ ],
+ "meta": {
+  "durationMs": 11029
+ },
+ "agentMeta": {
+  "provider": "nanoproxy",
+  "model": "gpt-5-nano",
+  "usage": {
+   "input": 13274,
+   "output": 114,
+   "cacheRead": 0,
+   "cacheWrite": 0,
+   "total": 13388,
+   "cost": {
+    "total": 0.0007093000000000001,
+    "totalOrigin": "provider-billed"
+   }
+  },
+  "agentHarnessId": "openclaw"
+ }
+}
