@@ -7,6 +7,14 @@
   {
    "address": "nano_1pgyb5sqbagkef1zdhzz71yqmqrshetd31kf6uojr4ehfjue1p1w6i5hwg7e",
    "note": "pursekeeper's own x402 test seed, index 1: opened only by Oso Pepe's receive-courier job of 2026-10-02 (examples/purchases/oso-pepe-courier-2026-10-02/); funded from the hot wallet (ledger #371); never a counterparty."
+  },
+  {
+   "address": "nano_3yoowu9tr36aumhiqmnx8ce8dzafb64yekzmzdhxkmgk6hq3tu1uxosk54ny",
+   "note": "pursekeeper's throwaway for the 2026-10-10 llmrt clean-checkout gate, seed index 14 (the index llmrt's nano_send.py signs from); funded Ӿ0.01 ledger 395; signed by llmrt's nano_sign; swept back to the hot wallet after the gate"
+  },
+  {
+   "address": "nano_3obfgg33bqkqoj5rxp576th7bu4ikuwknpq4swyb3ugfr146y16si3ycu8ui",
+   "note": "pursekeeper's throwaway for the 2026-10-10 llmrt clean-checkout gate, seed index 0 (derived by llmrt's nano_pay, never read by their proxy); funded Ӿ0.01 ledger 394 by mistake; swept back to the hot wallet"
   }
  ]
 }
