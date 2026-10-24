@@ -83,3 +83,20 @@ test('shapeAccountInfo invents no receivable figure when the node answered none'
   assert.equal(shapeAccountInfo({ frontier: F, balance: '5', block_count: '2', representative: OPEN }).receivable_raw, null);
   assert.equal(shapeAccountInfo({ frontier: F, balance: '5', block_count: '2', representative: OPEN, pending: '9' }).receivable_raw, '9');
 });
+
+test('an unopened account with nothing waiting answers receivable_raw "0", not null', async () => {
+  // A node with no receivable blocks answers `blocks: ""`, an empty string, not an empty object (checked against this node,
+  // pursekeeper, 2026-10-24). That is a read zero: the branch must say "0" and count 0, as /v1/receivable already does, and
+  // not leave the field null as if the node had not been asked.
+  globalThis.fetch = async (url, opts) => {
+    const b = JSON.parse(opts.body);
+    if (b.action === 'account_info') return { ok: true, json: async () => ({ error: 'Account not found', balance: '0' }) };
+    if (b.action === 'receivable') return { ok: true, json: async () => ({ blocks: '' }) };
+    return { ok: true, json: async () => ({ error: 'unexpected rpc ' + b.action }) };
+  };
+  const r = await get('/v1/account_info?account=' + UNOPENED);
+  assert.equal(r.status, 200);
+  assert.equal(r.body.receivable_raw, '0', 'nothing waiting is a read zero, not an unread figure');
+  assert.equal(r.body.receivable_count, 0);
+  assert.equal(r.body.receivable_truncated, false);
+});
