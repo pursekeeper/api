@@ -1355,8 +1355,8 @@ function readBody(req, limit = 1_000_000) {
 // URL and body and gets the same reply back, marked x-nano-replay: true, instead of "already used" and no way to get what it
 // paid for (uknwplayer, 2026-09-29). A re-presentation for another route or body is not a lost reply and is refused as before;
 // a hash with credit left buys a new call as before. The facilitator's /settle answers its own replays with the settled hash
-// and time (facilitator.js) and is not cached here. Kept on disk since 2026-10-23 (data/served.json, read at boot, written
-// through the atomic store): until then the cache was a Map in the process, and its own comment said so. A restart inside the
+// and time (facilitator.js) and is not cached here. Kept on disk since 2026-10-25 (data/served.json, read at boot, written
+// through the atomic store; llmrt's PR #128): until then the cache was a Map in the process, and its own comment said so. A restart inside the
 // ten minutes, and the service restarts on every deploy and every node restart, turned a reply lost in transit into a
 // permanent loss for the buyer: the block is already in credits.json at zero, verify answers "already used", and the reply
 // the payment bought is gone with the process that held it (llmrt, 2026-10-23). The ten minutes are now the ten minutes
@@ -1393,6 +1393,14 @@ function saveServed() {
   if (!SERVED_FILE) return;
   try { writeJsonAtomic(SERVED_FILE, Object.fromEntries(served)); } catch {}
 }
+// Pruned once a minute as well (added at the merge, 2026-10-25): entries were otherwise dropped only when the next paid
+// call landed or the process booted, and with paid calls rare the file would hold replies and their session binding long
+// past the ten minutes the page promises. The file is rewritten only when something was dropped.
+if (SERVED_FILE) setInterval(() => {
+  const now = Date.now(); let dropped = false;
+  for (const [h, s] of served) if (now - s.at > REPLAY_TTL_MS) { served.delete(h); dropped = true; }
+  if (dropped) saveServed();
+}, 60_000).unref();
 function replayKey(req) { return req.method + ' ' + req.url + ' ' + crypto.createHash('sha256').update(req.bodyBuffer || '').digest('hex'); }
 function rememberServed(hash, key, code, body, type, headers, bind) {
   const now = Date.now();

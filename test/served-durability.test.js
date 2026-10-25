@@ -22,7 +22,9 @@ process.env.SERVED_FILE = path.join(SCRATCH, 'served.json');
 const SERVED = process.env.SERVED_FILE;
 
 const boot = () => {
-  for (const k of Object.keys(require.cache)) if (k.includes(path.join('api', 'server.js'))) delete require.cache[k];
+  // By resolved path, not a directory name: a checkout not named api/ (a worktree) would otherwise reuse the same module
+  // instance and the "restart" below would be no restart at all (found at the merge, 2026-10-25).
+  delete require.cache[require.resolve('../server')];
   return require('../server');
 };
 
