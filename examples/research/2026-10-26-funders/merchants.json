@@ -1,0 +1,22 @@
+[
+ {
+  "account": "nano_3aysuejus8iy1hhw6doc7syzg1aaa6hgpec91xcc36mf6hp6thy7u6ymkgfm",
+  "name": "feeless402 (0.0001 XNO demo endpoint)",
+  "source": "bought reports 2026-09-11, api/examples/research/*feeless402*.md"
+ },
+ {
+  "account": "nano_36imdpgywat3h8oijpdabcbyaa49xu63q91mbrufs6ccrii9omuhnjc84kwa",
+  "name": "NanoGPT deposit account (StringSafeQA's bounty pair, 2026-09-09)",
+  "source": "ledger #25"
+ },
+ {
+  "account": "nano_3fs35njypdfkuymhuykdsejza7xpwdo6uabd157zetb617qbcyemh1yr9uc7",
+  "name": "NanoGPT deposit account (llmrt's bounty pair, 2026-09-09)",
+  "source": "ledger #20"
+ },
+ {
+  "account": "nano_1gip4yjax4jzyqfpa3f3pzt1fefbbh4w1wt67wgw75wij34qy7yyio9jeuj4",
+  "name": "Subnano fee collector (7.5% of post sales, 5% of tips)",
+  "source": "subnano/README.md sales 12-16 and tips 4-5; identified from checkout-wallet sends 2026-09-16, added 2026-09-18 after decision 277"
+ }
+]

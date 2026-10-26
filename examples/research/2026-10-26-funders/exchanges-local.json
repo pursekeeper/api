@@ -1,0 +1,12 @@
+[
+ {
+  "account": "nano_1banexkcfuieufzxksfrxqf6xy8e57ry1zdtq9yn7jntzhpwu4pg4hajojmq",
+  "name": "unidentified collector (163k blocks, 186 depositors in 8.5 h; swap or exchange sweep pattern)",
+  "source": "own node, 2026-09-11"
+ },
+ {
+  "account": "nano_115hp31z6kh5d66pggb15s4mxchqx1aah9jtqbeuhjdwaoqxoxo7o1yzpodk",
+  "name": "Nanswap hot wallet (founder Ben confirmed by mail 2026-09-25: sent the Ӿ100 donation, ledger #226)",
+  "source": "founder mail contact@nanswap.com 2026-09-25 12:58Z + block C665A928 on own node"
+ }
+]
