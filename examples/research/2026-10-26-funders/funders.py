@@ -28,16 +28,31 @@ PASS_AGE = 7 * 86400  # ... and opened at most this long before its send
 MAX_HOPS = 3
 HERE = os.path.dirname(os.path.abspath(__file__))
 
+class RpcError(Exception):
+    """The node answered a JSON error. That is a failed read even when HTTP said 200, and it is never
+    an empty result: before this check, {"error": "upstream busy"} on an account_history page read as
+    "no more history" and the run went on with a short count (pursekeeper/api#131, pyfile-toolkit 2026-10-27)."""
+
 def rpc(**kw):
+    """One raw node call. Tests replace this; the error check lives in ask() so it covers them too."""
     req = urllib.request.Request(RPC, data=json.dumps(kw).encode(), headers={'content-type': 'application/json'})
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.load(r)
+
+def ask(**kw):
+    d = rpc(**kw)
+    if not isinstance(d, dict):
+        raise RpcError(f"{kw.get('action')}: non-object answer from the node")
+    if 'error' in d:
+        where = ' '.join(f"{k}={str(v)[:24]}" for k, v in kw.items() if k != 'action')
+        raise RpcError(f"{kw.get('action')} ({where}): {d['error']}")
+    return d
 
 _cache = {}
 def history(acct, n=60):
     key = ('h', acct, n)
     if key not in _cache:
-        d = rpc(action='account_history', account=acct, count=str(n))
+        d = ask(action='account_history', account=acct, count=str(n))
         h = d.get('history')
         _cache[key] = h if isinstance(h, list) else []   # the node answers "" for an unopened account
     return _cache[key]
@@ -51,7 +66,7 @@ def receives_of(acct, n):
     out, offset = [], 0
     while len(out) < n and offset < BLOCK_CAP:
         page = min(PAGE, BLOCK_CAP - offset)
-        d = rpc(action='account_history', account=acct, count=str(page), offset=str(offset))
+        d = ask(action='account_history', account=acct, count=str(page), offset=str(offset))
         h = d.get('history')
         if not isinstance(h, list) or not h:   # "" for an unopened account; [] past the end
             return out[:n], offset, False
@@ -64,8 +79,12 @@ def receives_of(acct, n):
 def info(acct):
     key = ('i', acct)
     if key not in _cache:
-        d = rpc(action='account_info', account=acct)
-        _cache[key] = None if 'error' in d else d
+        try:
+            _cache[key] = ask(action='account_info', account=acct)
+        except RpcError as e:
+            if 'not found' not in str(e).lower():   # unopened is a real answer; anything else is a failed read
+                raise
+            _cache[key] = None
     return _cache[key]
 
 def load_labels():
@@ -113,6 +132,16 @@ def main(argv):
     if '--hist' in argv: HIST = int(argv[argv.index('--hist') + 1])
     want_json = '--json' in argv
     labels = load_labels()
+    try:
+        return run(target, labels, want_json)
+    except RpcError as e:
+        # A failed node read ends the run with nothing counted. Partial counts are what #131 was about.
+        if want_json:
+            print(json.dumps({'account': target, 'error': str(e), 'rows': None, 'summary': None}))
+        print(f"funders.py: failed RPC read, nothing counted: {e}", file=sys.stderr)
+        return 3
+
+def run(target, labels, want_json):
     receives, blocks_read, truncated = receives_of(target, HIST)
     rows = []
     for x in reversed(receives):   # oldest first

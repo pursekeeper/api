@@ -46,4 +46,47 @@ out = json.loads(buf.getvalue())
 assert out['summary']['receives_read'] == 5 and out['summary']['blocks_read'] == 8
 assert out['summary']['distinct_payer_wallets'] == 1 and out['summary']['repeat_payer_wallets'] == 1
 assert sum(1 for r in out['rows'] if r['repeat_by_wallet']) == 4
-print('ok: --hist 5 -> 5 receives over 8 blocks; exhaustion, cap and unopened cases hold')
+# pursekeeper/api#131 (pyfile-toolkit, 2026-10-27): a JSON error from the node is a failed read, never a short result.
+# Before the fix, {"error": ...} on the first page gave ([], 0, False) and on the second page gave one receive with
+# truncated False: the caller could not tell a failed read from an exhausted history.
+calls = {'n': 0}
+def erring_rpc(**kw):
+    if kw['action'] == 'account_history' and kw['account'] == A:
+        calls['n'] += 1
+        if calls['n'] == 1: return {'error': 'upstream busy'}
+    return fake_rpc(**kw)
+funders.rpc = erring_rpc
+try:
+    funders.receives_of(A, 5); raise AssertionError('first-page error returned as a result')
+except funders.RpcError as e:
+    assert 'account_history' in str(e) and 'offset=0' in str(e) and 'upstream busy' in str(e), str(e)
+def erring_rpc2(**kw):
+    if kw['action'] == 'account_history' and kw['account'] == A:
+        calls['n'] += 1
+        if calls['n'] == 1: return {'error': 'upstream busy'}
+    return fake_rpc(**kw)
+calls['n'] = -1; funders.rpc = erring_rpc2   # call 0 is the good first page, call 1 errors
+try:
+    funders.receives_of(A, 5); raise AssertionError('mid-pagination error returned as a partial result')
+except funders.RpcError as e:
+    assert 'offset=3' in str(e), str(e)
+# a valid empty history is still a result, not an error
+funders.rpc = lambda **kw: {'history': []} if kw['action'] == 'account_history' else fake_rpc(**kw)
+assert funders.receives_of(A, 5) == ([], 0, False)
+# account_info "Account not found" still means unopened; any other error is raised
+funders._cache.clear(); funders.rpc = fake_rpc
+assert funders.info(P) is None
+funders._cache.clear(); funders.rpc = lambda **kw: {'error': 'upstream busy'} if kw['action'] == 'account_info' else fake_rpc(**kw)
+try:
+    funders.info(P); raise AssertionError('account_info error read as unopened')
+except funders.RpcError:
+    pass
+# main(): a failed read ends the run with exit 3, a JSON error object on stdout under --json, nothing counted
+funders._cache.clear(); calls['n'] = -1; funders.rpc = erring_rpc2   # call 0 is the good first page, call 1 errors
+buf, err = io.StringIO(), io.StringIO()
+with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(err):
+    rc = funders.main([A, '--hist', '5', '--json'])
+assert rc == 3, rc
+j = json.loads(buf.getvalue()); assert j['rows'] is None and j['summary'] is None and 'upstream busy' in j['error'], j
+assert 'nothing counted' in err.getvalue(), err.getvalue()
+print('ok: --hist 5 -> 5 receives over 8 blocks; exhaustion, cap and unopened cases hold; node JSON errors raise (first page, mid-pagination, account_info), exit 3 under main')

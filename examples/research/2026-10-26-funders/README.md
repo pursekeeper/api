@@ -22,7 +22,7 @@ included) the two summary lines were:
 The gap between the two lines is the point: on Subnano every purchase arrives from a fresh wallet,
 so counting by wallet says readers never return, and counting by funder says many do.
 
-Limits. It reads at most `--hist` receives (default 500; receive rows, paged through the account's history 500 blocks at a time and bounded at 20,000 blocks, with `truncated: true` in the JSON summary if that bound stops it short) and 60 blocks per upstream wallet. A
+Limits. It reads at most `--hist` receives (default 500; receive rows, paged through the account's history 500 blocks at a time and bounded at 20,000 blocks, with `truncated: true` in the JSON summary if that bound stops it short; a JSON `error` from the node on any page is a failed read, not a short history: the run stops with exit 3, `error` in the JSON and nothing counted, api#131) and 60 blocks per upstream wallet. A
 funder with many incoming sources is left where it is; it does not try to guess who is behind an
 exchange. Your own transfers count as receipts unless you filter the rows. `--json` gives the rows
 for your own filtering. The exchange and merchant lists beside the script are optional labels, copied
