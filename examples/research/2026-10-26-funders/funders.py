@@ -20,7 +20,9 @@ Public domain (CC0). Stdlib only.
 import collections, datetime, json, os, sys, urllib.request
 
 RPC = 'http://127.0.0.1:7076'
-HIST = 500            # receives read from the target account
+HIST = 500            # receives read from the target account (receive rows, not history blocks)
+PAGE = 500            # account_history blocks per RPC call while collecting receives
+BLOCK_CAP = 20000     # most history blocks read for the target before giving up on reaching --hist
 PASS_BLOCKS = 6       # a pass-through wallet has at most this many blocks
 PASS_AGE = 7 * 86400  # ... and opened at most this long before its send
 MAX_HOPS = 3
@@ -39,6 +41,25 @@ def history(acct, n=60):
         h = d.get('history')
         _cache[key] = h if isinstance(h, list) else []   # the node answers "" for an unopened account
     return _cache[key]
+
+def receives_of(acct, n):
+    """Up to n receive rows of acct, newest first, paging account_history until n receives or the
+    history is exhausted. account_history's count limits blocks of every type, so a wallet with sends
+    and changes between its receives returned fewer than n receives when count=n was used directly
+    (pursekeeper/api#130, reported by pyfile-toolkit 2026-10-26). Returns (rows, blocks_read, truncated):
+    truncated is True when BLOCK_CAP blocks were read without reaching n receives."""
+    out, offset = [], 0
+    while len(out) < n and offset < BLOCK_CAP:
+        page = min(PAGE, BLOCK_CAP - offset)
+        d = rpc(action='account_history', account=acct, count=str(page), offset=str(offset))
+        h = d.get('history')
+        if not isinstance(h, list) or not h:   # "" for an unopened account; [] past the end
+            return out[:n], offset, False
+        out.extend(x for x in h if x.get('type') == 'receive')
+        offset += len(h)
+        if len(h) < page:
+            return out[:n], offset, False
+    return out[:n], offset, len(out) < n
 
 def info(acct):
     key = ('i', acct)
@@ -92,8 +113,7 @@ def main(argv):
     if '--hist' in argv: HIST = int(argv[argv.index('--hist') + 1])
     want_json = '--json' in argv
     labels = load_labels()
-    th = history(target, HIST)
-    receives = [x for x in th if x['type'] == 'receive']
+    receives, blocks_read, truncated = receives_of(target, HIST)
     rows = []
     for x in reversed(receives):   # oldest first
         payer = x['account']; when = int(x['local_timestamp'])
@@ -110,7 +130,7 @@ def main(argv):
         r['repeat_by_wallet'] = r['payer'] in first_seen.setdefault('w', set()); first_seen['w'].add(r['payer'])
         r['repeat_by_funder'] = r['funder'] in first_seen.setdefault('f', set()); first_seen['f'].add(r['funder'])
     summary = {
-        'account': target, 'receives_read': len(receives), 'history_depth': HIST, 'generated_at': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'account': target, 'receives_read': len(receives), 'receives_wanted': HIST, 'blocks_read': blocks_read, 'truncated': truncated, 'generated_at': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
         'distinct_payer_wallets': len(by_payer), 'repeat_payer_wallets': sum(1 for c in by_payer.values() if c > 1),
         'distinct_funders': len(by_funder), 'repeat_funders': sum(1 for c in by_funder.values() if c > 1),
         'receipts_from_repeat_wallets': sum(1 for r in rows if r['repeat_by_wallet']),
@@ -120,7 +140,8 @@ def main(argv):
     }
     if want_json:
         print(json.dumps({'summary': summary, 'rows': rows}, indent=1)); return 0
-    print(f"{target}: {len(receives)} receives in the last {HIST} blocks read")
+    tail = f" (stopped at {BLOCK_CAP} blocks before reaching {HIST} receives)" if truncated else (f" of up to {HIST} wanted" if len(receives) < HIST else "")
+    print(f"{target}: {len(receives)} receives in the last {blocks_read} blocks read{tail}")
     print(f"{'when (UTC)':16} {'Ӿ':>10}  {'payer':20} hops  funder                label")
     for r in rows:
         mark = ('R' if r['repeat_by_wallet'] else ' ') + ('F' if r['repeat_by_funder'] else ' ')
