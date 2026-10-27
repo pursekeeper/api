@@ -133,8 +133,11 @@ async function verify(payload, required, deps) {
     const payer = block.account;
     if (!N.checkAddress(block.account)) return fail('block.account is not a valid nano_ address', payer);
     if (!N.checkAddress(block.representative)) return fail('block.representative is not a valid nano_ address', payer); // (f)
+    // A workless block at a facilitator without a work source is refused at the work step below, last, so that a block
+    // the chain already holds is named as such (seen) and a stale previous as such, whatever its work field says: work is
+    // not part of the hash, and the scheme draft's check 14 runs after checks 10-13 (kilkelly/x402-nano-exact-scheme-proposal
+    // PR #1, 2026-10-27 text). Until this wake the refusal sat here, before the signature, seen and node checks.
     const needWork = NO_WORK(block.work);
-    if (needWork && !deps.workGenerate) return fail('block.work is required here: this facilitator attaches no work (see /supported); compute it over block.previous at ' + (deps.workThreshold || WORK_THRESHOLD), payer);
     if (!needWork && !/^[0-9A-F]{16}$/i.test(block.work)) return fail('block.work must be 16 hex characters', payer);
 
     // (c) link must be the public key of payTo; link_as_account, if given, must agree
@@ -207,7 +210,9 @@ async function verify(payload, required, deps) {
     let workBy = 'client';
     const validWork = w => { try { return N.validateWork({ blockHash: block.previous, work: w, threshold }); } catch { return false; } };
     if (needWork || !validWork(block.work)) {
-      if (!deps.workGenerate) return fail('work ' + block.work + ' does not cover block.previous ' + block.previous + ' at the send threshold ' + threshold + ' (work is computed over the previous block hash, never over the new block\'s own hash)', payer);
+      if (!deps.workGenerate) return fail(needWork
+        ? 'block.work is required here: this facilitator attaches no work (see /supported); compute it over block.previous at ' + threshold
+        : 'work ' + block.work + ' does not cover block.previous ' + block.previous + ' at the send threshold ' + threshold + ' (work is computed over the previous block hash, never over the new block\'s own hash)', payer);
       let w;
       try { w = await deps.workGenerate(block.previous); }
       catch (e) { return fail((e && e.code === 'work_unavailable' ? 'error_work_unavailable: ' : 'could not generate work: ') + e.message, payer); }

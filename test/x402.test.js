@@ -272,6 +272,18 @@ test('a workless block without a work source names the field; work for the wrong
   assert.equal(r2.ok, false); assert.match(r2.reason, /does not cover block\.previous/); assert.ok(r2.reason.includes(FRONTIER), r2.reason);
 });
 
+// The missing-work refusal is the last check, as in the scheme draft's order (check 14 after 10-13): a block the
+// chain already holds, or one built on a stale previous, is named as such even when its work field is the
+// sixteen-zero placeholder (kilkelly/x402-nano-exact-scheme-proposal PR #1, V14, 2026-10-27).
+test('a workless block is refused for what the chain says before it is refused for its work', async () => {
+  const r = await x.verify(payload(makeBlock({ work: '0000000000000000' })), REQ, deps({ seen: async () => true }));
+  assert.equal(r.ok, false); assert.match(r.reason, /already used/);
+  const r2 = await x.verify(payload(makeBlock({ work: '' })), REQ, deps({ accountInfo: async () => info({ frontier: '1'.repeat(64), confirmed_frontier: '1'.repeat(64) }) }));
+  assert.equal(r2.ok, false); assert.match(r2.reason, /previous is not the account frontier/);
+  const r3 = await x.verify(payload(makeBlock({ work: '0000000000000000' })), REQ, deps());
+  assert.equal(r3.ok, false); assert.match(r3.reason, /^block\.work is required here/);
+});
+
 test('work is only generated after the cheap checks pass', async () => {
   let called = 0;
   const r = await x.verify(payload(makeBlock({ work: '0', balance: '1' })), REQ, deps({ workGenerate: async () => { called++; return work; } }));
