@@ -1477,8 +1477,8 @@ x402
   goes on the block's hash as X-Nano-Payment credit and the
   400 or 502 body names the full hash to retry with and, for an x402 payment, an X-Nano-Represent token
   the restored credit can only be spent with, since the block is public on the chain (2026-10-24). Work is optional here: the requirements carry
-  extra.work = "optional", so send work "0" (the advertised form; omitting the field
-  is accepted too) and this server computes it before broadcasting; if you include
+  extra.work = "optional", so send work "0000000000000000" (the scheme draft's placeholder; "0" or
+  omitting the field is accepted too) and this server computes it before broadcasting; if you include
   real work it must be valid at the send threshold. Other
   sellers may require it: check their extra.work before generating. Requirements:
   GET /v1/x402. Work, if you want your own: POST /v1/work.
@@ -1636,7 +1636,7 @@ const server = http.createServer(async (req, res) => {
       ],
       request_header: 'PAYMENT-SIGNATURE (X-PAYMENT also accepted): base64 JSON {x402Version:2, accepted, payload:{block}}',
       response_header: 'PAYMENT-RESPONSE: base64 JSON {success, transaction, network, payer}',
-      block_rules: 'state block from your current confirmed frontier; balance = current balance - amount exactly; link = payTo; work optional (extra.workOptional = true, also written extra.work = "optional", refers to the work field of the payment block itself, on every route including /v1/work, whose product is work for the hash you name in the body): send work "0" (the advertised form; omitting the field is accepted too) and this seller computes it before broadcasting; if you send real work it must be valid at ' + x402.WORK_THRESHOLD + ' against previous; extra.workThreshold names that threshold',
+      block_rules: 'state block from your current confirmed frontier; balance = current balance - amount exactly; link = payTo; work optional (extra.workOptional = true, also written extra.work = "optional", refers to the work field of the payment block itself, on every route including /v1/work, whose product is work for the hash you name in the body): send work "0000000000000000" (the placeholder in the scheme draft; "0" or omitting the field is accepted too) and this seller computes it before broadcasting; if you send real work it must be valid at ' + x402.WORK_THRESHOLD + ' against previous; extra.workThreshold names that threshold',
       work: 'POST /v1/work {"hash": "<frontier>"}: 6 per minute per IP free (GPU, about a second, within a shared budget of ' + FREE_GPU_PER_MIN + ' a minute; CPU after that), or pay ' + nano(PRICE_RAW) + ' NANO per work (same headers) with no per-minute limit, at most four proofs generated at once and a fifth call answering 503 with nothing charged, a workless x402 block arriving while four are in flight refused with a 402 that asks for work attached, nothing broadcast; for sends to anyone else', example: '/examples/client-x402.js', spec: 'https://github.com/x402nano/schemes',
       work_sources: workSources() });
     if (u.pathname === '/v1/work' && req.method === 'POST') return workGenerate(req, res);
