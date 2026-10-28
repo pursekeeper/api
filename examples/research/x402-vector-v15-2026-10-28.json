@@ -1,0 +1,267 @@
+{
+  "generated_at": "2026-10-28T20:19:11.793Z",
+  "facilitator": "https://facilitator.pursekeeper.dev",
+  "seller": "https://pursekeeper.dev",
+  "node": "pursekeeper's own nano_node v28 (local RPC)",
+  "work_threshold_send": "fffffff800000000",
+  "requirements": {
+    "scheme": "exact",
+    "network": "nano:mainnet",
+    "asset": "XNO",
+    "amount": "1",
+    "payTo": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+    "maxTimeoutSeconds": 60
+  },
+  "payer": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
+  "account_info_before": {
+    "frontier": "D7A5CC4E527C53A127067A8D336BDA6DBDFC9C79E53D104ED8A3A12EAAE2A1F8",
+    "confirmed_frontier": "D7A5CC4E527C53A127067A8D336BDA6DBDFC9C79E53D104ED8A3A12EAAE2A1F8",
+    "balance": "43317291780736537993152545309",
+    "confirmed_balance": "43317291780736537993152545309",
+    "confirmed_height": "131",
+    "block_count": "131"
+  },
+  "block_a": {
+    "hash": "C1DB4769A2879E49F7311484BD5E80117DB516C46EF8CD16F1A9499C8792E196",
+    "block": {
+      "type": "state",
+      "account": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
+      "previous": "D7A5CC4E527C53A127067A8D336BDA6DBDFC9C79E53D104ED8A3A12EAAE2A1F8",
+      "representative": "nano_3arg3asgtigae3xckabaaewkx3bzsh7nwz7jkmjos79ihyaxwphhm6qgjps4",
+      "balance": "43317291780736537993152545308",
+      "link": "776E05C7A2D3B5887DCE7EB2831078FCCDB9AED77EC6B27CDC05550B07D744A3",
+      "link_as_account": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+      "signature": "67838F12D57AE28ECEB47FEFB4C5E1AE7148061FED75C8C042DA1CF9819734F5E610C0DC2D1DB2F31D535F960075566340A2AF20B88B3926909B777D800C9B09",
+      "work": "066c3599f91d6570"
+    }
+  },
+  "block_b": {
+    "hash": "CE21A65EA5DEA3ED96882E731218A5B3F90E35E4C6F7C54EA8711A14369B623E",
+    "block": {
+      "type": "state",
+      "account": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
+      "previous": "C1DB4769A2879E49F7311484BD5E80117DB516C46EF8CD16F1A9499C8792E196",
+      "representative": "nano_3arg3asgtigae3xckabaaewkx3bzsh7nwz7jkmjos79ihyaxwphhm6qgjps4",
+      "balance": "43317291780736537993152545307",
+      "link": "776E05C7A2D3B5887DCE7EB2831078FCCDB9AED77EC6B27CDC05550B07D744A3",
+      "link_as_account": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+      "signature": "E1850FC859D5078D5D913B33FCE891A5B346B3655FFB442BEDDFE969F30ACF45D7B6095CA939658065F4C80E1F7456ACB89C4B14AC8E6E7D7F1A9D99B3B8BD0C",
+      "work": "885456feea5b2c1d"
+    },
+    "payment_payload": {
+      "x402Version": 2,
+      "resource": {
+        "url": "https://pursekeeper.dev/v1/echo?msg=vector",
+        "description": "returns what you sent (test your payment client)",
+        "mimeType": "application/json"
+      },
+      "accepted": {
+        "scheme": "exact",
+        "network": "nano:mainnet",
+        "asset": "XNO",
+        "amount": "1",
+        "payTo": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+        "maxTimeoutSeconds": 60
+      },
+      "payload": {
+        "block": {
+          "type": "state",
+          "account": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
+          "previous": "C1DB4769A2879E49F7311484BD5E80117DB516C46EF8CD16F1A9499C8792E196",
+          "representative": "nano_3arg3asgtigae3xckabaaewkx3bzsh7nwz7jkmjos79ihyaxwphhm6qgjps4",
+          "balance": "43317291780736537993152545307",
+          "link": "776E05C7A2D3B5887DCE7EB2831078FCCDB9AED77EC6B27CDC05550B07D744A3",
+          "link_as_account": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+          "signature": "E1850FC859D5078D5D913B33FCE891A5B346B3655FFB442BEDDFE969F30ACF45D7B6095CA939658065F4C80E1F7456ACB89C4B14AC8E6E7D7F1A9D99B3B8BD0C",
+          "work": "885456feea5b2c1d"
+        }
+      }
+    }
+  },
+  "process_a": {
+    "response": {
+      "hash": "C1DB4769A2879E49F7311484BD5E80117DB516C46EF8CD16F1A9499C8792E196"
+    },
+    "ms_after_t0": 34
+  },
+  "probes": [
+    {
+      "i": 0,
+      "ms_after_broadcast": 34,
+      "ms_done": 165,
+      "verify_status": 200,
+      "verify_response": {
+        "isValid": false,
+        "invalidReason": "frontier_unconfirmed",
+        "detail": "account frontier is not confirmed yet; retry shortly",
+        "payer": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
+        "invalidMessage": "account frontier is not confirmed yet; retry shortly"
+      },
+      "account_info": {
+        "frontier": "C1DB4769A2879E49F7311484BD5E80117DB516C46EF8CD16F1A9499C8792E196",
+        "confirmed_frontier": "D7A5CC4E527C53A127067A8D336BDA6DBDFC9C79E53D104ED8A3A12EAAE2A1F8",
+        "balance": "43317291780736537993152545308",
+        "confirmed_balance": "43317291780736537993152545309",
+        "confirmed_height": "131",
+        "block_count": "132"
+      }
+    },
+    {
+      "i": 1,
+      "ms_after_broadcast": 205,
+      "ms_done": 233,
+      "verify_status": 200,
+      "verify_response": {
+        "isValid": false,
+        "invalidReason": "frontier_unconfirmed",
+        "detail": "account frontier is not confirmed yet; retry shortly",
+        "payer": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
+        "invalidMessage": "account frontier is not confirmed yet; retry shortly"
+      },
+      "account_info": {
+        "frontier": "C1DB4769A2879E49F7311484BD5E80117DB516C46EF8CD16F1A9499C8792E196",
+        "confirmed_frontier": "D7A5CC4E527C53A127067A8D336BDA6DBDFC9C79E53D104ED8A3A12EAAE2A1F8",
+        "balance": "43317291780736537993152545308",
+        "confirmed_balance": "43317291780736537993152545309",
+        "confirmed_height": "131",
+        "block_count": "132"
+      }
+    },
+    {
+      "i": 2,
+      "ms_after_broadcast": 272,
+      "ms_done": 313,
+      "verify_status": 200,
+      "verify_response": {
+        "isValid": false,
+        "invalidReason": "frontier_unconfirmed",
+        "detail": "account frontier is not confirmed yet; retry shortly",
+        "payer": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
+        "invalidMessage": "account frontier is not confirmed yet; retry shortly"
+      },
+      "account_info": {
+        "frontier": "C1DB4769A2879E49F7311484BD5E80117DB516C46EF8CD16F1A9499C8792E196",
+        "confirmed_frontier": "D7A5CC4E527C53A127067A8D336BDA6DBDFC9C79E53D104ED8A3A12EAAE2A1F8",
+        "balance": "43317291780736537993152545308",
+        "confirmed_balance": "43317291780736537993152545309",
+        "confirmed_height": "131",
+        "block_count": "132"
+      }
+    },
+    {
+      "i": 3,
+      "ms_after_broadcast": 352,
+      "ms_done": 370,
+      "verify_status": 200,
+      "verify_response": {
+        "isValid": false,
+        "invalidReason": "frontier_unconfirmed",
+        "detail": "account frontier is not confirmed yet; retry shortly",
+        "payer": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
+        "invalidMessage": "account frontier is not confirmed yet; retry shortly"
+      },
+      "account_info": {
+        "frontier": "C1DB4769A2879E49F7311484BD5E80117DB516C46EF8CD16F1A9499C8792E196",
+        "confirmed_frontier": "D7A5CC4E527C53A127067A8D336BDA6DBDFC9C79E53D104ED8A3A12EAAE2A1F8",
+        "balance": "43317291780736537993152545308",
+        "confirmed_balance": "43317291780736537993152545309",
+        "confirmed_height": "131",
+        "block_count": "132"
+      }
+    },
+    {
+      "i": 4,
+      "ms_after_broadcast": 410,
+      "ms_done": 431,
+      "verify_status": 200,
+      "verify_response": {
+        "isValid": true,
+        "payer": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf"
+      },
+      "account_info": {
+        "frontier": "C1DB4769A2879E49F7311484BD5E80117DB516C46EF8CD16F1A9499C8792E196",
+        "confirmed_frontier": "C1DB4769A2879E49F7311484BD5E80117DB516C46EF8CD16F1A9499C8792E196",
+        "balance": "43317291780736537993152545308",
+        "confirmed_balance": "43317291780736537993152545308",
+        "confirmed_height": "132",
+        "block_count": "132"
+      }
+    }
+  ],
+  "window_caught": true,
+  "first_refusal": {
+    "i": 0,
+    "ms_after_broadcast": 34,
+    "ms_done": 165,
+    "verify_status": 200,
+    "verify_response": {
+      "isValid": false,
+      "invalidReason": "frontier_unconfirmed",
+      "detail": "account frontier is not confirmed yet; retry shortly",
+      "payer": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
+      "invalidMessage": "account frontier is not confirmed yet; retry shortly"
+    },
+    "account_info": {
+      "frontier": "C1DB4769A2879E49F7311484BD5E80117DB516C46EF8CD16F1A9499C8792E196",
+      "confirmed_frontier": "D7A5CC4E527C53A127067A8D336BDA6DBDFC9C79E53D104ED8A3A12EAAE2A1F8",
+      "balance": "43317291780736537993152545308",
+      "confirmed_balance": "43317291780736537993152545309",
+      "confirmed_height": "131",
+      "block_count": "132"
+    }
+  },
+  "first_acceptance": {
+    "i": 4,
+    "ms_after_broadcast": 410,
+    "ms_done": 431,
+    "verify_status": 200,
+    "verify_response": {
+      "isValid": true,
+      "payer": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf"
+    },
+    "account_info": {
+      "frontier": "C1DB4769A2879E49F7311484BD5E80117DB516C46EF8CD16F1A9499C8792E196",
+      "confirmed_frontier": "C1DB4769A2879E49F7311484BD5E80117DB516C46EF8CD16F1A9499C8792E196",
+      "balance": "43317291780736537993152545308",
+      "confirmed_balance": "43317291780736537993152545308",
+      "confirmed_height": "132",
+      "block_count": "132"
+    }
+  },
+  "settle_b": {
+    "response": {
+      "status": 200,
+      "body": {
+        "success": true,
+        "transaction": "CE21A65EA5DEA3ED96882E731218A5B3F90E35E4C6F7C54EA8711A14369B623E",
+        "network": "nano:mainnet",
+        "payer": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf"
+      }
+    },
+    "settle_ms": 548
+  },
+  "block_info_a": {
+    "confirmed": "true",
+    "height": "132",
+    "amount": "1",
+    "subtype": "send",
+    "block_account": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
+    "local_timestamp": "1793218764"
+  },
+  "block_info_b": {
+    "confirmed": "true",
+    "height": "133",
+    "amount": "1",
+    "subtype": "send",
+    "block_account": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
+    "local_timestamp": "1793218764"
+  },
+  "account_info_after": {
+    "frontier": "CE21A65EA5DEA3ED96882E731218A5B3F90E35E4C6F7C54EA8711A14369B623E",
+    "confirmed_frontier": "CE21A65EA5DEA3ED96882E731218A5B3F90E35E4C6F7C54EA8711A14369B623E",
+    "balance": "43317291780736537993152545307",
+    "confirmed_balance": "43317291780736537993152545307",
+    "confirmed_height": "133",
+    "block_count": "133"
+  }
+}
