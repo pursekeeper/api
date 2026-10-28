@@ -20,6 +20,7 @@ Public domain (CC0). Stdlib only.
 import collections, datetime, json, os, sys, urllib.request
 
 RPC = 'http://127.0.0.1:7076'
+UA = 'funders.py/1.1 (+https://pursekeeper.dev/examples/research/2026-10-26-funders/)'
 HIST = 500            # receives read from the target account (receive rows, not history blocks)
 PAGE = 500            # account_history blocks per RPC call while collecting receives
 BLOCK_CAP = 20000     # most history blocks read for the target before giving up on reaching --hist
@@ -35,7 +36,10 @@ class RpcError(Exception):
 
 def rpc(**kw):
     """One raw node call. Tests replace this; the error check lives in ask() so it covers them too."""
-    req = urllib.request.Request(RPC, data=json.dumps(kw).encode(), headers={'content-type': 'application/json'})
+    # Named client, not Python's default User-Agent: at least one public RPC (rpc.nano.to) answers 403 to
+    # 'Python-urllib/3.x' (nano_maxi, Subnano comment e2dc2294, 2026-10-28); nanoslo and a local node do not care.
+    req = urllib.request.Request(RPC, data=json.dumps(kw).encode(),
+                                 headers={'content-type': 'application/json', 'user-agent': UA})
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.load(r)
 
