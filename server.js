@@ -779,10 +779,15 @@ async function workGenerate(req, res) {
   const paid = !!(req.headers['x-nano-payment'] || x402.paymentHeader(req.headers));
   // Body and the busy cap before the charge: a paid call used to be debited and then answered 400 or 503 with no
   // hand-back, so a payer following the 503's "retry" paid again (PlatinumVera, 2026-09-28; same class as /v1/hash).
+  // An unpaid call with no usable body gets the 402 challenge with the body rule in its note, not a bare 400: a directory
+  // that checks a listed resource exactly as listed, with no body, reads a 400 as a broken payment challenge (SealKeeper's
+  // listing checks, 12 of 23 valid, 2026-10-28). A paid call with a bad body is still refused with 400 before the charge.
+  const bodyRule = 'a JSON body {"hash": H} is required, H 64 hex characters (your account frontier); with it, ' + FREE_WORK_PER_MIN + ' calls per minute per IP are free and need no payment, and beyond that, or with a payment attached, there is no per-minute limit; nothing charged';
+  const refuseBody = (error) => paid ? send(res, 400, { error }) : paymentRequired(res, undefined, req, { body_error: error, note: bodyRule });
   let body;
-  try { body = JSON.parse((await readBody(req, 10_000)).toString('utf8') || '{}'); } catch { return send(res, 400, { error: 'body must be JSON {hash}; nothing charged' }); }
+  try { body = JSON.parse((await readBody(req, 10_000)).toString('utf8') || '{}'); } catch { return refuseBody('body must be JSON {hash}; nothing charged'); }
   const hash = String(body.hash || '').toUpperCase();
-  if (!/^[0-9A-F]{64}$/.test(hash)) return send(res, 400, { error: 'hash must be 64 hex characters (your account frontier); nothing charged' });
+  if (!/^[0-9A-F]{64}$/.test(hash)) return refuseBody('hash must be 64 hex characters (your account frontier); nothing charged');
   if (workInFlight >= 4) return send(res, 503, { error: 'work server busy; retry in a few seconds; nothing charged' });
   // The slot is taken here, synchronously, before the charge awaits: taken only after charge() returned, five
   // concurrent paid calls all passed the check above and ran at once (tao wang, 2026-09-28). Every return below,
@@ -1606,7 +1611,7 @@ const server = http.createServer(async (req, res) => {
         homepage: base, docs: base + '/', llms: base + '/llms.txt', contact: 'agent@pursekeeper.dev', log: base + '/log.json', sellers: base + '/sellers.json',
         payment: pay, payments: [pay],
         resources: [
-          r('/v1/fetch?url=', 'GET', 'fetches the absolute http(s) URL given in the required url query parameter and returns the page as plain text; a request whose url is missing, malformed, non-http or on a private host is refused with 400 before any payment is taken'),
+          r('/v1/fetch?url=', 'GET', 'fetches the absolute http(s) URL given in the required url query parameter and returns the page as plain text; a paid request whose url is missing, malformed, non-http or on a private host is refused with 400 before any payment is taken, and an unpaid one answers the 402 challenge with the url rule in its note'),
           r('/v1/echo?msg=', 'GET', 'returns what you sent (test your payment client)'),
           r('/v1/hash', 'POST', 'sha256 of the request body, with server time'),
           r('/v1/work', 'POST', 'Nano proof of work for {"hash": H} at the send threshold, from a GPU in about a second; 6 per minute per IP free; paid calls have no per-minute limit, at most four proofs are generated at once and a fifth call answers 503 with nothing charged; a workless x402 block arriving while four are in flight is refused with a 402 that asks for work attached, nothing broadcast'),
@@ -1621,12 +1626,13 @@ const server = http.createServer(async (req, res) => {
       // resource.url is this document (a URL, not a template; pyfile-toolkit 2026-09-28); each paid route's own 402 carries its concrete URL.
       resource: { url: 'https://' + hostOf(req) + '/v1/x402', description: 'pursekeeper.dev pay-per-call API: the payment requirements shared by every paid route; a paid call answers 402 with the same accepts entry and its own concrete resource.url', mimeType: 'application/json' },
       // method and input per route, as /.well-known/x402 states them: the bare list read as GET-able URLs, but /v1/hash
-      // and /v1/work are POST-only and a bare /v1/fetch answers 400 (PlatinumVera, 2026-09-28).
+      // and /v1/work are POST-only and a bare /v1/fetch answered 400 (PlatinumVera, 2026-09-28); since 2026-10-28 a bare unpaid
+      // /v1/fetch or /v1/work answers the 402 challenge with the parameter rule in its note (SealKeeper's listing checks).
       paid_routes: [
         { url: 'https://' + hostOf(req) + '/v1/echo?msg=', method: 'GET', input: 'msg query parameter, returned as sent' },
-        { url: 'https://' + hostOf(req) + '/v1/fetch?url=', method: 'GET', input: 'url query parameter, required: an absolute http(s) URL to a public host; missing, malformed, non-http or private-host answers 400 before any payment is taken' },
+        { url: 'https://' + hostOf(req) + '/v1/fetch?url=', method: 'GET', input: 'url query parameter, required: an absolute http(s) URL to a public host; missing, malformed, non-http or private-host answers 400 before any payment is taken when a payment is presented, and the 402 challenge with the url rule in its note when none is' },
         { url: 'https://' + hostOf(req) + '/v1/hash', method: 'POST', input: 'request body, any bytes up to 1 MB: the reply is its sha256' },
-        { url: 'https://' + hostOf(req) + '/v1/work', method: 'POST', input: 'JSON body {"hash": H}, H 64 hex characters (your account frontier): the reply is work for H at the send threshold' },
+        { url: 'https://' + hostOf(req) + '/v1/work', method: 'POST', input: 'JSON body {"hash": H}, H 64 hex characters (your account frontier): the reply is work for H at the send threshold; an unpaid call without that body answers the 402 challenge with the body rule in its note' },
       ],
       request_header: 'PAYMENT-SIGNATURE (X-PAYMENT also accepted): base64 JSON {x402Version:2, accepted, payload:{block}}',
       response_header: 'PAYMENT-RESPONSE: base64 JSON {success, transaction, network, payer}',
@@ -1698,7 +1704,14 @@ const server = http.createServer(async (req, res) => {
       const target = u.searchParams.get('url') || '';
       let checked;   // the resolved, classified target; fetchText pins the first hop to it and does not resolve again after the charge
       try { checked = await checkFetchUrl(target); }
-      catch (e) { return send(res, 400, { error: e.message, note: 'url must be an absolute http(s) URL to a public host; this check runs before any payment is taken' }); }
+      catch (e) {
+        const note = 'url must be an absolute http(s) URL to a public host; this check runs before any payment is taken';
+        // Unpaid and no usable url: the 402 challenge with the url rule in its note, not a bare 400. A directory that checks the
+        // listed resource exactly as listed, "?url=" with nothing after it, reads a 400 as a broken payment challenge (SealKeeper,
+        // 2026-10-28). A paid call with a bad url is still refused with 400 before the charge, nothing taken.
+        if (!req.headers['x-nano-payment'] && !x402.paymentHeader(req.headers)) return paymentRequired(res, undefined, req, { url_error: e.message, note });
+        return send(res, 400, { error: e.message, note });
+      }
       if (!await charge(req, res)) return;
       try { return send(res, 200, await fetchText(target, checked)); }
       catch (e) {
