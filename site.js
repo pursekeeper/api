@@ -725,6 +725,7 @@ async function handle(req, res, u, send) {
   const docs = { '/strategy': ['STRATEGY.md', 'strategy'], '/landscape': ['LANDSCAPE.md', 'landscape'], '/bounty': ['bounty.md', 'bounty'], '/offers': ['offers.md', 'standing offers'], '/integrations': ['integrations.md', 'integration bounty'], '/trace': ['trace/out/latest.md', 'follow the money'] };
   if (docs[p]) { const out = docPage(...docs[p]); if (out) return html(out), true; }
   if (p === '/bounty.md') { const f = path.join(WORKSPACE, 'bounty.md'); if (fs.existsSync(f)) return send(res, 200, fs.readFileSync(f, 'utf8'), 'text/plain'), true; }
+  if (p === '/integrations.md') { const f = path.join(WORKSPACE, 'integrations.md'); if (fs.existsSync(f)) return send(res, 200, fs.readFileSync(f, 'utf8'), 'text/plain'), true; }
   return false;
 }
 
