@@ -1110,6 +1110,22 @@ async function processBlock(req, res) {
 
 async function charge(req, res) {
   const hash = req.headers['x-nano-payment'];
+  // Both headers at once. A client that wraps its signed block in PAYMENT-SIGNATURE and also names that block's hash in
+  // X-Nano-Payment (the docs' two flows read as one; dextermos-dev's LangChain client, api#132, 2026-10-29) used to be
+  // taken down the bearer path: the hash was looked up on the node, the payload never opened, the block never broadcast,
+  // and every retry answered "block not found on this node yet". When the payload decodes and its block hashes to the
+  // bearer hash, the payload is the fuller credential (a signed block this server can broadcast), so the x402 path runs.
+  // A bearer hash naming some other block keeps the bearer path: two headers for two payments, and the X-Nano-Payment
+  // flow says the named hash is the one spent.
+  if (hash) {
+    const ph = x402.paymentHeader(req.headers);
+    if (ph) {
+      try {
+        const d = x402.decodePayment(ph);
+        if (!d.error && x402.blockHash(d.payload.payload.block).toUpperCase() === String(hash).trim().toUpperCase()) return chargeX402(req, res, ph);
+      } catch { /* a payload that does not hash beside a bearer hash: the bearer path, as before */ }
+    }
+  }
   if (!hash) {
     const ph = x402.paymentHeader(req.headers);
     return ph ? chargeX402(req, res, ph) : (paymentRequired(res, undefined, req), false);
@@ -1463,7 +1479,10 @@ x402
   (every 402 here carries one; a v2 client echoes it by copying the accepted entry) the replay
   goes only to a payload echoing the same session; a payment that echoed no session (extra is
   optional in x402 v2) is replayed to whoever presents the same block for the same method, URL
-  and body within the ten minutes, which is the only binding there is in that case. No external facilitator, no account. The block pays for one call and is not otherwise
+  and body within the ten minutes, which is the only binding there is in that case. A request carrying
+  both PAYMENT-SIGNATURE and X-Nano-Payment for the same block is served through this x402 path (the
+  payload is the credential this server can broadcast); an X-Nano-Payment hash naming a different
+  block is the one spent, as the flow above says (2026-10-30). No external facilitator, no account. The block pays for one call and is not otherwise
   usable as X-Nano-Payment credit; the three exceptions are /v1/work answering 502
   because work generation failed, /v1/fetch answering 400 because a redirect could not
   be followed (the next target failed the same address check as the first URL, the
@@ -1524,6 +1543,11 @@ Endpoints
                               broadcast a signed state block through this node (free, 60/min).
                               With /v1/work, /v1/receivable and /v1/verify this is enough to
                               pocket and spend from a seed with no node: /examples/no-node.md
+                              The block goes to the node as sent: this route attaches no work,
+                              and a block without valid work is refused by the node. The 402's
+                              extra.work = "optional" is about the x402 payment block inside
+                              PAYMENT-SIGNATURE, which this server works for the payer; it says
+                              nothing about blocks sent here (2026-10-30).
   GET  /v1/requests?hash=H   was H (or a block with previous H) worked or broadcast through here? {found, entries}. Free, 60/min
   POST /v1/work  {"hash":H}   work_generate at the send threshold for any hash; for a payment
                               block H is your account frontier (the block's previous), never the
@@ -1757,5 +1781,5 @@ if (require.main === module) {
     cohorts.warm();
   });
 }
-module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS, checkoutWallet, workFor, send, acceptsGzip, isPrivate, expand6, checkFetchUrl, fetchText, chargeX402, creditFor, loadPurposes,
+module.exports = { shapeAccountInfo, logReq, reqLogFor, REQ_LOG, feePassthrough, FEE_COLLECTORS, checkoutWallet, workFor, send, acceptsGzip, isPrivate, expand6, checkFetchUrl, fetchText, chargeX402, charge, creditFor, loadPurposes,
   server, credits, X402_CONFIRM, FETCH_BOUNDS };   // server (the http.Server, not listening), credits, X402_CONFIRM and FETCH_BOUNDS for tests
