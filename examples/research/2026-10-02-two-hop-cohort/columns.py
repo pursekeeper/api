@@ -36,7 +36,7 @@ KINDS = ['human', 'agent', 'unlabelled']; RAILS = ['nano', 'nano,usdc', 'unknown
 rows, bins = [], collections.OrderedDict()
 def cell(): return {'receipts': 0, 'nano': 0.0}
 for r in doc['rows']:
-    if r['cls'] != 'unseeded' or not r.get('via'): continue
+    if r.get('cls', r.get('class')) != 'unseeded' or not r.get('via'): continue
     t = ts(r['ts']); rid = str(r['id']); ev = rp.get(rid, {})
     if rid in declared:
         kind, source, by = declared[rid]['declared_kind'], declared[rid]['source'], declared[rid].get('declared_by')

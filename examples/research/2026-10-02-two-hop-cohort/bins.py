@@ -41,7 +41,7 @@ ROUTES = ['checkout', 'direct']; FUNDERS = ['exchange', 'unlisted', 'high-traffi
 bins = collections.OrderedDict()
 def cell(): return {'receipts': 0, 'nano': 0.0, 'payers': set()}
 for row in doc['rows']:
-    if row['cls'] != 'unseeded': continue
+    if row.get('cls', row.get('class')) != 'unseeded': continue
     b = bins.setdefault(week(row['ts']), {'route': {k: cell() for k in ROUTES}, 'funder': {k: cell() for k in FUNDERS}, 'prospective': cell(), 'all': cell()})
     route = 'checkout' if row.get('via') else 'direct'; fun = primary(row)
     for c in (b['route'][route], b['funder'][fun], b['all']):
