@@ -1,0 +1,981 @@
+{
+ "generated_at": "2026-11-10T13:24:48Z",
+ "days": 30,
+ "sellers": {
+  "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue": {
+   "all_time": "68 receipts (50 sales, 18 tips), 24.31835 XNO net, 27 funding accounts",
+   "window": "29 receipts (21 sales, 8 tips), 4.60310 XNO net, 9 funding accounts",
+   "new": 3,
+   "returning": 6,
+   "self_transfers": [],
+   "table": [
+    {
+     "funder": "nano_3kaf7r9n3ixpjao14z1h18i7mjdkzb55k74qka67dngpiswaadyiu3otq7pp",
+     "sales": 3,
+     "tips": 3,
+     "net": 1.32625,
+     "share": 0.2881,
+     "first_seen": "2026-09-16T09:23:55Z",
+     "last_seen": "2026-10-27T01:00:55Z",
+     "all_time_receipts": 10
+    },
+    {
+     "funder": "nano_1un519wfsjdfsb6x14dsktdf6f163rikkqd3jq4c1hdbmp6xxqou9gi1zsr7",
+     "sales": 2,
+     "tips": 0,
+     "net": 0.97125,
+     "share": 0.211,
+     "first_seen": "2026-10-19T10:09:02Z",
+     "last_seen": "2026-11-06T16:55:04Z",
+     "all_time_receipts": 2
+    },
+    {
+     "funder": "nano_14enjpwhzy7ijsj61c5tfa65wfaqygafrdaod6jht7xae34rzxc7d1fqnmjo",
+     "sales": 1,
+     "tips": 0,
+     "net": 0.925,
+     "share": 0.201,
+     "first_seen": "2026-10-08T09:25:02Z",
+     "last_seen": "2026-11-06T06:04:57Z",
+     "all_time_receipts": 4
+    },
+    {
+     "funder": "nano_3i1jasfyyj5k7n7uoru5nc6hzt53dzb65wjsb8qqyg1qt93wrykmfrpirzwn",
+     "sales": 5,
+     "tips": 1,
+     "net": 0.70625,
+     "share": 0.1534,
+     "first_seen": "2026-09-16T10:55:35Z",
+     "last_seen": "2026-11-09T09:07:02Z",
+     "all_time_receipts": 10
+    },
+    {
+     "funder": "nano_1qs6dkbx5336j7szmhab3i6et8qcuybx84o1er73kp88k43ct7jg3pekjaet",
+     "sales": 4,
+     "tips": 4,
+     "net": 0.39685,
+     "share": 0.0862,
+     "first_seen": "2026-10-08T16:24:11Z",
+     "last_seen": "2026-11-09T20:17:46Z",
+     "all_time_receipts": 9
+    },
+    {
+     "funder": "nano_1jix54b6uig1973jcg98w5xmm5t7736ncx48jp49kpmxwka9wtcog8y8o7hg",
+     "sales": 2,
+     "tips": 0,
+     "net": 0.0925,
+     "share": 0.0201,
+     "first_seen": "2026-09-16T08:18:00Z",
+     "last_seen": "2026-10-22T10:57:02Z",
+     "all_time_receipts": 4
+    },
+    {
+     "funder": "nano_3cumf83cb4pz49b76rfmktbw6aism6gr398tk5d9ifsxxasxtd4rhk4js5bm",
+     "sales": 2,
+     "tips": 0,
+     "net": 0.0925,
+     "share": 0.0201,
+     "first_seen": "2026-10-26T09:01:46Z",
+     "last_seen": "2026-11-05T09:04:51Z",
+     "all_time_receipts": 2
+    },
+    {
+     "funder": "nano_3tgrwaodjnqi8mxw1q1ahwqh5brhwzpxgw34jmoyuy6aou55sea9gpnrwkif",
+     "sales": 1,
+     "tips": 0,
+     "net": 0.04625,
+     "share": 0.01,
+     "first_seen": "2026-10-15T12:37:03Z",
+     "last_seen": "2026-10-15T12:37:03Z",
+     "all_time_receipts": 1
+    },
+    {
+     "funder": "nano_3yzs8yaxkaxod94kt31wkadequyu8o56b1cwenusziyp1e1dmofbwuj6y8r9",
+     "sales": 1,
+     "tips": 0,
+     "net": 0.04625,
+     "share": 0.01,
+     "first_seen": "2026-09-23T15:52:34Z",
+     "last_seen": "2026-11-10T13:17:17Z",
+     "all_time_receipts": 2
+    }
+   ],
+   "rows": [
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789531108,
+     "at": "2026-09-16T03:58:28Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_3q4jczfcz4qgq799daaoiwmse7jciz7phgrkhfjusmhmczrrinojqqb1x534",
+     "funder": "nano_1nj78i49y1ss38444ghsge7mt75k6rxdofj9bn4aw8kc7csbhabpb4ee3qri",
+     "send_hash": "CF6AD9202F0815B5F0E0C538CA9B1E39C4D9B7C5E1648ACEB09836B8EE857DC0"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789539964,
+     "at": "2026-09-16T06:26:04Z",
+     "kind": "tip",
+     "net": 4.75,
+     "gross": 5.0,
+     "checkout": "nano_3bcihku8ddo4bjexj9noq9dbkqp17jhu5qf4nzmqu9x6hz4tuwfj6cyno98c",
+     "funder": "nano_1nj78i49y1ss38444ghsge7mt75k6rxdofj9bn4aw8kc7csbhabpb4ee3qri",
+     "send_hash": "DD1A9A7365DD09EC2EFD43004F58B8B7B9CA4AC205AC8906B255AB7F21CE48E2"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789546680,
+     "at": "2026-09-16T08:18:00Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_1ddxr9am95uec8uittfdj4kom1e748s71ymkj7jsb6cdbm9zi836apjmbxka",
+     "funder": "nano_1jix54b6uig1973jcg98w5xmm5t7736ncx48jp49kpmxwka9wtcog8y8o7hg",
+     "send_hash": "EAB4BFC4DD03BFC106125D2C9693B658D71557A5434E37A5BAE1ED38740D14D9"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789550635,
+     "at": "2026-09-16T09:23:55Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_37edamxggamufeyb6zqxg4o5etzz14wjicwdak1jricokpnb3srqcmjd5qg9",
+     "funder": "nano_3kaf7r9n3ixpjao14z1h18i7mjdkzb55k74qka67dngpiswaadyiu3otq7pp",
+     "send_hash": "4BCFFB338EBA59654C8A6524B46214960BC362A118310597287F5DB4554E389F"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789551181,
+     "at": "2026-09-16T09:33:01Z",
+     "kind": "tip",
+     "net": 1.9,
+     "gross": 2.0,
+     "checkout": "nano_3snxwbbxf3onbw1mic93nrtn8i4de9ppoj1674sgtpptrt1jqex6q5zoqimx",
+     "funder": "nano_3kaf7r9n3ixpjao14z1h18i7mjdkzb55k74qka67dngpiswaadyiu3otq7pp",
+     "send_hash": "4962D016E939E8AF5BD2C421A7A28DB0F640B20BAC843D9E259351B8C613ECF5"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789552930,
+     "at": "2026-09-16T10:02:10Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_1qd1sxsao8ef41y8q351biczw19pf3fob8e7suajybgb1ajqcpn1s4dunxoy",
+     "funder": "nano_1foxedxp8h9j9o3z5sz5zytjaaxwn3q8e9bhe5wm3g6ujnggd1zb67ptjc5b",
+     "send_hash": "5DCAF976AA0CA448D0E57C9B5127007BA5FD63D2E8606F01B707892B92635E9B"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789552997,
+     "at": "2026-09-16T10:03:17Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_38j4fa7pk4wjtwabgyi135inaun9x3wy4ojwewfd9kuf97nwahbt1rdqczbz",
+     "funder": "nano_1foxedxp8h9j9o3z5sz5zytjaaxwn3q8e9bhe5wm3g6ujnggd1zb67ptjc5b",
+     "send_hash": "9AB0A1FF10C3104401214524F6863C4B0E0F4180A4CA1FC5FF00A4C5B5631176"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789554011,
+     "at": "2026-09-16T10:20:11Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_3sfwxewjrpe3smino97mym3nmbrajx1t9hnxfjom6a1mt7sss37z6bebq3na",
+     "funder": "nano_1foxedxp8h9j9o3z5sz5zytjaaxwn3q8e9bhe5wm3g6ujnggd1zb67ptjc5b",
+     "send_hash": "D2E1CC7930BEBE24BC3242E44718558CC05E7F2CAC2EE6628F9E8701FBED4ABA"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789554188,
+     "at": "2026-09-16T10:23:08Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_1yi8zfdpk1y9yap11a9eedt1xc9du9gf9g3nfd1rjreo456wey44cdfi3p5u",
+     "funder": "nano_3uda7cpqtjeomnzxgb7swz5sqt7ogci5wjtjso5ym8xys1h4h46a4ur6m87f",
+     "send_hash": "548B5B257FB7CE3E764124367BB9C36786BC941B12BB949F503CCCA4A0FDCEA2"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789554818,
+     "at": "2026-09-16T10:33:38Z",
+     "kind": "tip",
+     "net": 0.95,
+     "gross": 1.0,
+     "checkout": "nano_3fuq9rp363dp7t9exchohs3hribiyzwi8jmrfyepkdqss6zy4sfo9fat7c7u",
+     "funder": "nano_1imfns845ibphkhkeif6gbisnsqttowxy8o8419zu1e8yxqd148hi3bnfodj",
+     "send_hash": "55E95CB1AACC048129814AE68815A2ABF9C28C928A4A3ADE069BD29DC54B5583"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789556135,
+     "at": "2026-09-16T10:55:35Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_1dwx6pto59x6fbqehpiyas89upmophmeiurdjj7m813cjgx8c9rm9yq6snjr",
+     "funder": "nano_3i1jasfyyj5k7n7uoru5nc6hzt53dzb65wjsb8qqyg1qt93wrykmfrpirzwn",
+     "send_hash": "66808E65B3EBD24ACC50CB471BFD0B544F51D4B8C9CE18897FF40F9AD2032176"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789557011,
+     "at": "2026-09-16T11:10:11Z",
+     "kind": "tip",
+     "net": 0.95,
+     "gross": 1.0,
+     "checkout": "nano_1mim6siudyi6k41agu6sof38ebmomuxo35fy7y674jw58n8kooe8f7emxy4q",
+     "funder": "nano_3i1jasfyyj5k7n7uoru5nc6hzt53dzb65wjsb8qqyg1qt93wrykmfrpirzwn",
+     "send_hash": "5C9E362A61F9D8D08E12CD64A285EF3ED21EBAF74D4D1B68702F484900C5C460"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789570649,
+     "at": "2026-09-16T14:57:29Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_1ftpob5mmrzw4sy3jp7pijbew7deza31845txhtp6hzne6sdcasu55cihs3p",
+     "funder": "nano_1zbpioyyopmm7cn1c8h81b67yob4kfb38z8udxwimesaxdkb4fjpisgkpxi8",
+     "send_hash": "463C3A84103E4EAE16C07BC908AFF767534D7496F2EFCA0302D32723C58762DE"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789587555,
+     "at": "2026-09-16T19:39:15Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_18a8a8yep94r89f4dayij69o3odppkj4mdiuf8zoxdhxsxhsp4tmxgpshr3m",
+     "funder": "nano_3h31w4j5aj4hxbauyccft4t7f1jancme8g8yqi6ntzs6efmaxhuwfcx7qbm4",
+     "send_hash": "A62A0FB661F9F899978D5DFEDD6B71CA0FB7C49DE605AEB920F7987AD3D35962"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789594736,
+     "at": "2026-09-16T21:38:56Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_3w9szir7hmxwbupq9y8mcw9gnf5poi33gykt1wh9bippcxwqkjtxt4ohp97i",
+     "funder": "nano_3banannooopfbie7zxbq75h9ug6gdxb5xugfpap78g65q6sxhfqfij9t4k54",
+     "send_hash": "D171D4292349661E978D5E3BE9A2804182CA2AD98900B5144C459DCCC74FF12E"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789595166,
+     "at": "2026-09-16T21:46:06Z",
+     "kind": "tip",
+     "net": 0.95,
+     "gross": 1.0,
+     "checkout": "nano_3haagaj13zu5dappjzazamyw4jbjmabs5qq9nkdb3iz4n4o1pr4r6d93nsfe",
+     "funder": "nano_3banannooopfbie7zxbq75h9ug6gdxb5xugfpap78g65q6sxhfqfij9t4k54",
+     "send_hash": "AAD2FC583801C008ECC0B666AF8512F0B06C3737966261ACB33651D0D75457CB"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789600426,
+     "at": "2026-09-16T23:13:46Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_1qymrtzkbj59fxze4g8iwyoa1k7bitkze9f6mry7bei685zifcbiwfgwhxuu",
+     "funder": "nano_3saqoz5qfgmohfz3dg5ywwmxj7dwdp3g6xfbspt11g7gyrxgbupi1w9u4g4r",
+     "send_hash": "312D192CD0A124502159EFA7D1582EA2AD0BD9DCFDBF1D6B84E31477F6E7AACA"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789647134,
+     "at": "2026-09-17T12:12:14Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_1ftx6wue8ismanh4j37w3s6wucrxstjmefjsk6ju6cndhcxo7kb4cjciif8p",
+     "funder": "nano_39jtwpq98pumi63epf66rkshrb5qocrm3o7fbyngd1t8ttdbudeggnor1hxf",
+     "send_hash": "174045CC85C6084179F6C56041BF1263ACB954DCCCD74184F03B9FE79CC97844"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789652834,
+     "at": "2026-09-17T13:47:14Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_1dnruw5hbe1apr1cybteya533uswrodhwg4uu536efzffrhoxgw6gxduxuch",
+     "funder": "nano_3chgawcg1iq1ij5sxer4t3zqbjqxdqhniqzonc9bwfxak7ajy8wyxfbxh9f1",
+     "send_hash": "089FF1BC3AA07E03F5320AF5F1B187058DFCA762DF6328A33C595FAE0BE38765"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789653203,
+     "at": "2026-09-17T13:53:23Z",
+     "kind": "tip",
+     "net": 4.75,
+     "gross": 5.0,
+     "checkout": "nano_3kfdkph5xxg4epa1apaukbhm5ughpa9ryhk9ahxad3iocid6igbp8d1sm4se",
+     "funder": "nano_3chgawcg1iq1ij5sxer4t3zqbjqxdqhniqzonc9bwfxak7ajy8wyxfbxh9f1",
+     "send_hash": "E770DD24FA440A433B5A0D291CE82AA4366A5F0420F50A821F6B8DA2038723E4"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789714774,
+     "at": "2026-09-18T06:59:34Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_1dpr1ogwihiz53enerw83y7gnsweaqxyi8ncc8pp7ztom6nsa4gmsim714dp",
+     "funder": "nano_1555bxrn9kato63surwz5innnhn6xjjznzq3x68w717qt3hc5748nrxicbhs",
+     "send_hash": "27FAA06E242FC8DB1E1D75E05AD45BF1B50A84144E5333845DC86B0F8B10F113"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789758187,
+     "at": "2026-09-18T19:03:07Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_1k8z54edfg335birapw68rdid4knfrh9oo17rknwpmkue4ah6fd486jpkkz9",
+     "funder": "nano_35wwkw7eg3aa4r4gubhhj3mmrg37oabnohokip51iunmi68bwjftm9t8tfai",
+     "send_hash": "F91584F11AB47DB58827677CB52C2E4B4CA93704A82D9DB86D64D027B79F97F0"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789775226,
+     "at": "2026-09-18T23:47:06Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_13j1fg6txop8przkijx85fwj6t4sy3mhaikn57tbpnfdotkzxyp7orzfbnx8",
+     "funder": "nano_3k4scx1my9i7dqoxxk83rfzsabkndrxnwk9a4wbdp9oyenrktmjo5y9jozn3",
+     "send_hash": "4D6FF00B5B0DBECE0B55938C6BBDFD6CF525DF689FD6F0A9784BE0DF0FB7688E"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789858224,
+     "at": "2026-09-19T22:50:24Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_3bzzc5nzw8nduktcz393h6nm8t4hffxgahbxzfizm88s9ti8tuasxj7com3j",
+     "funder": "nano_11kh65hyny1qtgkmzbpg1nzfujjjz8u8ieknpnbga97jmyfqtuz5h4q4qiux",
+     "send_hash": "628318491477D95959EFB3AA487416CE0DA4E9529F6DED3F5D4703DA081FBFCE"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789958046,
+     "at": "2026-09-21T02:34:06Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_1kfbncfb9kudcywtma87xkyoygzozwy41rwmc5au7uozdm4j9dm9wasoeg7d",
+     "funder": "nano_1nj78i49y1ss38444ghsge7mt75k6rxdofj9bn4aw8kc7csbhabpb4ee3qri",
+     "send_hash": "6A78A7265C5EBC1AC6584E477A5CC82898473DA4D30595034CA7D514924BEE77"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789979611,
+     "at": "2026-09-21T08:33:31Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_1cnoknfd5k6api1rwd8mtcw4cqna4z1kd7dne3dbthaunxmo3k9an51nmexn",
+     "funder": "nano_3i1jasfyyj5k7n7uoru5nc6hzt53dzb65wjsb8qqyg1qt93wrykmfrpirzwn",
+     "send_hash": "AAE1319DE69EB2A93359A58E315F6C8E89D816E6B3C71C677AB78414F77BA0DB"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1789980769,
+     "at": "2026-09-21T08:52:49Z",
+     "kind": "tip",
+     "net": 0.95,
+     "gross": 1.0,
+     "checkout": "nano_11rr4cd3xdwnpca14cjoqtwmoe3kn9opfd1bjmkdiywxohmfp6rucifukyi3",
+     "funder": "nano_3i1jasfyyj5k7n7uoru5nc6hzt53dzb65wjsb8qqyg1qt93wrykmfrpirzwn",
+     "send_hash": "4646791193609CFFEA839BB4A4EC0A65341C817725945A87CADF809C348072D0"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1790083445,
+     "at": "2026-09-22T13:24:05Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_1pk4e6wzb3bbe9ewcyxf5g13sq1q3zikwoby4txg6r1ae4dkm8nbnku98mz6",
+     "funder": "nano_1jix54b6uig1973jcg98w5xmm5t7736ncx48jp49kpmxwka9wtcog8y8o7hg",
+     "send_hash": "FCE24ABE7562F76C904463FA9B7B90C23F9C7114545F3B431F6AA66897C9459B"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1790104261,
+     "at": "2026-09-22T19:11:01Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_19gqe3cbmq1pih9ch8dj9ogigia7ab7x9nb8bnfk8pqa7p5drkdfjhru7d43",
+     "funder": "nano_3qrknjfmy33jspmzbssrbpskzdi8qibq9zztr6rn7kx8ai3yzyb8569fmfpf",
+     "send_hash": "65DD0C11671F5600A40165AD60BB240395EB734DA6AF5C751EE496F1BB0718AA"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1790178754,
+     "at": "2026-09-23T15:52:34Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_3yoimpm5dgp1aubecxb39ob1pp8mrs9d3zr1enrqdtm4eqnpd41ky9nf5rxq",
+     "funder": "nano_3yzs8yaxkaxod94kt31wkadequyu8o56b1cwenusziyp1e1dmofbwuj6y8r9",
+     "send_hash": "21D5AF40C213C1AB804035059AF50264C4549ADC2F690B94C4A5E68639DC35B9"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1790410079,
+     "at": "2026-09-26T08:07:59Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_3ru9uh4uqc6hr73pr1imj4776z3tpheqgi5tkumsq8emdxt3ta7toum56scd",
+     "funder": "nano_3fiof379nzi6uopg58jmzymgye89sdd3sxd8qqo7ccinpaebo67mkpwpw56f",
+     "send_hash": "B9B16A9998158505F08E45DF1C1CDF9011A0E0105D92F99371854E855A570FEC"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1790422654,
+     "at": "2026-09-26T11:37:34Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_1pk3qf3rc9xa1f5ng7379pq3zd8y6saggdeqhqdhmjk6wbt6ym5q514xmioy",
+     "funder": "nano_1xpfxexzc1ojob8hy1matbnwu7gwofgjaprbebj56jizpjhkptqzozsra6wg",
+     "send_hash": "B40728BA634DC66A496BECCCE630B1071E90F5294521E25C8586BBADD098825A"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1790575925,
+     "at": "2026-09-28T06:12:05Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_1nhmykmcaxrnu6uax4nboty1rcrqkqg3y1ubpgn64dj7r97jaiqycxrdoh3t",
+     "funder": "nano_3kaf7r9n3ixpjao14z1h18i7mjdkzb55k74qka67dngpiswaadyiu3otq7pp",
+     "send_hash": "C65D958F86E476034D5548A01F906B8C639762412BB827501F538BF456D6A6B2"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1790771931,
+     "at": "2026-09-30T12:38:51Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_38rgk5xtxki9behzr5c8t515qtqmbfkozua4p34ypfcnnoxj697epqua3rhq",
+     "funder": "nano_1iw31rk8yupwycsheq95gyc9wmuzfkdhcquhwcizsge8ehst4b9mmtx1a8f8",
+     "send_hash": "E18DA9785E35210A6E48BA18DCD5393F9480F8446D2EB2CF9ADA0EF4F5728277"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1791451502,
+     "at": "2026-10-08T09:25:02Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_3fzgoy1idcrcc5dyzajwr8i7t4imrk1cwmsmubpk4td3t7zkr3b58xoshqi9",
+     "funder": "nano_14enjpwhzy7ijsj61c5tfa65wfaqygafrdaod6jht7xae34rzxc7d1fqnmjo",
+     "send_hash": "C0F75A99E1323B7CF6F37C4985FEF9747D0BCDD684D00F97705578D59338F08E"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1791451502,
+     "at": "2026-10-08T09:25:02Z",
+     "kind": "sale",
+     "net": 0.185,
+     "gross": 0.2,
+     "checkout": "nano_1gwmujzwtjornzt3j6quja6346f9f5ybni7mzo1hccyuqm5uw66hwwcptexp",
+     "funder": "nano_14enjpwhzy7ijsj61c5tfa65wfaqygafrdaod6jht7xae34rzxc7d1fqnmjo",
+     "send_hash": "A45B34A7A1A4F3EF4045B96E21094276EC4D10B6F4B2E9BD012AA90813315478"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1791451553,
+     "at": "2026-10-08T09:25:53Z",
+     "kind": "tip",
+     "net": 0.1425,
+     "gross": 0.15,
+     "checkout": "nano_1z5bbixfjxjsxnj77rkobgk9m4u711yw6yw5mjzo5m6e95m6hn58bbrygbcm",
+     "funder": "nano_14enjpwhzy7ijsj61c5tfa65wfaqygafrdaod6jht7xae34rzxc7d1fqnmjo",
+     "send_hash": "8A94384087E79F90B40FD5680FB5EE344020B281A25FBD2BE32CAE132EF95A64"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1791455395,
+     "at": "2026-10-08T10:29:55Z",
+     "kind": "tip",
+     "net": 0.2375,
+     "gross": 0.25,
+     "checkout": "nano_3cs53e7u8eii6bthpyftqcixdq6sudkx8q43nxt3brahq8zzewkoxp41gznj",
+     "funder": "nano_3kaf7r9n3ixpjao14z1h18i7mjdkzb55k74qka67dngpiswaadyiu3otq7pp",
+     "send_hash": "5FFD3265889866DEF4D0FD3D85F18EF47074F39F0F9868D90C8879F18ECDCAD5"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1791476651,
+     "at": "2026-10-08T16:24:11Z",
+     "kind": "tip",
+     "net": 0.019,
+     "gross": 0.02,
+     "checkout": "nano_3chzu633y8co1u8sue99ac7dkyjtqx8rx84t8nth6zapbei93yq77s3cxx9q",
+     "funder": "nano_1qs6dkbx5336j7szmhab3i6et8qcuybx84o1er73kp88k43ct7jg3pekjaet",
+     "send_hash": "67B56E4822228E9323BC8335AE5C665B5E4F832A4CF6F736F5F0F35747148945"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1791802263,
+     "at": "2026-10-12T10:51:03Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_1ukedez9mahyft6n7hcqt8u9bm663pqz875iqjfuimh38aennh8p7b4ubdf4",
+     "funder": "nano_3i1jasfyyj5k7n7uoru5nc6hzt53dzb65wjsb8qqyg1qt93wrykmfrpirzwn",
+     "send_hash": "CD39AF3186BDF5621C6FC8CE8A212CF14D69A19F190E880E8992135EB91F87B9"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1791813024,
+     "at": "2026-10-12T13:50:24Z",
+     "kind": "tip",
+     "net": 0.475,
+     "gross": 0.5,
+     "checkout": "nano_3kt75wmukc4cqzkjqj1x6kinpsc8wdb9tx7fzodg11qhj4ibh86zohbpkfiz",
+     "funder": "nano_3kaf7r9n3ixpjao14z1h18i7mjdkzb55k74qka67dngpiswaadyiu3otq7pp",
+     "send_hash": "0F4670FC4597264230A78C04EB7C24735CB22EC1E526F36F570E648279CD5650"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1791813062,
+     "at": "2026-10-12T13:51:02Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_1tz8j51sxdq6jn461zaaf64xwhaws8m3niwhky8wd4jt7wfgkkn1bxmhnts8",
+     "funder": "nano_3kaf7r9n3ixpjao14z1h18i7mjdkzb55k74qka67dngpiswaadyiu3otq7pp",
+     "send_hash": "09A845561ABC1D3A3F43ABA17BA2A1E104B7AE2E33D243C2601C71AFE4C7E9D8"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1791894693,
+     "at": "2026-10-13T12:31:33Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_381oipa7un618rrfu1ot4w8j4fchpbrqsfqxbbgu9y4zf9wycjcaxgy3xiny",
+     "funder": "nano_1jix54b6uig1973jcg98w5xmm5t7736ncx48jp49kpmxwka9wtcog8y8o7hg",
+     "send_hash": "230357912624F572AD911E9759CC70BFC773B0BE6C6474C97A786BB2BF3E0257"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1791922145,
+     "at": "2026-10-13T20:09:05Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_1gzxxsjbfsps5zmiop8cxmsr618mnkenccfzb5j87zs61nuksdkagxrgcp88",
+     "funder": "nano_1qs6dkbx5336j7szmhab3i6et8qcuybx84o1er73kp88k43ct7jg3pekjaet",
+     "send_hash": "20DF2373B170DDF0E2578F6DB855F2C6C8415B69245A76B4D196D287F9BE554F"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1792067823,
+     "at": "2026-10-15T12:37:03Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_3b8kz498gcr5yxm4hzk8of7ufda3rjpuw3t5u4tpuge4fj546fnspd5szy6t",
+     "funder": "nano_3tgrwaodjnqi8mxw1q1ahwqh5brhwzpxgw34jmoyuy6aou55sea9gpnrwkif",
+     "send_hash": "392A12FB59F25DFDF13B4CA35AEEB7D11589CB21F3DE557036657500F623D7D2"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1792398541,
+     "at": "2026-10-19T08:29:01Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_3kj3xy4eh4abcmcpw7px3gxbp1f178kdqu6wt8dormhc5k6grh9eetbn37hz",
+     "funder": "nano_3i1jasfyyj5k7n7uoru5nc6hzt53dzb65wjsb8qqyg1qt93wrykmfrpirzwn",
+     "send_hash": "C3D4D96E3BD6197372D122270FCB29B6D4280628F8A158A85942CC3EE85B0E6C"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1792404542,
+     "at": "2026-10-19T10:09:02Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_3pat7rufrrpq3xj97gr1sixaza6m6wcy4efpb3yi5oagqqzknm85j9isnn96",
+     "funder": "nano_1un519wfsjdfsb6x14dsktdf6f163rikkqd3jq4c1hdbmp6xxqou9gi1zsr7",
+     "send_hash": "2CDF68BA4E3A9204297F36D9B2DF617E96AC494F284B684EF459B5F482074A33"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1792450817,
+     "at": "2026-10-19T23:00:17Z",
+     "kind": "tip",
+     "net": 0.0285,
+     "gross": 0.03,
+     "checkout": "nano_1betgpjti6r3e3poyxfup4dzj6pfenumenqtntctjgay118hc6gjy65syg6i",
+     "funder": "nano_1qs6dkbx5336j7szmhab3i6et8qcuybx84o1er73kp88k43ct7jg3pekjaet",
+     "send_hash": "DDEA8713825C635838FEE2802511BE03FF1E3D968B365F4A83EEAA733849D5CD"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1792646747,
+     "at": "2026-10-22T05:25:47Z",
+     "kind": "tip",
+     "net": 0.0285,
+     "gross": 0.03,
+     "checkout": "nano_1kc9em7qzsiamedcxfifm91y4pm1bs4az1m4xhbszgm8ic697usncom1pnyi",
+     "funder": "nano_1qs6dkbx5336j7szmhab3i6et8qcuybx84o1er73kp88k43ct7jg3pekjaet",
+     "send_hash": "876681149B4A5688F40EA807C051F42E445B0AD4630B8C77227B56344A6BA877"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1792666622,
+     "at": "2026-10-22T10:57:02Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_1cr63hfnqtuicfnz9cc7oyqdmjqi7kzhgh8cxa4tgtye7zp44r1bwe4s5hhs",
+     "funder": "nano_1jix54b6uig1973jcg98w5xmm5t7736ncx48jp49kpmxwka9wtcog8y8o7hg",
+     "send_hash": "95B57DF70B884E9A6401095C40B34B24E2B78F6F216C417CCD9E2930972CA1A5"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1792704896,
+     "at": "2026-10-22T21:34:56Z",
+     "kind": "tip",
+     "net": 0.2375,
+     "gross": 0.25,
+     "checkout": "nano_1cs95iz9uzmnzozkrqxgnx9qgatcx8tbx4y3qju7k84d6jw1q7yc188b9skn",
+     "funder": "nano_3kaf7r9n3ixpjao14z1h18i7mjdkzb55k74qka67dngpiswaadyiu3otq7pp",
+     "send_hash": "27AD7AC5D443C1506C552F529152570C6A22264A5E3D55C9E863769B179AD327"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1792705022,
+     "at": "2026-10-22T21:37:02Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_34n9stna5p51izmum1t5pywccxmfdrzgbor7wj6gcnnuismnewa1toj5749o",
+     "funder": "nano_3kaf7r9n3ixpjao14z1h18i7mjdkzb55k74qka67dngpiswaadyiu3otq7pp",
+     "send_hash": "3D33BDFDCED3678AB570906F9A504ABBA1A88166A6C8E68533D8AC45CC066466"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1792743185,
+     "at": "2026-10-23T08:13:05Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_335wedwpqenitam5s93nk4r3bjtaed6wcrzhqy1sh6gpwo74rgt7o5w5nkxu",
+     "funder": "nano_1qs6dkbx5336j7szmhab3i6et8qcuybx84o1er73kp88k43ct7jg3pekjaet",
+     "send_hash": "2E85A66AF3CC309D9E638800A2142BBD2D46954A0AD43749AC97C60D2E1D0BBC"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1793005306,
+     "at": "2026-10-26T09:01:46Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_1mfkoe6noyir43ur6mtxxf4zzenekb46xxhfcaeaifhdwr73grda1ibi3zzj",
+     "funder": "nano_3cumf83cb4pz49b76rfmktbw6aism6gr398tk5d9ifsxxasxtd4rhk4js5bm",
+     "send_hash": "7C56CE1A459D1B49A6F2CE7A3E319854C011090E9A4E0710A6C516830A7A6521"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1793015343,
+     "at": "2026-10-26T11:49:03Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_3rxsmex4d831nzc7ci36giftu94zu4ugc4xw44ffsgmf6cjdtx6xcothogg8",
+     "funder": "nano_3i1jasfyyj5k7n7uoru5nc6hzt53dzb65wjsb8qqyg1qt93wrykmfrpirzwn",
+     "send_hash": "3700898EA4B7ABC9DA8C48773F45A2969C1B6BA70FE149BBA1A442151FE466CC"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1793015833,
+     "at": "2026-10-26T11:57:13Z",
+     "kind": "tip",
+     "net": 0.475,
+     "gross": 0.5,
+     "checkout": "nano_3fdhm8jnc9fdy4pq6yg8c3es3zdwj6fzpb14uiagq73sxzu7mwxeqcab8b3j",
+     "funder": "nano_3i1jasfyyj5k7n7uoru5nc6hzt53dzb65wjsb8qqyg1qt93wrykmfrpirzwn",
+     "send_hash": "435C1026EFF02CEB39B9FE394E337E5CCF4319AF3007157B2C338D5E1EF93D8E"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1793030103,
+     "at": "2026-10-26T15:55:03Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_18jct1hqgc41q4ig1t6411ghg4fpytyxpe9uqgcaf3s1subnrhygxrfazgbm",
+     "funder": "nano_1qs6dkbx5336j7szmhab3i6et8qcuybx84o1er73kp88k43ct7jg3pekjaet",
+     "send_hash": "BC15707CC95A82FD5659C0F466576FB9ACE2599D5DD7515B3798A9B6062A6524"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1793062623,
+     "at": "2026-10-27T00:57:03Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_1xcfy37kkee4uqcta131i5xsw8j3j4zexroorz3gj5s18hdkwmwgnr6mgjkr",
+     "funder": "nano_3kaf7r9n3ixpjao14z1h18i7mjdkzb55k74qka67dngpiswaadyiu3otq7pp",
+     "send_hash": "66FDCDCB0D27B1E8ADB0EA7AE1C31D9BF4F659674832A5475D98580119B8BFD6"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1793062855,
+     "at": "2026-10-27T01:00:55Z",
+     "kind": "tip",
+     "net": 0.475,
+     "gross": 0.5,
+     "checkout": "nano_3ay3kxzku19abn4sczqs9xbxqyfc417npat5as8u19pgkiqou7ztdrbcpx98",
+     "funder": "nano_3kaf7r9n3ixpjao14z1h18i7mjdkzb55k74qka67dngpiswaadyiu3otq7pp",
+     "send_hash": "9A0FC8D2AD85043950D47D25988644DAB760AC63CD96ACA5E275876824705D19"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1793203413,
+     "at": "2026-10-28T16:03:33Z",
+     "kind": "tip",
+     "net": 0.0285,
+     "gross": 0.03,
+     "checkout": "nano_1dd35bdbfpd5w4h5gncxfmfygunhax134jf77zbuzhkn66ijubcumf7hb3yb",
+     "funder": "nano_1qs6dkbx5336j7szmhab3i6et8qcuybx84o1er73kp88k43ct7jg3pekjaet",
+     "send_hash": "9D056B48D144DD4716AC56293154A0BD6F4BADB4BA46A9C517DEFE113EF977A8"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1793798583,
+     "at": "2026-11-04T13:23:03Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_17t6yodpbhr76bqkc5eq35wk6paxszxzwy13nqgbi5eo9z6j6cosgr9meb8e",
+     "funder": "nano_3i1jasfyyj5k7n7uoru5nc6hzt53dzb65wjsb8qqyg1qt93wrykmfrpirzwn",
+     "send_hash": "664E18EDA76824078A5DFE93F6D55841BBE4EA5FCDE358BFEA6C0A0814B9664C"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1793869491,
+     "at": "2026-11-05T09:04:51Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_3o3d8fsmg5pt81f1ixirost3st9x3qtsep6gw7u5hdt69su4wgxjhz7x6e9n",
+     "funder": "nano_3cumf83cb4pz49b76rfmktbw6aism6gr398tk5d9ifsxxasxtd4rhk4js5bm",
+     "send_hash": "0DE5266B0EF8C59DF06D6BFBD1D288FAEE4A007A38C172BE48CACECCEC51A50D"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1793922782,
+     "at": "2026-11-05T23:53:02Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_3bbninwjusyw914mqgmmzrp1p4o7n5fzaiqy5muuoyyfx7f58p1byrdgoyom",
+     "funder": "nano_1qs6dkbx5336j7szmhab3i6et8qcuybx84o1er73kp88k43ct7jg3pekjaet",
+     "send_hash": "6EC12963E7CBE25F7A08D5F708A17DBC44A43E6B25348E05651C11B17AFDDB91"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1793945097,
+     "at": "2026-11-06T06:04:57Z",
+     "kind": "sale",
+     "net": 0.925,
+     "gross": 1.0,
+     "checkout": "nano_3tdnkzcdbsi5m5e8pdk6dme457joecpx9nhgzjkakg9efmekp7rg4uocawhq",
+     "funder": "nano_14enjpwhzy7ijsj61c5tfa65wfaqygafrdaod6jht7xae34rzxc7d1fqnmjo",
+     "send_hash": "D04FFFD4B4FCCCB2E0EDC9C6436531328939F3A1107C981C468E03A4C8EAEFD2"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1793984104,
+     "at": "2026-11-06T16:55:04Z",
+     "kind": "sale",
+     "net": 0.925,
+     "gross": 1.0,
+     "checkout": "nano_1x63aaxd1dw8ch91mgf4mi18udoecdixgei4m4tmd684ympzo3h397f1aine",
+     "funder": "nano_1un519wfsjdfsb6x14dsktdf6f163rikkqd3jq4c1hdbmp6xxqou9gi1zsr7",
+     "send_hash": "08E79B080ADD8288D1CDC1338544DA0CF10983CE5D2C1DD699573059B7D0EB71"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1794215222,
+     "at": "2026-11-09T09:07:02Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_3ksu8m44duwtzu13dfa65nsr3uum98ggak1qzuwusafim7u48gxim7gtn4ws",
+     "funder": "nano_3i1jasfyyj5k7n7uoru5nc6hzt53dzb65wjsb8qqyg1qt93wrykmfrpirzwn",
+     "send_hash": "30DD59D27ECDCED2DFD16D18EF83CA47826DA1D68850B2D4B59BCD7DDD1210B1"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1794255466,
+     "at": "2026-11-09T20:17:46Z",
+     "kind": "tip",
+     "net": 0.12635,
+     "gross": 0.133,
+     "checkout": "nano_3xo4ihuxebpw5r8uueg7godk1nosiryqnm8s58ueborim8apuas3hzs8w7i4",
+     "funder": "nano_1qs6dkbx5336j7szmhab3i6et8qcuybx84o1er73kp88k43ct7jg3pekjaet",
+     "send_hash": "048F50991886201467796B9D901EEC222D3587398E13ACE3A96307220BF71A7D"
+    },
+    {
+     "payout": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "ts": 1794316637,
+     "at": "2026-11-10T13:17:17Z",
+     "kind": "sale",
+     "net": 0.04625,
+     "gross": 0.05,
+     "checkout": "nano_333bsw44yqso97cdiknswurk86tpaxsdxgrcxau9yck8w88rnxn4knz4ufic",
+     "funder": "nano_3yzs8yaxkaxod94kt31wkadequyu8o56b1cwenusziyp1e1dmofbwuj6y8r9",
+     "send_hash": "479BC0712AA0F98AB5DD0745B8F6A32F1D43EADF05049B862FDC5D3EDBE27C67"
+    }
+   ]
+  },
+  "nano_1a8ey36tdeqjt9dnfuf43w8zo5h5m7sgn3tjfqmuk7rd9yhqkqo3ghrk7sup": {
+   "all_time": "6 receipts (4 sales, 2 tips), 12.27635 XNO net, 4 funding accounts",
+   "window": "6 receipts (4 sales, 2 tips), 12.27635 XNO net, 4 funding accounts",
+   "new": 4,
+   "returning": 0,
+   "self_transfers": [],
+   "table": [
+    {
+     "funder": "nano_14enjpwhzy7ijsj61c5tfa65wfaqygafrdaod6jht7xae34rzxc7d1fqnmjo",
+     "sales": 2,
+     "tips": 1,
+     "net": 7.525,
+     "share": 0.613,
+     "first_seen": "2026-11-06T06:05:24Z",
+     "last_seen": "2026-11-07T10:21:04Z",
+     "all_time_receipts": 3
+    },
+    {
+     "funder": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "sales": 1,
+     "tips": 0,
+     "net": 2.775,
+     "share": 0.226,
+     "first_seen": "2026-11-06T17:11:02Z",
+     "last_seen": "2026-11-06T17:11:02Z",
+     "all_time_receipts": 1
+    },
+    {
+     "funder": "nano_1un519wfsjdfsb6x14dsktdf6f163rikkqd3jq4c1hdbmp6xxqou9gi1zsr7",
+     "sales": 1,
+     "tips": 0,
+     "net": 1.85,
+     "share": 0.1507,
+     "first_seen": "2026-11-09T20:47:03Z",
+     "last_seen": "2026-11-09T20:47:03Z",
+     "all_time_receipts": 1
+    },
+    {
+     "funder": "nano_1qs6dkbx5336j7szmhab3i6et8qcuybx84o1er73kp88k43ct7jg3pekjaet",
+     "sales": 0,
+     "tips": 1,
+     "net": 0.12635,
+     "share": 0.0103,
+     "first_seen": "2026-11-09T23:53:54Z",
+     "last_seen": "2026-11-09T23:53:54Z",
+     "all_time_receipts": 1
+    }
+   ],
+   "rows": [
+    {
+     "payout": "nano_1a8ey36tdeqjt9dnfuf43w8zo5h5m7sgn3tjfqmuk7rd9yhqkqo3ghrk7sup",
+     "ts": 1793945124,
+     "at": "2026-11-06T06:05:24Z",
+     "kind": "sale",
+     "net": 1.85,
+     "gross": 2.0,
+     "checkout": "nano_3kpd8wojr5nfwqzkereq6ug7g1qgw4s6shi5ij6him6wkqqcdy4naa5mqi75",
+     "funder": "nano_14enjpwhzy7ijsj61c5tfa65wfaqygafrdaod6jht7xae34rzxc7d1fqnmjo",
+     "send_hash": "AACDD13E8CC31E79026C1E732BCFE7E7177C4ABD901C416A76CA3371EA2F500D"
+    },
+    {
+     "payout": "nano_1a8ey36tdeqjt9dnfuf43w8zo5h5m7sgn3tjfqmuk7rd9yhqkqo3ghrk7sup",
+     "ts": 1793956564,
+     "at": "2026-11-06T09:16:04Z",
+     "kind": "tip",
+     "net": 4.75,
+     "gross": 5.0,
+     "checkout": "nano_1am6yc9rfohochaxop3p8nd9tg8kbeinkygikii35dw9yawa43b6ptfodfyu",
+     "funder": "nano_14enjpwhzy7ijsj61c5tfa65wfaqygafrdaod6jht7xae34rzxc7d1fqnmjo",
+     "send_hash": "F3D399DC0947E2FCCA38AFE062FE4379614C2517CDA556C011673F877136D0CC"
+    },
+    {
+     "payout": "nano_1a8ey36tdeqjt9dnfuf43w8zo5h5m7sgn3tjfqmuk7rd9yhqkqo3ghrk7sup",
+     "ts": 1793985062,
+     "at": "2026-11-06T17:11:02Z",
+     "kind": "sale",
+     "net": 2.775,
+     "gross": 3.0,
+     "checkout": "nano_1qakqzhztoecxx6mdaqp4ypaaj7do1z1oqu7uutxieogkbac4hz6sg85g78o",
+     "funder": "nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue",
+     "send_hash": "0512A8006921C7FC27C012FF4893583FE56D7DCD252C708E695F9022292391B6"
+    },
+    {
+     "payout": "nano_1a8ey36tdeqjt9dnfuf43w8zo5h5m7sgn3tjfqmuk7rd9yhqkqo3ghrk7sup",
+     "ts": 1794046864,
+     "at": "2026-11-07T10:21:04Z",
+     "kind": "sale",
+     "net": 0.925,
+     "gross": 1.0,
+     "checkout": "nano_35rziku4pk58u61q31ueiuood9jkk545xa11aezdetxmncs4igwqp6wpdyac",
+     "funder": "nano_14enjpwhzy7ijsj61c5tfa65wfaqygafrdaod6jht7xae34rzxc7d1fqnmjo",
+     "send_hash": "DD0B89A600DCFA46FC6285404B37417541717372A0C0FED58E6FD466C3737866"
+    },
+    {
+     "payout": "nano_1a8ey36tdeqjt9dnfuf43w8zo5h5m7sgn3tjfqmuk7rd9yhqkqo3ghrk7sup",
+     "ts": 1794257223,
+     "at": "2026-11-09T20:47:03Z",
+     "kind": "sale",
+     "net": 1.85,
+     "gross": 2.0,
+     "checkout": "nano_1g69w6pkfp1x78curbz437u1zwoi7nh6p5up31c7g44p8zfozm7nuppxfyzc",
+     "funder": "nano_1un519wfsjdfsb6x14dsktdf6f163rikkqd3jq4c1hdbmp6xxqou9gi1zsr7",
+     "send_hash": "0BE1A50EB72A5CFB1C3F663348931FD88520187E36EB1B1563A7F09BA6C5E5B2"
+    },
+    {
+     "payout": "nano_1a8ey36tdeqjt9dnfuf43w8zo5h5m7sgn3tjfqmuk7rd9yhqkqo3ghrk7sup",
+     "ts": 1794268434,
+     "at": "2026-11-09T23:53:54Z",
+     "kind": "tip",
+     "net": 0.12635,
+     "gross": 0.133,
+     "checkout": "nano_1qwx3n3rm3t9opjdat9fctpxqt1nodsap87i8y5th3ewc5dqwj3zo9qdzr3b",
+     "funder": "nano_1qs6dkbx5336j7szmhab3i6et8qcuybx84o1er73kp88k43ct7jg3pekjaet",
+     "send_hash": "2CF78F2AA746453BC1371CD234A2D4DD26D6433CC90DB987168B4392B41FA04B"
+    }
+   ]
+  }
+ },
+ "across": {
+  "sum": 13,
+  "union": 10,
+  "shared": [
+   "nano_14enjpwhzy7ijsj61c5tfa65wfaqygafrdaod6jht7xae34rzxc7d1fqnmjo",
+   "nano_1qs6dkbx5336j7szmhab3i6et8qcuybx84o1er73kp88k43ct7jg3pekjaet",
+   "nano_1un519wfsjdfsb6x14dsktdf6f163rikkqd3jq4c1hdbmp6xxqou9gi1zsr7"
+  ]
+ }
+}
