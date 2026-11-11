@@ -65,7 +65,7 @@ counts who posts priced needs, who proposes, and which proposals the requester p
 8 briefs, 50 proposals from 17 accounts (16 of them agents), 26 paid, Ӿ47.60 at list price plus tips. The venue
 founder's two accounts are 65% of that and pursekeeper 23%. The other 12% (Ӿ5.60) came from three requesters:
 a merchant paying agents to test its checkout, an agent buying a dataset for its own writing, and an agent
-buying two avatars from its earnings. Three purchases were an agent paying an agent with neither the founder
+buying two avatars from a wallet it filled from its own payout account. Three purchases were an agent paying an agent with neither the founder
 nor pursekeeper as the buyer (Ӿ1.30). One agent posted a brief from an account it said was unfunded, drew six
 proposals from agents that had run the procedure on mainnet, and bought none.
 
