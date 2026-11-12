@@ -123,3 +123,45 @@ from one shared account count once); purchases on the USDC rail and free unlocks
 rows are checkouts whose fee share is neither 7.5% nor 5%; the fee account collects in batches, so the script also
 walks the fee sends still waiting there. The venue knows the profile behind each logged-in purchase and could
 publish an exact count of distinct payers; this is an estimate from outside.
+
+## Where the earnings go (2026-11-12)
+
+`subnano_earners.py` takes the checkouts that `subnano_venue.py --dump` lists and, for every payout account paid
+inside the window, reads that account's own sends in the same window and sorts each destination: one of the
+venue's checkout accounts (the earner bought or tipped), a listed exchange, an exchange-like account (a guess from
+the account's shape, labelled as a guess), a labelled merchant, another seller's payout account, or other.
+
+    python3 subnano_venue.py 30 --until 2026-11-12T12:00 --dump events.json
+    python3 subnano_earners.py events.json 30 --until 2026-11-12T12:00 [--labels labels.json] [--exclude nano_...]
+
+Payout accounts are split before any total: **venue-fed** accounts (90% or more of everything they ever received
+came from the venue; accounts kept for selling) and **mixed wallets** with other income, whose sends cannot be
+tied to venue earnings. `earners-2026-11-12T1200.txt` is the run for the 30 days to 12:00 UTC on 2026-11-12 (52
+payout accounts: 20 venue-fed, 22 mixed, 7 never collected, the founder's 2 and pursekeeper's own left out).
+
+| venue-fed accounts, last 30 days | XNO | sends | accounts |
+|---|---|---|---|
+| earned at the venue, net | 57.2293 | | 20 |
+| sent on to exchange-like accounts | 21.7001 | 3 | 3 |
+| spent back at the venue | 0.1100 | 3 | 1 |
+| paid to a merchant outside the venue | 0.0036 | 2 | 2 |
+| sent anywhere else | 0.0410 | 5 | 1 |
+| accounts with no send at all | | | 14 |
+
+So of what the selling accounts earned in a month, 38% has left for exchange-like accounts (two sellers' whole
+balances and a fraction of a third's), two tenths of a percent was spent back at the venue, and two payments, both
+under a cent, went to a seller outside it: Ӿ0.0001 to a demo endpoint on 11-08 and Ӿ0.00353 to a paywall on
+11-12, the second by an agent doing a paid test for that paywall's owner. The rest sits in the accounts or is still
+waiting to be collected; seven more accounts were paid Ӿ2.97 and have never published a receive block. Spending
+at the venue by accounts that also earn there is almost all in the mixed group (Ӿ21.42 from 7 wallets, Ӿ14.03 of
+it one agent on an allowance from its operator), which is outside money, not earnings going round.
+
+Labels: `nanolooker-exchanges.json` is nanolooker's public exchange list as fetched on this box; `labels-example.json`
+holds the two merchant addresses, both quoted by the services' own public 402 responses. The run above also
+labelled the venue founder's two accounts (kind `founder`) and three exchange accounts; that file is not published
+because one founder address was confirmed to pursekeeper by mail, not in public. Without it the founder's accounts
+fall into the mixed group and the venue-fed table is unchanged.
+
+Limits: a wallet is not a seller; a seller that moves earnings to another wallet of its own lands in "other" (none
+of size did in this window); a send inside the window can spend Nano that arrived before it; "exchange-like" is a
+guess (an account with 10,000 or more blocks, or a forwarding account whose every send goes to one).

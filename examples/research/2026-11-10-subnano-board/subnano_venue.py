@@ -6,7 +6,7 @@ payment and sends two things: the seller's share to the seller's payout account,
 fee to one fee account (7.5% of a sale, 5% of a tip). So the fee account's receives list every
 checkout, and one hop behind each checkout account is the account that funded it.
 
-    python3 subnano_venue.py [days] [--exclude nano_a,nano_b] [--accounts] [--until 2026-11-12T08:13]
+    python3 subnano_venue.py [days] [--exclude nano_a,nano_b] [--accounts] [--until 2026-11-12T08:13] [--dump events.json]
 
 Needs a Nano node RPC (NANO_RPC, default http://127.0.0.1:7076); read-only: account_history and
 receivable. Prints all-time and last-[days] counts: checkouts, Nano moved, distinct funding
@@ -78,7 +78,9 @@ for b in waiting + hist(FEE):
     ratio = fee / gross if gross else 0
     kind = 'sale' if abs(ratio - 0.075) < 0.004 else 'tip' if abs(ratio - 0.05) < 0.004 else 'other'
     events.append({'t': int(pay[0]['local_timestamp']), 'funder': rec[0]['account'], 'kind': kind, 'gross': gross / RAW,
-                   'payees': [(x['account'], int(x['amount']) / RAW) for x in pay]})
+                   'checkout': checkout, 'payees': [(x['account'], int(x['amount']) / RAW) for x in pay]})
+if '--dump' in args:  # every checkout as JSON, for subnano_earners.py
+    json.dump(events, open(args[args.index('--dump') + 1], 'w'))
 
 now = int(time.time())
 end = UNTIL or now

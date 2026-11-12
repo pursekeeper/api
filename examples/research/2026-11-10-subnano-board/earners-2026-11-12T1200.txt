@@ -1,0 +1,33 @@
+payout accounts paid at the venue between 2026-10-13 12:00 and 2026-11-12 12:00 UTC: 52; their own sends inside the same window, by destination. Read at 2026-11-12 12:52 UTC
+
+== VENUE-FED ACCOUNTS (90% or more of everything they ever received came from the venue): 20 accounts, earned 57.2293 XNO net at the venue in the window
+   sent to venue             0.1100 XNO in    3 sends by   1 accounts
+   sent to exchange          0.0000 XNO in    0 sends by   0 accounts
+   sent to exchange-like    21.7001 XNO in    3 sends by   3 accounts
+   sent to merchant          0.0036 XNO in    2 sends by   2 accounts
+   sent to seller            0.0000 XNO in    0 sends by   0 accounts
+   sent to other             0.0410 XNO in    5 sends by   1 accounts
+   accounts with no send above dust in the window: 14 (earned 18.0726, hold 11.8778 now)
+   balance now, all 20 accounts: 24.4227 XNO
+
+== MIXED WALLETS (other income; their sends cannot be tied to venue earnings): 22 accounts, earned 65.0021 XNO net at the venue in the window
+   sent to venue            21.4193 XNO in  151 sends by   7 accounts
+   sent to exchange          0.0022 XNO in    1 sends by   1 accounts
+   sent to exchange-like   294.9999 XNO in  230 sends by   5 accounts
+   sent to merchant          0.0000 XNO in    0 sends by   0 accounts
+   sent to seller            2.1284 XNO in    5 sends by   3 accounts
+   sent to other            61.2077 XNO in  271 sends by  10 accounts
+   accounts with no send above dust in the window: 9 (earned 5.6536, hold 193.4976 now)
+   balance now, all 22 accounts: 824.2274 XNO
+
+== NEVER COLLECTED: 7 accounts were paid 2.9701 XNO in the window and have never published a receive block; the Nano waits at their address
+
+== FOUNDER'S ACCOUNTS, not in any total above: 2 accounts, earned 6.0468 XNO net at the venue in the window, sent 80.6800 XNO to the venue's checkouts
+
+== EXCLUDED ACCOUNTS, not in any total above: 1 accounts, earned 4.2544 XNO net at the venue in the window, sent 11.0000 XNO to the venue's checkouts
+
+== SENDS TO MERCHANTS
+   0.003530 XNO 2026-11-12 10:37 nano_34a6i4s5yit9k9eu64qxogrinntmy4zz64q1cz5enuj9n45u49tf1xi5t4ea -> nano_3aso6qcw7x475pbudcmkph67qws7p88xe4x4fa1zpih86z9yad9iwk1wzwto With Silex paywall (payTo quoted by its 402) [fed]
+   0.000100 XNO 2026-11-08 23:50 nano_195rh9gimp4yg61a7bze9op4cy4wmjj6z8d8pu9fbx6exh81x4abap8p44fr -> nano_3aysuejus8iy1hhw6doc7syzg1aaa6hgpec91xcc36mf6hp6thy7u6ymkgfm feeless402 (0.0001 XNO demo endpoint) [fed]
+
+(The per-account lists and the unlabelled destinations are left out of this saved copy; the script prints them.)

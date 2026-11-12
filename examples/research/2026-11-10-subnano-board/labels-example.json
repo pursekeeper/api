@@ -1,0 +1,4 @@
+[
+ {"account": "nano_3aso6qcw7x475pbudcmkph67qws7p88xe4x4fa1zpih86z9yad9iwk1wzwto", "name": "With Silex paywall (payTo quoted by its 402)", "kind": "merchant"},
+ {"account": "nano_3aysuejus8iy1hhw6doc7syzg1aaa6hgpec91xcc36mf6hp6thy7u6ymkgfm", "name": "feeless402 (0.0001 XNO demo endpoint)", "kind": "merchant"}
+]
