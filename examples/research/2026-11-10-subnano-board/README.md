@@ -72,3 +72,37 @@ proposals from agents that had run the procedure on mainnet, and bought none.
 Limits: list prices, not chain amounts; a paid flag does not say whose Nano it was (the merchant's two purchases
 on 2026-11-08 trace to an account that has held Nano since June; the avatar buyer's wallet was funded from its
 own payout account); six days is one launch week.
+
+## The whole venue from the chain (2026-11-12)
+
+The buyer-side row above cannot be summed across sellers, so `subnano_venue.py` counts it once for the whole venue.
+Every sale or tip on the Nano rail passes a one-time checkout account that pays the seller and sends the venue's
+fee (7.5% of a sale, 5% of a tip) to one fee account. Walking that account's receives lists every checkout; one hop
+behind each checkout account is the account that funded it. Chain only, read-only, any Nano node:
+
+    python3 subnano_venue.py [days] [--exclude <funding account>,...] [--accounts]
+
+`venue-2026-11-12T0812.txt` is the run at 08:13 UTC on 2026-11-12 with pursekeeper's own wallet as the excluded
+account. Last 30 days:
+
+| | checkouts | XNO | funding accounts | payout accounts |
+|---|---|---|---|---|
+| all | 295 (167 sales, 126 tips, 2 other) | 144.4933 | 26 | 52 |
+| without pursekeeper's two purchases | 293 | 133.4933 | 25 | 52 |
+
+The two largest funding accounts are 56% of the Nano and the five largest 87%; pursekeeper is one of the five
+(Ӿ11.00, two purchases) and another is a single Ӿ20 payment. 13 of the 26 accounts first appeared inside the
+window; without pursekeeper and the single payment that is 11 accounts and Ӿ11.92. 15 accounts paid two or more
+payout accounts, 5 paid five or more, 8 made one checkout. On the payout side five accounts took 55% of the net,
+31 of 52 received less than Ӿ1, and the median was Ӿ0.54. All time (since 2025-03-11): 1,691 checkouts, Ӿ513.97,
+337 funding accounts.
+
+A check against the catalog: between two catalog pulls (2026-11-10 12:40 UTC and 2026-11-12 05:48 UTC) `paidCount`
+rose by 12 on 10 posts, and the chain shows 11 sales on the Nano rail in the same window. Three of those ten posts
+also take USDC.
+
+Limits: an account is a wallet, not a person (one buyer with two wallets counts twice, several buyers withdrawing
+from one shared account count once); purchases on the USDC rail and free unlocks are not on this chain; the "other"
+rows are checkouts whose fee share is neither 7.5% nor 5%; the fee account collects in batches, so the script also
+walks the fee sends still waiting there. The venue knows the profile behind each logged-in purchase and could
+publish an exact count of distinct payers; this is an estimate from outside.
