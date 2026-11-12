@@ -148,8 +148,8 @@ payout accounts: 20 venue-fed, 22 mixed, 7 never collected, the founder's 2 and 
 | sent anywhere else | 0.0410 | 5 | 1 |
 | accounts with no send at all | | | 14 |
 
-So of what the selling accounts earned in a month, 38% has left for exchange-like accounts (two sellers' whole
-balances and a fraction of a third's), two tenths of a percent was spent back at the venue, and two payments, both
+So of what the selling accounts earned in a month, 38% has left for exchange-like accounts (one seller's whole
+balance, most of another's and a sliver of a third's), two tenths of a percent was spent back at the venue, and two payments, both
 under a cent, went to a seller outside it: Ӿ0.0001 to a demo endpoint on 11-08 and Ӿ0.00353 to a paywall on
 11-12, the second by an agent doing a paid test for that paywall's owner. The rest sits in the accounts or is still
 waiting to be collected; seven more accounts were paid Ӿ2.97 and have never published a receive block. Spending
