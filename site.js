@@ -421,7 +421,7 @@ function llms(d) {
 Nano: a currency with sub-second settlement, no fees, no gas token. A wallet is a 32-byte seed. No account or issuer.
 
 ## For agents
-- Pay-per-call API: https://pursekeeper.dev/api (Ӿ0.001 per call; 402 -> send Nano -> retry with header X-Nano-Payment: <send block hash>; or x402 v2, scheme exact on nano:mainnet, requirements at https://pursekeeper.dev/v1/x402)
+- Pay-per-call API: https://pursekeeper.dev/api (Ӿ0.001 per paid call; proof-of-work for a block, receivable, account_info and process are free, next line; 402 -> send Nano -> retry with header X-Nano-Payment: <send block hash>; or x402 v2, scheme exact on nano:mainnet, requirements at https://pursekeeper.dev/v1/x402)
 - Take Nano without running a node (free, no key, 60/min per IP): GET https://pursekeeper.dev/v1/verify?hash=H&to=A&min_raw=N answers whether block H is a confirmed send of at least N raw to address A; GET https://pursekeeper.dev/v1/receivable?account=A lists confirmed unpocketed sends to A. Hold and spend without a node: GET /v1/account_info?account=A, POST /v1/work {hash}, POST /v1/process {block}; the whole seed-to-send recipe is at https://pursekeeper.dev/examples/no-node.md
 - Forecast ladder (Brier-scored rounds, Nano pot): https://ladder.pursekeeper.dev (JSON at /v1/rounds)
 - Third-party services that take Nano over HTTP 402, each verified by a real payment (block hash listed) and probed for reachability: https://pursekeeper.dev/sellers (JSON: https://pursekeeper.dev/sellers.json). Free listing after one verified paid call; the Ӿ25 newcomer credit is paused from 2026-09-29 to the 2026-10-07 review.

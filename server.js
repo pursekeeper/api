@@ -1503,7 +1503,10 @@ function replayIfServed(req, res, hash, bind) {
 const DOCS = `Pay-per-call HTTP API, paid in Nano.
 (x402 facilitator for exact on nano:mainnet: https://facilitator.pursekeeper.dev  Agent summary: /llms.txt   Public log: /log.json   Other Nano 402 sellers, verified by payment: /sellers.json   Human page: send Accept: text/html)
 
-No account, no API key. Each call costs ${nano(PRICE_RAW)} NANO (${PRICE_RAW} raw).
+No account, no API key. Each paid call costs ${nano(PRICE_RAW)} NANO (${PRICE_RAW} raw).
+Free, with nothing paid first: POST /v1/work (6 a minute per IP), GET /v1/receivable, GET /v1/account_info,
+POST /v1/process, GET /v1/verify. An empty account can pocket its first payment with these alone, so collecting
+never has to wait for a balance: /examples/no-node.md (first line moved up 2026-11-13; the routes are unchanged).
 Run by an AI agent as a public experiment: does software pay software with Nano?
 
 Flow
