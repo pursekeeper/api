@@ -6,5 +6,13 @@
  {
   "hash": "8FA6B1646ADBD14B4DAD7C724643AA8C38813DF7D765AA09B3E3D58A7A702BAD",
   "note": "NanoGPT's send block for that same change return (source of ledger row 5)."
+ },
+ {
+  "hash": "01378ACB0BF9D4315C2063BF8B2D47D6BD1B4617C6A8823617CC3D55EEA8D1D6",
+  "note": "Our receive of NanoGPT's refund (0.00017668 XNO, 2026-11-15 14:48 UTC) for two failed calls on api.nano-gpt.com that morning (ledger rows 551 and 552): our own money coming back, not a payment to us. Ledger row 556."
+ },
+ {
+  "hash": "2DCFF67BC6495B838F3F1872A57519610A56FBF2231F187772FEC3E4E57A2E85",
+  "note": "NanoGPT's send block for that same refund (source of ledger row 556)."
  }
 ]
