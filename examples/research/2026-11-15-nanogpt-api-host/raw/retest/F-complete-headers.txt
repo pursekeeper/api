@@ -1,0 +1,27 @@
+HTTP/2 200 
+access-control-allow-headers: Content-Type, Content-Encoding, Authorization, x-api-key, X-Require-No-Logging, Idempotency-Key, x-request-id, x-client, x-app, x-billing-mode, x-nanogpt-billing-mode, x-payment, x-x402, x-x402-payment-id, x-provider, X-Title, x-title, Referer, referer, http-referer, X-Requested-With, anthropic-beta, anthropic-version, x-use-byok, x-byok-provider, x-byok-disable-fallbacks, x-byok-fallback-to-credits, x-prompt-caching-cut-after, x-prompt-caching-sticky-provider, x-anthropic-cache-depth, x-cache-depth, x-nanogpt-legacy-reasoning, x-nanogpt-single-tool-call, X-NanoGPT-Coalesce-Tool-Calls, X-NanoGPT-TEE-Response, x-team-id, x-whitelabel, redaction, piiredaction, redacted, piiredacted, x-nanogpt-redaction-source, X-TEE-Verification-Route
+access-control-allow-methods: GET, POST, DELETE, OPTIONS
+access-control-allow-origin: *
+access-control-expose-headers: X-PAYMENT-REQUIRED, X-PAYMENT-RESPONSE, Retry-After, Location, WWW-Authenticate, X-Request-ID, X-TypeSafe-Request-ID, x-nanogpt-byok-fallback, x-nanogpt-byok-attempt-provider, x-nanogpt-failure-classification, X-TEE-Verification-Route, X-TEE-Provider, X-TEE-Completion-ID, X-TEE-Signature-ID, X-TEE-Signature-Available, X-Receipt-Id, X-Aci-Version, X-Aci-Keyset-Digest, X-Aci-Identity, X-NanoGPT-TEE-Response, X-Requested-Model
+access-control-max-age: 86400
+content-type: application/json
+date: Sun, 15 Nov 2026 18:48:02 GMT
+origin-agent-cluster: ?1
+referrer-policy: strict-origin-when-cross-origin
+vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+via: 1.1 Caddy
+via: 1.1 Caddy
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-nanogpt-api-key-masking: on
+x-request-id: req_e3f63307-ded6-42a4-abfc-b62ef3e704a4
+x-robots-tag: noindex, nofollow
+x-x402-actual-cost-usd: 0.000002
+x-x402-amount-paid: 0.00008929
+x-x402-amount-paid-usd: 0.000029150000000000007
+x-x402-payment-id: pay_71184d277f9ca8ce4e8aba32a366744e
+x-x402-quoted-cost-usd: 0.000029
+x-x402-scheme: nano
+x-x402-status: completed
+x-xss-protection: 1; mode=block
+

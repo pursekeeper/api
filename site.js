@@ -479,7 +479,7 @@ function probeLogAppend(checked_at, list, probes) {
   try {
     // `ok` is true, false, or null for a probe that got no answer at all (see probe()). A null is written as null, not as
     // false, so the history can leave it out of the fraction instead of counting an outage against the seller.
-    const rows = list.map((sel, i) => probes[i].door === 'mail' ? null : JSON.stringify({ t: checked_at, id: sel.id, ok: probes[i].reachable, status: probes[i].status, ms: probes[i].ms, ...(probes[i].rail !== undefined ? { rail: probes[i].rail } : {}), ...(probes[i].unknown ? { unknown: true } : {}), ...(probes[i].no_terms ? { no_terms: true } : {}) })).filter(Boolean);
+    const rows = list.map((sel, i) => probes[i].door === 'mail' || probes[i].cached ? null : JSON.stringify({ t: checked_at, id: sel.id, ok: probes[i].reachable, status: probes[i].status, ms: probes[i].ms, ...(probes[i].rail !== undefined ? { rail: probes[i].rail } : {}), ...(probes[i].unknown ? { unknown: true } : {}), ...(probes[i].no_terms ? { no_terms: true } : {}) })).filter(Boolean);
     if (rows.length) fs.appendFileSync(PROBE_LOG, rows.join('\n') + '\n');
   } catch {}
 }
@@ -560,10 +560,24 @@ async function probe(sel) {
     return { reachable: noAnswer ? null : false, status: null, ms: Date.now() - t0, error: err, ...(noAnswer ? { unknown: true } : {}) };
   }
 }
+// Per-seller probe interval (2026-11-15). A seller that limits unpaid quotes per address (Subnano: about 100 a day, then 429
+// with Retry-After until 00:00 UTC) was asked 144 times a day by this probe, which used up the allowance by late afternoon,
+// showed the door as failing for the rest of the day (11-14 and 11-15) and left no quotes for real purchases from this box.
+// probe.every_ms asks such a seller less often. Between real probes the last answer is shown (live.cached true,
+// live.probed_at) and no history row is written, so the 7-day fraction counts real probes only.
+const lastProbe = new Map();
+async function probeThrottled(sel) {
+  const every = sel.probe && Number(sel.probe.every_ms);
+  const prev = lastProbe.get(sel.id);
+  if (every > 0 && prev && Date.now() - prev.at < every - 30_000) return { ...prev.result, cached: true, probed_at: new Date(prev.at).toISOString() };
+  const result = await probe(sel);
+  lastProbe.set(sel.id, { at: Date.now(), result });
+  return result;
+}
 async function sellers(force) {
   if (!force && Date.now() - sellersCache.at < PROBE_MS && sellersCache.data) return sellersCache.data;
   const list = sellersFile();
-  const probes = await Promise.all(list.map(probe));
+  const probes = await Promise.all(list.map(probeThrottled));
   const checked_at = new Date().toISOString();
   probeLogAppend(checked_at, list, probes);
   const hist = probeHistory();
@@ -585,7 +599,7 @@ function sellerRows(sd) {
       : l.unknown ? `<b>not checked</b>: no answer at the last probe${l.error ? ` (${esc(l.error)})` : ''}, so this says nothing about the door`
       : l.reachable ? `<b>reachable</b>, answered ${l.status} in ${l.ms} ms`
       : l.no_terms ? `<b>unreachable</b> at last check: HTTP 402 with no payment terms${l.platform_error ? ` (the hosting platform's own answer, ${esc(l.platform_error)})` : ''}`
-      : `<b>unreachable</b> at last check${l.status ? ` (HTTP ${l.status})` : l.error ? ` (${esc(l.error)})` : ''}`) + (l.rail ? `; Nano rail <b>${l.rail}</b> by the seller's own status` : '');
+      : `<b>unreachable</b> at last check${l.status ? ` (HTTP ${l.status})` : l.error ? ` (${esc(l.error)})` : ''}`) + (l.rail ? `; Nano rail <b>${l.rail}</b> by the seller's own status` : '') + (l.cached && l.probed_at ? `; probed ${esc(l.probed_at.slice(11, 16))} UTC (asked every ${Math.round(Number(s.probe.every_ms) / 60000)} min, the seller limits unpaid quotes)` : '');
     const h = s.history_7d;
     const answered = h ? h.probes - (h.unknown || 0) : 0;
     const hist = h ? `<br>7 d: ${answered ? `${h.reachable}/${answered} probes reachable` : 'no probe got an answer'}${h.unknown ? ` (${h.unknown} got no answer and are not counted)` : ''}${h.rail_checked ? `; Nano rail open on ${h.rail_open || 0}/${h.rail_checked} checks` : ''}` : '';
