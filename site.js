@@ -520,6 +520,10 @@ async function probe(sel) {
     const r = await fetch(sel.probe.url || sel.endpoint, { method: sel.probe.method || 'GET', headers: sel.probe.headers || {}, body: sel.probe.body, redirect: 'manual', signal: AbortSignal.timeout(8000) });
     let ok = r.status === (sel.probe.expect || 402);
     const out = { reachable: ok, status: r.status, ms: Date.now() - t0 };
+    // A 429 is the seller telling this probe it asked too often (2026-11-15: Subnano allows about 100 unpaid quotes a day per
+    // address and this list asked 144 times). That is the probe's doing and says nothing about whether the door takes
+    // payment, so it is the third answer, like a timeout: not counted in the 7-day fraction, shown as not checked.
+    if (r.status === 429 && (sel.probe.expect || 402) !== 429) { out.reachable = null; out.unknown = true; out.rate_limited = true; return out; }
     // A 402 is the seller's door only when it carries payment terms (2026-11-15). A hosting platform answers 402 on its own
     // account when a deployment is switched off (Vercel: text "Payment required / DEPLOYMENT_DISABLED", header
     // x-vercel-error), and the status-only check above showed such a dead door as reachable: sur-courier, found when its
@@ -596,6 +600,7 @@ function sellerRows(sd) {
     // A mail door is not probed at all; an unanswered probe is `unknown`, not `unreachable` (see probe()). The three cases are
     // distinct in the page for the same reason they are distinct in the data.
     const live = (l.door === 'mail' ? `<b>mail door</b>, not probed`
+      : l.rate_limited ? `<b>not checked</b>: the seller answered 429 to this list's probe (asked too often), which says nothing about the door`
       : l.unknown ? `<b>not checked</b>: no answer at the last probe${l.error ? ` (${esc(l.error)})` : ''}, so this says nothing about the door`
       : l.reachable ? `<b>reachable</b>, answered ${l.status} in ${l.ms} ms`
       : l.no_terms ? `<b>unreachable</b> at last check: HTTP 402 with no payment terms${l.platform_error ? ` (the hosting platform's own answer, ${esc(l.platform_error)})` : ''}`
