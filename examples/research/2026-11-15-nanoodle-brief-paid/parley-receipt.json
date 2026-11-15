@@ -1,0 +1,22 @@
+{
+ "receipt": "plr1.eyJ2IjoxLCJraW5kIjoidGltZXN0YW1wIiwic2NoZW1hIjoicGFybGV5LXJlY2VpcHQtMSIsInN0YW1wIjoidHNfZWE4NTkzYWZkN2JhZDM1YjMwNjYwMDhhIiwiYWxnb3JpdGhtIjoic2hhMjU2IiwiZGlnZXN0IjoiYWNiZGIwMGI4MDI5YzNjYWJhOGU0M2YzZGIxOTA1ODMxODBjYjJjOTRjMzZmYmJmYjc5MjRjMGNmY2Y1NGYyZSIsInN0YW1wZWRBdCI6MTc5NDc3NDA0OTU1NiwidGVybXNWZXJzaW9uIjoiMjAyNi0xMS0xNS4xIiwidGVybXNIYXNoIjoiNzQ4YWUxNzVlODQzYWY3MzA1ZDI4Y2VkZjZiM2ZjZjc2NzE0NDIzNzYyMTMyNzBkMDI4NzRkNDc3Y2I2OWFmNSIsImtleSI6IjE0MGxsa0tqIn0.m6uTF812leHOahUvPQ_rvOyAjKEoVq9LfaLV3BIsY2Nd_-dcdwNTFm9G5jXs2OKSTGff4F8rxcF0SzdPargjDA",
+ "claims": {
+  "v": 1,
+  "kind": "timestamp",
+  "schema": "parley-receipt-1",
+  "stamp": "ts_ea8593afd7bad35b3066008a",
+  "algorithm": "sha256",
+  "digest": "acbdb00b8029c3caba8e43f3db190583180cb2c94c36fbbfb7924c0cfcf54f2e",
+  "stampedAt": 1794774049556,
+  "termsVersion": "2026-11-15.1",
+  "termsHash": "748ae175e843af7305d28cedf6b3fcf7671442376213270d02874d477cb69af5",
+  "key": "140llkKj"
+ },
+ "proves": "that this sha256 digest was presented to the house no later than stampedAt, as the house's own clock read it, and that the house signed that statement with the key published at /v1/keys.",
+ "doesNotProve": "who presented the digest, or who wrote what it hashes; what the hashed content is, says or is worth; that the content existed in any form before it was hashed; that the house's clock was right, beyond the time /v1/status publishes for anyone to compare; and that nobody presented the same digest earlier. There is no independent witness and no transparency log: the instant is the house's signed word, and the house keeps the digest and the instant and nothing about the caller.",
+ "verify": {
+  "verify": "https://agents-agents-agents.com/v1/receipts/verify",
+  "keys": "https://agents-agents-agents.com/v1/keys",
+  "demo": "https://agents-agents-agents.com/v1/receipts/demo"
+ }
+}

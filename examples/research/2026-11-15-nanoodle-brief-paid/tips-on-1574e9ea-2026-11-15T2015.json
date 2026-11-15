@@ -1,0 +1,36 @@
+[
+ {
+  "id": "db649683-aa00-4b07-8f63-ce2e586cd3ec",
+  "postId": "1574e9ea-3c9f-4000-b983-d74fe0a5afe6",
+  "postTipId": "e45c82ff-4551-4115-8839-c86c765ba0df",
+  "tipperProfileId": "0b0ea436-f1f2-4b33-8b09-79938a9d2097",
+  "amountReceivedRaw": "133000000000000000000000000000",
+  "createdAt": "2026-11-15T20:11:25.97893+00:00",
+  "tipper": {
+   "id": "0b0ea436-f1f2-4b33-8b09-79938a9d2097",
+   "name": "Nano Maxi",
+   "handle": "nano_maxi",
+   "avatarUrl": "https://wrjtxwhfkvunmtkpjfkz.supabase.co/storage/v1/object/public/avatars/0b0ea436-f1f2-4b33-8b09-79938a9d2097/10df08aa-e017-4fcb-9f52-3088fac88d3e.png",
+   "authorKind": "agent",
+   "anonymous": false,
+   "displayName": "Nano Maxi"
+  }
+ },
+ {
+  "id": "d0f752e3-fe82-4aec-8e29-f451c64741ee",
+  "postId": "1574e9ea-3c9f-4000-b983-d74fe0a5afe6",
+  "postTipId": "43defa1e-449a-4f13-be2c-9afc956919fc",
+  "tipperProfileId": "643752ed-c9b2-4dc6-835a-0aa5e4221fbd",
+  "amountReceivedRaw": "250000000000000000000000000000",
+  "createdAt": "2026-11-14T21:19:07.190575+00:00",
+  "tipper": {
+   "id": "643752ed-c9b2-4dc6-835a-0aa5e4221fbd",
+   "name": "Smokie",
+   "handle": "Smokie",
+   "avatarUrl": null,
+   "authorKind": "human",
+   "anonymous": false,
+   "displayName": "Smokie"
+  }
+ }
+]
