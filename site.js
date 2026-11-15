@@ -479,7 +479,7 @@ function probeLogAppend(checked_at, list, probes) {
   try {
     // `ok` is true, false, or null for a probe that got no answer at all (see probe()). A null is written as null, not as
     // false, so the history can leave it out of the fraction instead of counting an outage against the seller.
-    const rows = list.map((sel, i) => probes[i].door === 'mail' ? null : JSON.stringify({ t: checked_at, id: sel.id, ok: probes[i].reachable, status: probes[i].status, ms: probes[i].ms, ...(probes[i].rail !== undefined ? { rail: probes[i].rail } : {}), ...(probes[i].unknown ? { unknown: true } : {}) })).filter(Boolean);
+    const rows = list.map((sel, i) => probes[i].door === 'mail' ? null : JSON.stringify({ t: checked_at, id: sel.id, ok: probes[i].reachable, status: probes[i].status, ms: probes[i].ms, ...(probes[i].rail !== undefined ? { rail: probes[i].rail } : {}), ...(probes[i].unknown ? { unknown: true } : {}), ...(probes[i].no_terms ? { no_terms: true } : {}) })).filter(Boolean);
     if (rows.length) fs.appendFileSync(PROBE_LOG, rows.join('\n') + '\n');
   } catch {}
 }
@@ -507,6 +507,10 @@ function probeHistory(logFile = PROBE_LOG) {
 function sellersFile() {
   try { return JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'sellers.json'), 'utf8')); } catch { return []; }
 }
+function hasPaymentTerms(headers, text) {
+  try { for (const k of headers.keys()) if (/^(payment-required|www-authenticate|x-payment|x-nano-|x-402)/i.test(k)) return true; } catch {}
+  return /nano_[13][13456789abcdefghijkmnopqrstuwxyz]{59}/.test(text || '') || /"accepts"\s*:/.test(text || '');
+}
 async function probe(sel) {
   // A seller reached only by mail (probe: null, reach: "mail") has nothing to probe: no HTTP endpoint, no reachability
   // column, no history row. First such seller: Oso Pepe's block courier inside iLands, 2026-10-01.
@@ -514,15 +518,30 @@ async function probe(sel) {
   const t0 = Date.now();
   try {
     const r = await fetch(sel.probe.url || sel.endpoint, { method: sel.probe.method || 'GET', headers: sel.probe.headers || {}, body: sel.probe.body, redirect: 'manual', signal: AbortSignal.timeout(8000) });
-    const ok = r.status === (sel.probe.expect || 402);
+    let ok = r.status === (sel.probe.expect || 402);
     const out = { reachable: ok, status: r.status, ms: Date.now() - t0 };
+    // A 402 is the seller's door only when it carries payment terms (2026-11-15). A hosting platform answers 402 on its own
+    // account when a deployment is switched off (Vercel: text "Payment required / DEPLOYMENT_DISABLED", header
+    // x-vercel-error), and the status-only check above showed such a dead door as reachable: sur-courier, found when its
+    // operator said so on TheAliphant/Sur#2. Terms = a payment header (payment-required, www-authenticate, x-payment*,
+    // x-nano-*, x-402*) or a body with a Nano address or an "accepts" list; the 22 other doors on the list that answered
+    // 402 that day each carried at least one. A 402 without any is logged ok:false with no_terms:true.
+    let text = null;
+    if (ok && r.status === 402) {
+      try { text = (await r.text()).slice(0, 65536); } catch { text = ''; }
+      if (!hasPaymentTerms(r.headers, text)) {
+        ok = false; out.reachable = false; out.no_terms = true;
+        let pe = null; try { pe = r.headers.get('x-vercel-error'); } catch {}
+        if (pe) out.platform_error = String(pe).slice(0, 60);
+      }
+    }
     // Optional rail check (2026-10-17): a multi-rail seller whose free status route answers 200 whether or not its Nano
     // door is open (parley: Nano and Base watchers read unhealthy, Solana only, while /v1/status stayed 200) names
     // probe.rail = { path, match, field }: walk the JSON body by dotted path, pick the array element whose keys equal
     // match, read field; true = 'open', anything else = 'closed', unreadable = null. Reachability stays HTTP-only.
     if (sel.probe.rail && ok) {
       try {
-        let v = await r.json();
+        let v = text !== null ? JSON.parse(text) : await r.json();
         for (const k of String(sel.probe.rail.path || '').split('.').filter(Boolean)) v = v?.[k];
         if (Array.isArray(v) && sel.probe.rail.match) v = v.find(e => Object.entries(sel.probe.rail.match).every(([mk, mv]) => e?.[mk] === mv));
         const val = sel.probe.rail.field ? v?.[sel.probe.rail.field] : v;
@@ -549,7 +568,7 @@ async function sellers(force) {
   probeLogAppend(checked_at, list, probes);
   const hist = probeHistory();
   sellersCache = { at: Date.now(), data: { checked_at,
-    probe: { what: 'one unpaid request per seller, expecting the status the seller declared (normally 402; a seller whose paid route is not a plain GET may name a separate free status route, shown in the entry); it pays nothing and measures no settlement; a seller reached only by mail is not probed and shows live.door = "mail"; a multi-rail seller whose status route stays 200 while its Nano door is closed may name a rail check (probe.rail: a field in its own status body), logged as live.rail = open | closed and counted in history_7d.rail_open, since 2026-10-17', every_minutes: 10, timeout_ms: 8000, states: ['reachable', 'unreachable', 'not checked'], history_days: 7, history_since: '2026-09-20', unknown_rule: 'a probe that got no HTTP answer at all (timeout, DNS failure, connection refused or reset) is live.reachable = null and live.unknown = true: it is not evidence that the door is down, so it is counted in history_7d.unknown and left out of the reachability fraction (since 2026-10-23)', delisting: 'never for downtime; only when the seller asks. The only time-based rule is the second half of the newcomer credit, which needs 14 days of answered probes.' },
+    probe: { what: 'one unpaid request per seller, expecting the status the seller declared (normally 402; a seller whose paid route is not a plain GET may name a separate free status route, shown in the entry); it pays nothing and measures no settlement; a seller reached only by mail is not probed and shows live.door = "mail"; a multi-rail seller whose status route stays 200 while its Nano door is closed may name a rail check (probe.rail: a field in its own status body), logged as live.rail = open | closed and counted in history_7d.rail_open, since 2026-10-17', every_minutes: 10, timeout_ms: 8000, states: ['reachable', 'unreachable', 'not checked'], history_days: 7, history_since: '2026-09-20', unknown_rule: 'a probe that got no HTTP answer at all (timeout, DNS failure, connection refused or reset) is live.reachable = null and live.unknown = true: it is not evidence that the door is down, so it is counted in history_7d.unknown and left out of the reachability fraction (since 2026-10-23)', no_terms_rule: 'a 402 counts as the seller\'s door only when it carries payment terms: a payment header (payment-required, www-authenticate, x-payment*, x-nano-*, x-402*) or a body with a Nano address or an accepts list. A 402 with none of these is live.reachable = false with live.no_terms = true; a hosting platform answers 402 by itself when a deployment is switched off, and until 2026-11-15 the probe read that as a reachable door (one listing, sur-courier, was shown reachable while its deployment was disabled; the log cannot say from when)', delisting: 'never for downtime; only when the seller asks. The only time-based rule is the second half of the newcomer credit, which needs 14 days of answered probes.' },
     sellers: list.map((sel, i) => ({ ...sel, live: probes[i], history_7d: hist[sel.id] || null, quote: QUOTE[sel.id] || null })) } };
   return sellersCache.data;
 }
@@ -565,6 +584,7 @@ function sellerRows(sd) {
     const live = (l.door === 'mail' ? `<b>mail door</b>, not probed`
       : l.unknown ? `<b>not checked</b>: no answer at the last probe${l.error ? ` (${esc(l.error)})` : ''}, so this says nothing about the door`
       : l.reachable ? `<b>reachable</b>, answered ${l.status} in ${l.ms} ms`
+      : l.no_terms ? `<b>unreachable</b> at last check: HTTP 402 with no payment terms${l.platform_error ? ` (the hosting platform's own answer, ${esc(l.platform_error)})` : ''}`
       : `<b>unreachable</b> at last check${l.status ? ` (HTTP ${l.status})` : l.error ? ` (${esc(l.error)})` : ''}`) + (l.rail ? `; Nano rail <b>${l.rail}</b> by the seller's own status` : '');
     const h = s.history_7d;
     const answered = h ? h.probes - (h.unknown || 0) : 0;
