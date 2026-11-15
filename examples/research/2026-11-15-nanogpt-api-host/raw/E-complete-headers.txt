@@ -1,0 +1,30 @@
+HTTP/2 200 
+access-control-allow-headers: Content-Type, Content-Encoding, Authorization, x-api-key, X-Require-No-Logging, Idempotency-Key, x-request-id, x-client, x-app, x-billing-mode, x-nanogpt-billing-mode, x-payment, x-x402, x-x402-payment-id, x-provider, X-Title, x-title, Referer, referer, http-referer, X-Requested-With, anthropic-beta, anthropic-version, x-use-byok, x-byok-provider, x-byok-disable-fallbacks, x-byok-fallback-to-credits, x-prompt-caching-cut-after, x-prompt-caching-sticky-provider, x-anthropic-cache-depth, x-cache-depth, x-nanogpt-legacy-reasoning, x-nanogpt-single-tool-call, X-NanoGPT-Coalesce-Tool-Calls, X-NanoGPT-TEE-Response, x-team-id, x-whitelabel, redaction, piiredaction, redacted, piiredacted, x-nanogpt-redaction-source, X-TEE-Verification-Route
+access-control-allow-methods: GET, POST, DELETE, OPTIONS
+access-control-allow-origin: *
+access-control-expose-headers: X-PAYMENT-REQUIRED, X-PAYMENT-RESPONSE, Retry-After, Location, WWW-Authenticate, X-Request-ID, X-TypeSafe-Request-ID, x-nanogpt-byok-fallback, x-nanogpt-byok-attempt-provider, x-nanogpt-failure-classification, X-TEE-Verification-Route, X-TEE-Provider, X-TEE-Completion-ID, X-TEE-Signature-ID, X-TEE-Signature-Available, X-Receipt-Id, X-Aci-Version, X-Aci-Keyset-Digest, X-Aci-Identity, X-NanoGPT-TEE-Response, X-Requested-Model
+access-control-max-age: 86400
+cache-control: public, max-age=0, must-revalidate
+content-type: application/json
+date: Sun, 15 Nov 2026 10:12:46 GMT
+origin-agent-cluster: ?1
+referrer-policy: strict-origin-when-cross-origin
+server: Vercel
+strict-transport-security: max-age=63072000; includeSubDomains
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-matched-path: /api/v1/chat/completions
+x-nanogpt-api-key-masking: on
+x-request-id: req_83d04e93-f094-4c77-beae-0b60b6fe01de
+x-robots-tag: noindex, nofollow
+x-vercel-cache: MISS
+x-vercel-id: arn1:arn1:fra1::fra1::fra1::7dh68-1794737560273-1dc7e1640442
+x-x402-actual-cost-usd: 0.000002
+x-x402-amount-paid: 0.00008834
+x-x402-amount-paid-usd: 0.000029150000000000007
+x-x402-payment-id: pay_2401a4d3ec78f0cf4266964f131a767b
+x-x402-quoted-cost-usd: 0.000029
+x-x402-scheme: nano
+x-x402-status: completed
+x-xss-protection: 1; mode=block
+

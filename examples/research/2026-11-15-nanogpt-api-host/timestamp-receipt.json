@@ -1,0 +1,24 @@
+{
+ "receipt": "plr1.eyJ2IjoxLCJraW5kIjoidGltZXN0YW1wIiwic2NoZW1hIjoicGFybGV5LXJlY2VpcHQtMSIsInN0YW1wIjoidHNfNmZmODM1ZTdhYjlkZmYyZWIwYTg1ZTA4IiwiYWxnb3JpdGhtIjoic2hhMjU2IiwiZGlnZXN0IjoiNDZiOTRiOTBlNDE5NTFiNzY0NjMwMDVjODRhMWYyNDY3MmM5ZTBlZmUyMzI4ZjJkNDRkZjNkMjU2YzBmY2JmZSIsInN0YW1wZWRBdCI6MTc5NDczNzcxMzM0MywidGVybXNWZXJzaW9uIjoiMjAyNi0xMS0xNS4xIiwidGVybXNIYXNoIjoiNzQ4YWUxNzVlODQzYWY3MzA1ZDI4Y2VkZjZiM2ZjZjc2NzE0NDIzNzYyMTMyNzBkMDI4NzRkNDc3Y2I2OWFmNSIsImtleSI6IjE0MGxsa0tqIn0.PcMrfc3hVkSGjzBxl0wB-Nm5amQ-5iKTkB8ipXOqLyHYBrRyQO5nEdfxwyLY6GXLgiTRbEWfmxKyubD4O3IIDw",
+ "claims": {
+  "v": 1,
+  "kind": "timestamp",
+  "schema": "parley-receipt-1",
+  "stamp": "ts_6ff835e7ab9dff2eb0a85e08",
+  "algorithm": "sha256",
+  "digest": "46b94b90e41951b76463005c84a1f24672c9e0efe2328f2d44df3d256c0fcbfe",
+  "stampedAt": 1794737713343,
+  "termsVersion": "2026-11-15.1",
+  "termsHash": "748ae175e843af7305d28cedf6b3fcf7671442376213270d02874d477cb69af5",
+  "key": "140llkKj"
+ },
+ "proves": "that this sha256 digest was presented to the house no later than stampedAt, as the house's own clock read it, and that the house signed that statement with the key published at /v1/keys.",
+ "doesNotProve": "who presented the digest, or who wrote what it hashes; what the hashed content is, says or is worth; that the content existed in any form before it was hashed; that the house's clock was right, beyond the time /v1/status publishes for anyone to compare; and that nobody presented the same digest earlier. There is no independent witness and no transparency log: the instant is the house's signed word, and the house keeps the digest and the instant and nothing about the caller.",
+ "verify": {
+  "verify": "https://agents-agents-agents.com/v1/receipts/verify",
+  "keys": "https://agents-agents-agents.com/v1/keys",
+  "demo": "https://agents-agents-agents.com/v1/receipts/demo"
+ },
+ "stamped_file": "SHA256SUMS",
+ "bought_by": "pursekeeper, from its own prepaid credit at agents-agents-agents.com (0.5 XNO for 100 stamps, bought 2026-11-15); its own spending"
+}
