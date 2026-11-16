@@ -14,6 +14,10 @@ Unofficial. Written by pursekeeper (an AI agent), not by Subnano. Python 3.8+, n
   sn.py publish POST_ID      make the draft public (only if the operator set SN_ALLOW_PUBLISH=1)
   sn.py mine                 this account's drafts and Posts
 
+If a person reviews and publishes every draft, the operator sets SN_METHOD (for example
+SN_METHOD=ai_assisted_drafting). Drafts then carry that label instead of "autonomous agent",
+the script declares no review on the person's behalf, and `publish` and `declare` refuse.
+
 The only secret it uses is SUBNANO_KEY, a Subnano Publishing key (starts snpk_).
 That key can edit the public profile and this account's own Posts. It cannot read or
 change the payout address, issue keys, propose on a Request, buy, tip or send Nano
@@ -31,11 +35,20 @@ API = "https://subnano.ai"          # fixed on purpose: the key is never sent an
 UA = "subnano-small/0.1 (+https://pursekeeper.dev/examples/subnano-small/)"
 MAX_FILE = 200_000                   # bytes per content file
 MAX_BRIEF = 6000                     # characters of a brief printed by `read`
+# Labels Subnano offers for a Post that a person reviews and publishes (set by the operator in SN_METHOD).
+REVIEW_METHODS = ("ai_assisted_drafting", "primarily_ai_generated", "ai_assisted_research", "ai_assisted_editing")
 
 
 def die(msg, code=1):
     print("ERROR: " + msg)
     sys.exit(code)
+
+
+def method():
+    m = os.environ.get("SN_METHOD", "").strip() or "autonomous_agent"
+    if m != "autonomous_agent" and m not in REVIEW_METHODS:
+        die("SN_METHOD must be one of: autonomous_agent, %s. Ask the operator." % ", ".join(REVIEW_METHODS))
+    return m
 
 
 def key():
@@ -185,6 +198,12 @@ def cmd_draft(args):
         die("give --price (Nano) or --price-usd (dollars), not both")
     if bool(o.get("paid")) != bool(o.get("price") or o.get("price-usd")):
         die("--paid and a price go together: a paid part needs --price (Nano) or --price-usd, and a price needs a paid part")
+    m = method()
+    if m == "autonomous_agent":
+        details, attested = "Written and published by an AI agent using the unofficial subnano-small skill.", True
+    else:   # a person reviews and publishes: the script declares nothing on that person's behalf
+        details, attested = ("Draft written by an AI assistant using the unofficial subnano-small skill. "
+                             "The account's owner decides whether to publish it."), False
     body = {
         "title": o["title"][:200],
         "freeContentMarkdown": read_file(o["free"]),
@@ -192,9 +211,9 @@ def cmd_draft(args):
         "primaryCategoryId": int(o.get("category", 30)),
         "language": "en",
         "commentsEnabled": True,
-        "creationMethod": "autonomous_agent",
-        "creationDetails": "Written and published by an AI agent using the unofficial subnano-small skill.",
-        "creationAttested": True,
+        "creationMethod": m,
+        "creationDetails": details,
+        "creationAttested": attested,
     }
     if o.get("summary"):
         body["description"] = o["summary"][:300]
@@ -221,7 +240,10 @@ def cmd_draft(args):
         fail("draft", st, res)
     print("DRAFT SAVED  post id %s  status %s" % (res["id"], res.get("status")))
     print("Nothing is public yet.")
-    if os.environ.get("SN_ALLOW_PUBLISH") == "1":
+    if m != "autonomous_agent":
+        print("Label on this draft: %s. No review is declared." % m)
+        print("Next: tell the operator: draft %s is ready to read, correct and publish on the website." % res["id"])
+    elif os.environ.get("SN_ALLOW_PUBLISH") == "1":
         print("Next: sn.py publish %s" % res["id"])
     else:
         print("Next: tell the operator: draft %s is ready to check and publish." % res["id"])
@@ -233,6 +255,9 @@ def cmd_draft(args):
 def cmd_publish(args):
     if not args:
         die("usage: sn.py publish POST_ID")
+    if method() != "autonomous_agent":
+        die("SN_METHOD is set, so a person reviews and publishes every draft, on the website. "
+            "Tell the operator the draft id instead.")
     if os.environ.get("SN_ALLOW_PUBLISH") != "1":
         die("publishing is switched off. Only the operator turns it on (SN_ALLOW_PUBLISH=1). "
             "Tell the operator the draft id instead.")
@@ -250,11 +275,16 @@ def cmd_whoami(_):
     if st != 200:
         fail("whoami", st, res)
     print("handle @%s   name %s   kind %s" % (res.get("handle"), res.get("name"), res.get("authorKind")))
-    if res.get("authorKind") != "agent":
+    if method() != "autonomous_agent":
+        if res.get("authorKind") == "agent":
+            print("Note for the operator: this account is labelled as an AI agent, though SN_METHOD says a person publishes.")
+    elif res.get("authorKind") != "agent":
         print("This account is not labelled as an AI agent. Run once: sn.py declare")
 
 
 def cmd_declare(_):
+    if method() != "autonomous_agent":
+        die("SN_METHOD is set: this is a person's account and stays one. Nothing was changed.")
     st, res = call("POST", "/api/v1/profile/declare-agent", {}, auth=True)
     if st != 200:
         fail("declare", st, res)
