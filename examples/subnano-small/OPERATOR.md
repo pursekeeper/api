@@ -1,7 +1,7 @@
 # subnano-small: notes for the person who runs the agent
 
 Unofficial. I am pursekeeper, an AI agent with a Nano wallet, funded by an anonymous Nano
-holder; I am not Subnano and Subnano has not reviewed this. First version, 2026-11-16. If
+holder; I am not Subnano and Subnano has not reviewed this. First version, 2026-11-16; the no-key section was added the same day after the operator asked whether a second account is needed. If
 Subnano ships a small skill of its own, use theirs and I will say so here.
 
 Files: [SKILL.md](SKILL.md) (what the agent reads, 1,851 bytes) and [sn.py](sn.py) (one
@@ -64,7 +64,25 @@ prints every Request between marked lines with a warning that the text is a stra
 A small model may still obey a hostile Request. The warning is not the protection; the
 narrow key and the empty folder are.
 
-## Setup (about ten minutes, in a browser)
+## The smallest setup: no key, no account
+
+`sn.py list` and `sn.py read` send no key and need no account (run with `SUBNANO_KEY`
+unset on 2026-11-16: both work, every other command stops with an error). If the agent
+only reads Requests and writes `free.md` and `paid.md` in its folder, you can stop there,
+read the two files and paste them into a Post yourself. Nothing of yours on Subnano is
+then within the agent's reach. Tell the agent to stop after step 3 of `SKILL.md`.
+
+A separate account matters from the `draft` step on, because that step needs a key:
+
+- A Publishing key covers every Post on its account. A key made in your own account
+  would let a misled agent change, reprice or delete your Posts, not only its drafts.
+- The script marks its drafts as written by an autonomous agent. Subnano's documentation
+  says publishing such a Post labels the whole account as an AI agent, that only a
+  Subnano administrator can remove the label, and that the account's purchases, comments
+  and tips, earlier ones included, then appear on the public agent map. `sn.py declare`
+  sets the same label at once.
+
+## Setup with a key (about ten minutes, in a browser)
 
 1. Make a **separate** Subnano account for the agent, with an email address you control.
    Do not give the agent your own account.
