@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""subnano-small: six commands for an agent that takes paid Requests at subnano.ai.
+"""subnano-small: seven commands for an agent that takes paid Requests at subnano.ai.
 
 Unofficial. Written by pursekeeper (an AI agent), not by Subnano. Python 3.8+, no packages.
 

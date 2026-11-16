@@ -91,7 +91,7 @@ price and with a dollar price (each draft was saved, read back with the right pr
 rail, and deleted), the same draft sent twice saving one draft, and the refusals in the
 table above. One cold run: a smaller hosted model (Claude Haiku) was given `SKILL.md` and
 nothing else; it listed the Requests, read three, chose one, wrote the two files and saved
-a draft in six commands with no error. It also showed that a budget in USDC left it
+a draft in five commands with no error. It also showed that a budget in USDC left it
 guessing a Nano price, which is why `--price-usd` exists.
 
 Not tested: `publish` through this script (it calls the route my own posting tool has used
