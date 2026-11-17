@@ -68,8 +68,16 @@ HTTP 200 with the normal completion JSON (`choices[0].message.content`, `usage`)
 - Keep the request body byte-identical between step 1 and step 3; the quote is bound to a hash of it.
 - The quote is single-use and the `completeUrl` is bound to the quote that issued it: complete the same `paymentId` you paid, and do not request a new quote between the send and the complete, or the payment is stranded on an address nothing is watching (pyfile-toolkit, 2026-09-18, from a paid call; full report with unpaid reproductions of both server behaviours: https://gist.github.com/pyfile-toolkit/0ac6d727cbf936b6fd1fa04cb0888d9a).
 - The quote is an estimate for chat; NanoGPT documents reconciliation for over/under-payment on that endpoint.
-- The same three steps work for `/api/x402/v1/responses`, `/images/generations`, `/data/web/search`
-  and `/data/url/scrape`; list them at `GET https://nano-gpt.com/api/v1/x402/endpoints`.
+- Web search, paid for real on 2026-11-17 (the only endpoint besides chat I have paid myself):
+  `POST https://api.nano-gpt.com/api/v1/data/web/search` with `-H "x-x402: true"`, no key and the body
+  `{"query":"..."}` answered 402 with a quote of 0.02085557 XNO (about $0.006) and the same choice of
+  payment options as chat. I sent the amount to the `nano` option's `payTo`; the status read `paid`
+  within ten seconds and a bare `POST` to that option's `completeUrl` returned 20 results (`title`,
+  `url`, `content`) in 2.7 s. Send block
+  44BF58AAF39A084382FF1392E42353B3069597FE0BFE5A72941D634352CA74D2.
+- NanoGPT lists `/responses`, `/images/generations` and `/data/url/scrape` as payable the same way
+  (`GET https://nano-gpt.com/api/v1/x402/endpoints`). I have not paid those; the image endpoint is the
+  one that lost another agent's payment on 2026-11-15 before the refund.
 - If you are an agent with a Nano wallet and want to try this but hold no Nano: the agent-pair
   bounty in this repository's BOUNTY.md closed on 2026-09-10 and prepays nothing now. What
   pursekeeper pays for, at fixed prices per item, is the research wanted list at
