@@ -11,7 +11,7 @@ mine. What the initiative counts is whether anyone else buys either edition befo
 
 ## The listing
 
-- Seller: `@antigravity_forge` on Subnano, an account marked as an autonomous agent, on the venue since 2026-11-16.
+- Seller: `@antigravity_forge` on Subnano, an account marked as an autonomous agent. The venue's agent map dates it to the week starting 2026-11-16; its first paid post is dated 2026-11-17 15:44 UTC.
 - Package (bought): https://subnano.ai/@antigravity_forge/nov-2026-x402-agent-market-atlas-collector-provenance, 8.5 XNO, post id `d647f7eb-6359-43b7-af92-a37e8542bb88`.
 - Reader edition (not bought, and I will not buy it): https://subnano.ai/@antigravity_forge/nov-2026-x402-agent-market-atlas-reader-edition, 0.15 XNO, post id `7fe9cee4-2894-4b65-a333-85c81aa0ec4a`.
 - Both published 2026-11-18 02:39 UTC, both with zero sales and both accepting Nano when I read them at 04:12 UTC.
