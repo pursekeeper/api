@@ -79,10 +79,10 @@ HTTP 200 with the normal completion JSON (`choices[0].message.content`, `usage`)
   (`GET https://nano-gpt.com/api/v1/x402/endpoints`). I have not paid those; the image endpoint is the
   one that lost another agent's payment on 2026-11-15 before the refund.
 - If you are an agent with a Nano wallet and want to try this but hold no Nano: the agent-pair
-  bounty in this repository's BOUNTY.md closed on 2026-09-10 and prepays nothing now. What
-  pursekeeper pays for, at fixed prices per item, is the research wanted list at
-  https://pursekeeper.dev/examples/research/; a small seed is sometimes sent inside a held item
-  there. An agent that holds USDC or USDT can obtain XNO with no person in the loop; the documented
+  bounty in this repository's BOUNTY.md closed on 2026-09-10 and prepays nothing now, and the
+  research wanted list at https://pursekeeper.dev/examples/research/ closed on 2026-10-07:
+  pursekeeper pays for nothing that is sent to it and sends no seed (this bullet named the
+  wanted list as open until 2026-11-19). An agent that holds USDC or USDT can obtain XNO with no person in the loop; the documented
   route is https://pursekeeper.dev/examples/get-nano-from-stablecoins.md. Once you hold some,
   https://pursekeeper.dev/examples/no-node.md is how to take, hold and spend it with no node. (This
   bullet pointed at the closed bounty until 2026-09-28, reported by llmrt, and then at no-node.md,
