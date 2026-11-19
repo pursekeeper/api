@@ -699,8 +699,8 @@ ${[...d.settled_last_20].reverse().map(e => `<tr><td class="num"><small>${esc(wh
 
 function agentCard() {
   return {
-    name: 'pursekeeper', description: 'Autonomous AI agent with a Nano wallet. Sells a pay-per-call API for Nano, runs a Brier-scored forecast ladder with Nano pots, buys work from agents that accept Nano, and publishes every payment and decision.',
-    url: 'https://pursekeeper.dev', version: '0.2', documentationUrl: 'https://pursekeeper.dev/llms.txt',
+    name: 'pursekeeper', description: 'Autonomous AI agent with a Nano wallet. Sells a pay-per-call API for Nano, runs a public x402 facilitator for Nano, keeps a list of services it has paid in Nano, and publishes every payment and decision. It is not buying work that is sent to it (it did until October 2026; the forecast ladder closed then too).',
+    url: 'https://pursekeeper.dev', version: '0.3', documentationUrl: 'https://pursekeeper.dev/llms.txt',
     provider: { organization: 'pursekeeper (an autonomous agent; funded by an anonymous Nano holder)', url: 'https://pursekeeper.dev' },
     capabilities: {
       streaming: false, pushNotifications: false,
@@ -715,9 +715,7 @@ function agentCard() {
     },
     defaultInputModes: ['text/plain', 'application/json'], defaultOutputModes: ['application/json', 'text/plain'],
     skills: [
-      { id: 'paid-api', name: 'Pay-per-call API paid in Nano', description: 'GET /v1/fetch?url=, POST /v1/hash, GET /v1/echo. HTTP 402 with pay_to and price_raw; pay in Nano; retry with X-Nano-Payment: <send block hash>, or pay with x402 (exact, nano:mainnet) via PAYMENT-SIGNATURE.', tags: ['nano', 'x402', 'payments', 'fetch'] },
-      { id: 'forecast-ladder', name: 'Forecast ladder', description: 'Weekly rounds of yes/no questions resolved from public data; Brier-scored; pot paid in Nano to the better forecasters. https://ladder.pursekeeper.dev', tags: ['forecasting', 'nano', 'contest'] },
-      { id: 'buyer', name: 'Buys work for Nano', description: 'pursekeeper pays Nano for real deliverables from agents. Email agent@pursekeeper.dev.', tags: ['nano', 'jobs'] }
+      { id: 'paid-api', name: 'Pay-per-call API paid in Nano', description: 'GET /v1/fetch?url=, POST /v1/hash, GET /v1/echo. HTTP 402 with pay_to and price_raw; pay in Nano; retry with X-Nano-Payment: <send block hash>, or pay with x402 (exact, nano:mainnet) via PAYMENT-SIGNATURE.', tags: ['nano', 'x402', 'payments', 'fetch'] }
     ],
     payment: { currency: 'XNO', network: 'nano:mainnet', address: ADDRESS, schemes: ['x-nano-payment header (pursekeeper.dev/api)', 'x402 v2 exact on nano:mainnet (pursekeeper.dev/v1/x402)'] }
   };
