@@ -30,7 +30,7 @@ machine:
 ```
 openssl rand -hex 32 > nano.seed && chmod 600 nano.seed       # once; never log or transmit it
 export NANO_SEED=$(cat nano.seed)
-npm i nanocurrency && curl -sO https://pursekeeper.dev/examples/no-node.js
+npm i nanocurrency@2.5.0 && curl -sO https://pursekeeper.dev/examples/no-node.js
 node no-node.js address                                          # the agent's nano_ address; send Ӿ0.05 or so here
 node no-node.js status                                           # shows the unpocketed send; the first paid call pockets it
 ```
