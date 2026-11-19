@@ -37,7 +37,9 @@ const randomHash = () => require('node:crypto').randomBytes(32).toString('hex').
 // opts.loseReplyOnce: the first paid call lands the block, then the socket is destroyed before any reply.
 // opts.pauseFirstInfo: pause the first account_info reply after its caller holds the lock, until resumeInfo().
 function mock(opts = {}) {
-  const state = { frontier: randomHash(), balance: '5000000000000000000000000000', chain: new Set(), issued: new Set(), landed: 0, served: 0, refused: 0, probes: 0, infoReplies: 0, paidCalls: 0, probeHeaders: [], paidHeaders: [] };
+  const state = { frontier: randomHash(), balance: '5000000000000000000000000000', chain: new Set(), succ: new Map(), issued: new Set(), landed: 0, served: 0, refused: 0, probes: 0, infoReplies: 0, paidCalls: 0, probeHeaders: [], paidHeaders: [] };
+  state.chain.add(state.frontier);   // the node knows the opening frontier too: the client proves a block dead from its predecessor's record
+  const advance = to => { state.succ.set(state.frontier, to); state.frontier = to; state.chain.add(to); };
   const waiting = [];
   let firstInfoSeen, resumeFirstInfo, infoPaused = false;
   const firstInfo = new Promise(resolve => { firstInfoSeen = resolve; });
@@ -48,12 +50,12 @@ function mock(opts = {}) {
     const json = (code, body, headers = {}) => { res.writeHead(code, { 'content-type': 'application/json', ...headers }); res.end(JSON.stringify(body)); };
     const callerHeaders = () => ({ authorization: req.headers.authorization || null, apiKey: req.headers['x-api-key'] || null });
     if (u.pathname === '/v1/account_info') {
-      const reply = () => { state.infoReplies++; json(200, info()); if (opts.receiveAfter && state.infoReplies === opts.receiveAfter) { state.frontier = randomHash(); state.balance = (BigInt(state.balance) + 1000n).toString(); } };
+      const reply = () => { state.infoReplies++; json(200, info()); if (opts.receiveAfter && state.infoReplies === opts.receiveAfter) { advance(randomHash()); state.balance = (BigInt(state.balance) + 1000n).toString(); } };
       if (opts.pauseFirstInfo && !infoPaused) { infoPaused = true; resumeFirstInfo = reply; firstInfoSeen(); return; }
       if (opts.barrier && !barrierDone) { waiting.push(reply); if (waiting.length >= opts.barrier) { barrierDone = true; while (waiting.length) waiting.shift()(); } return; }
       return reply();
     }
-    if (u.pathname === '/v1/verify') return json(200, { hash: u.searchParams.get('hash'), found: state.chain.has(String(u.searchParams.get('hash')).toUpperCase()) });
+    if (u.pathname === '/v1/verify') { const h = String(u.searchParams.get('hash')).toUpperCase(); return state.chain.has(h) ? json(200, { hash: h, found: true, confirmed: true, successor: state.succ.get(h) || null }) : json(404, { hash: h, found: false }); }
     if (u.pathname !== '/buy') return json(404, { error: 'no such endpoint' });
     const sig = req.headers['payment-signature'];
     // Each quote carries its own price (base + the probe's number): ten purchases from one frontier at one price would be
@@ -71,7 +73,7 @@ function mock(opts = {}) {
     if (!state.issued.has((BigInt(state.balance) - BigInt(block.balance)).toString())) { state.refused++; return json(402, { error: 'wrong amount' }); }
     const hash = N.hashBlock({ account: block.account, previous: block.previous, representative: block.representative, balance: block.balance, link: block.link });
     if (!N.verifyBlock({ hash, signature: block.signature, publicKey: N.derivePublicKey(block.account) })) { state.refused++; return json(402, { error: 'bad signature' }); }
-    state.frontier = hash.toUpperCase(); state.balance = block.balance; state.chain.add(state.frontier); state.landed++;
+    advance(hash.toUpperCase()); state.balance = block.balance; state.landed++;
     if (opts.loseReplyOnce && !lost) { lost = true; return res.socket.destroy(); }
     state.served++;
     return json(200, { served: true, hash }, { 'payment-response': b64({ success: true, transaction: hash, network: 'nano:mainnet' }) });
@@ -82,7 +84,7 @@ function mock(opts = {}) {
 function run(origin, lockDir, env = {}) {
   let child;
   const completion = new Promise(resolve => {
-    child = spawn(process.execPath, [CLIENT, origin + '/buy'], { env: { PATH: process.env.PATH, NANO_SEED: SEED, API: origin, NANO_MAX_PAY: '0.001', NANO_LOCK_DIR: lockDir, ...env } });
+    child = spawn(process.execPath, [CLIENT, origin + '/buy'], { env: { PATH: process.env.PATH, NANO_SEED: SEED, API: origin, NANO_MAX_PAY: '0.001', NANO_LOCK_DIR: lockDir, NANO_PENDING_DIR: lockDir, ...env } });
     let out = '', err = '';
     child.stdout.on('data', d => { out += d; }); child.stderr.on('data', d => { err += d; });
     child.on('error', e => resolve({ code: null, out, err: err + e.message }));
@@ -149,14 +151,22 @@ test('a receive by another writer between the frontier read and the paid call: t
   assert.equal(again.code, 0); assert.equal(m.state.served, 10);
 });
 
-test('a lost reply after the block landed: the fate is read from the account (landed, re-present), the writers behind continue', async () => {
+// Since skill 0.3.18 the payment that landed unserved stays on record, and the writers behind it are making the same call
+// (same URL, method, body): each is refused with exit 7 and signs nothing, until someone acknowledges the block by hash.
+test('a lost reply after the block landed: the fate is read from the account (landed, re-present); the same call is not paid again behind it without an acknowledgement', async () => {
   const m = await mock({ loseReplyOnce: true }); const dir = tmp();
   const rs = await Promise.all(Array.from({ length: 10 }, () => run(m.origin, dir)));
-  await m.close();
-  assert.equal(m.state.landed, 10); assert.equal(m.state.served, 9); assert.equal(m.state.refused, 0);
-  const lost = rs.filter(r => r.code !== 0);
+  assert.equal(m.state.refused, 0);
+  const lost = rs.filter(r => r.code === 1);
   assert.equal(lost.length, 1);
-  assert.equal(lost[0].code, 1);
+  const guarded = rs.filter(r => r.code === 7);
+  assert.equal(m.state.served + guarded.length, 9, 'every other writer was either served before the loss or refused after it');
+  assert.equal(m.state.landed, m.state.served + 1, 'nothing landed behind the unserved payment');
+  for (const r of guarded) { assert.match(r.err, /this call was already paid/); assert.doesNotMatch(r.err, /signed block/); }
+  const hash = /hash ([0-9A-F]{64})/.exec(lost[0].err)[1];
+  const acked = await run(m.origin, dir, { NANO_PENDING_ACK: hash });
+  await m.close();
+  assert.equal(acked.code, 0, acked.err);
   assert.match(lost[0].err, /no reply from the seller after the payment was sent/);
   assert.match(lost[0].err, /the block is on the chain \(hash [0-9A-F]{64}\): re-present the same PAYMENT-SIGNATURE/);
   assert.doesNotMatch(lost[0].err, /; sign a new block for this call/);

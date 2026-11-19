@@ -1061,6 +1061,10 @@ async function verifyBlock(req, res, u) {
   return send(res, 200, { hash, found: true, ok: reasons.length === 0, reason: reasons.join('; ') || undefined,
     confirmed, subtype: b.subtype, from: b.block_account, to: dest, amount_raw: amount.toString(), amount_nano: nano(amount),
     min_raw: minRaw === null ? null : minRaw.toString(), any_amount: anyAmount, expected_to: to || null, any_to: anyTo,
+    // successor: the next block on the same account chain, null while this block is the frontier. The skill's client reads
+    // it to prove a signed block dead: "block not found" alone is also what a node that is behind says about a block that
+    // landed, while a predecessor with a different, confirmed successor cannot be said falsely (skill 0.3.18).
+    successor: /^[0-9A-F]{64}$/i.test(String(b.successor)) && !/^0+$/.test(String(b.successor)) ? String(b.successor).toUpperCase() : null,
     height: Number(b.height), local_timestamp: Number(b.local_timestamp), checked_at: new Date().toISOString(), node: 'pursekeeper.dev' });
 }
 async function receivable(req, res, u) {

@@ -26,6 +26,7 @@ const randomHash = () => require('node:crypto').randomBytes(32).toString('hex').
 // lands right after it (an auto-receive), and the reply is lost. block_info answers with opts.blockInfoError.
 function mock(opts) {
   const state = { frontier: randomHash(), balance: '5000000000000000000000000000', landed: null, blockInfo: 0 };
+  const initial = state.frontier;
   const server = http.createServer((req, res) => {
     let body = ''; req.on('data', c => { body += c; }); req.on('end', () => {
       const json = (code, o, h = {}) => { res.writeHead(code, { 'content-type': 'application/json', ...h }); res.end(JSON.stringify(o)); };
@@ -35,7 +36,12 @@ function mock(opts) {
         if (b.action === 'block_info') {
           state.blockInfo++;
           if (opts.blockInfoError) return json(200, { error: opts.blockInfoError });
-          return String(b.hash).toUpperCase() === state.landed ? json(200, { block_account: 'nano_x', subtype: 'send' }) : json(200, { error: 'Block not found' });
+          const h = String(b.hash).toUpperCase();
+          if (h === state.landed) return json(200, { block_account: 'nano_x', subtype: 'send', confirmed: 'true', successor: state.frontier });
+          // since skill 0.3.18 "dead" needs the predecessor's other, confirmed successor, as a real node reports it
+          if (h === initial) return json(200, { block_account: 'nano_x', confirmed: 'true', successor: state.frontier === initial ? '0'.repeat(64) : (state.landed || state.frontier) });
+          if (h === state.frontier) return json(200, { block_account: 'nano_x', confirmed: 'true', successor: '0'.repeat(64) });
+          return json(200, { error: 'Block not found' });
         }
         return json(200, { error: 'unexpected ' + b.action });
       }
@@ -56,7 +62,7 @@ function mock(opts) {
 function run(origin) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'client-fate-'));
   return new Promise(resolve => {
-    const child = spawn(process.execPath, [CLIENT, origin + '/buy'], { env: { PATH: process.env.PATH, NANO_SEED: SEED, NANO_RPC: origin + '/rpc', API: origin, NANO_MAX_PAY: '0.001', NANO_LOCK_DIR: dir } });
+    const child = spawn(process.execPath, [CLIENT, origin + '/buy'], { env: { PATH: process.env.PATH, NANO_SEED: SEED, NANO_RPC: origin + '/rpc', API: origin, NANO_MAX_PAY: '0.001', NANO_LOCK_DIR: dir, NANO_PENDING_DIR: dir } });
     let out = '', err = ''; child.stdout.on('data', d => { out += d; }); child.stderr.on('data', d => { err += d; });
     child.on('close', code => resolve({ code, out, err }));
   });
@@ -70,7 +76,7 @@ test('NANO_RPC: a block_info error that is not "not found" is "cannot tell", nev
   assert.equal(m.state.blockInfo, 1, 'the client asked the node for the block');
   assert.equal(r.code, 1);
   assert.doesNotMatch(r.err, /sign a new block for this call/, 'the block landed; a new block would pay twice:\n' + r.err);
-  assert.match(r.err, /could not read the account to tell whether the block was broadcast; check hash [0-9A-F]{64} before paying again/);
+  assert.match(r.err, /could not establish from the node whether the block was broadcast; check hash [0-9A-F]{64} before paying again/);
 });
 
 test('NANO_RPC: "Block not found" with the frontier moved elsewhere is still dead: sign anew', async () => {
