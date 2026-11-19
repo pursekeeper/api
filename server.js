@@ -20,6 +20,7 @@ const facilitator = require('./facilitator');
 const { withHashLock } = require('./hashlock');   // per-hash serialisation shared with the facilitator
 const { writeJsonAtomic, readJsonStore } = require('./creditstore');   // durable money files (see creditstore.js)
 const nanocurrency = require('nanocurrency');
+const { blake2b } = require('blakejs');
 const { Helper } = require('@x402nano/helper');
 const { ExactNanoScheme: X402Reference } = require('@x402nano/exact/facilitator');
 
@@ -776,6 +777,15 @@ let workInFlight = 0;
 // per-IP limit, GPU always. A paying x402 block gets its own work computed here too, so an
 // agent with Nano but no PoW can buy its first work without doing any.
 const FREE_WORK_PER_MIN = Number(process.env.FREE_WORK_PER_MIN || 6);
+// What a Nano node reports beside a proof: the value the work reaches over the hash (blake2b, 8 bytes, of the work
+// reversed followed by the hash, read back to front) and how many times harder that is than the send threshold.
+function workReached(hash, work) {
+  try {
+    const d = Buffer.from(blake2b(Buffer.concat([Buffer.from(work, 'hex').reverse(), Buffer.from(hash, 'hex')]), undefined, 8)).reverse().toString('hex');
+    const top = 1n << 64n, base = BigInt('0x' + x402.WORK_THRESHOLD), got = BigInt('0x' + d);
+    return { difficulty: d, multiplier: (Number(top - base) / Number(top - got)).toFixed(15) };
+  } catch { return {}; }
+}
 async function workGenerate(req, res) {
   const paid = !!(req.headers['x-nano-payment'] || x402.paymentHeader(req.headers));
   // Body and the busy cap before the charge: a paid call used to be debited and then answered 400 or 503 with no
@@ -818,7 +828,12 @@ async function workGenerate(req, res) {
       const r = await workFor(hash, { paid, knownPayer });
       if (paid) workStats.paid = (workStats.paid || 0) + 1;
       logReq(req, { kind: 'work', hash, ok: true, paid, tier: r.tier, source: r.source, ms: r.ms });
-      return send(res, 200, { hash, work: r.work, threshold: x402.WORK_THRESHOLD, source: r.source, ms: r.ms, paid, tier: r.tier });
+      // difficulty and multiplier are the two fields a node's own work_generate answers beside the work, and the
+      // @x402nano/exact 1.0.0 client checks the work against the `difficulty` it is given: with only `threshold` here
+      // that client, pointed at this route as its workGenerationUrl, failed with "Invalid work threshold" (measured
+      // 2026-11-19). The same client sends {action, hash, block, json_block}; only `hash` is read, the block is
+      // neither used nor logged.
+      return send(res, 200, { hash, work: r.work, threshold: x402.WORK_THRESHOLD, ...workReached(hash, r.work), source: r.source, ms: r.ms, paid, tier: r.tier });
     } catch (e) {
       logReq(req, { kind: 'work', hash, ok: false, paid, error: e.message });
       // No work, no price: the call is handed back as credit on the hash that paid (an x402 block's hash is
@@ -1616,7 +1631,12 @@ Endpoints
                               new block's own hash (pyfile-toolkit, 2026-10-05). Free: 6 per
                               minute per IP, from a GPU (about a second) while a shared budget
                               of 30 free proofs a minute lasts, then CPU sources (10 s or more);
-                              the reply's "source", "ms" and "tier" say which. Accounts that have
+                              the reply's "source", "ms" and "tier" say which. The reply also
+                              carries "difficulty" and "multiplier" as a node's work_generate does,
+                              and a node-style request body ({"action":"work_generate","hash":H,...})
+                              is accepted, so this URL can be given to a client as its work endpoint
+                              (@x402nano/exact 1.0.0: workGenerationUrl; checked 2026-11-19). Only
+                              "hash" is read: a block sent along is neither used nor logged. Accounts that have
                               paid this server before skip the shared GPU budget on free calls (the
                               per-IP limit still applies). With X-Nano-Payment credit or an x402
                               payment header, ${nano(PRICE_RAW)} NANO per work, no per-minute limit.

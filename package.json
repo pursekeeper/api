@@ -20,6 +20,7 @@
     "@x402/core": "^2.25.0",
     "@x402nano/exact": "^0.2.1",
     "@x402nano/helper": "^0.1.1",
+    "blakejs": "1.2.1",
     "nanocurrency": "^2.5.0",
     "undici": "^8.11.2"
   }
