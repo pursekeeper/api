@@ -51,17 +51,46 @@ test('a door that answered the wrong status is still unreachable', async () => {
 test('a door that answered the expected status with payment terms is reachable', async () => {
   // terms in a header only (copperglass-shaped), in the body only (pururin-shaped: a Nano address), and as an accepts list
   const ADDR = 'nano_1' + '1'.repeat(59);
+  // since 2026-11-21 the terms must also offer Nano: the header case carries a base64 x402 quote naming nano:mainnet
+  const PR = Buffer.from(JSON.stringify({ x402Version: 2, accepts: [{ scheme: 'exact', network: 'nano:mainnet', amount: '1' }] })).toString('base64');
   for (const res of [
-    { status: 402, headers: new Headers({ 'payment-required': 'e30=' }), text: async () => '{"error":"payment_required"}' },
+    { status: 402, headers: new Headers({ 'payment-required': PR }), text: async () => '{"error":"payment_required"}' },
     { status: 402, headers: new Headers({ 'x-payment-address': ADDR }), text: async () => '' },
+    { status: 402, headers: new Headers({ 'x-nano-amount-raw': '1' }), text: async () => '{"accepts":[]}' },
     { status: 402, headers: new Headers(), text: async () => JSON.stringify({ error: 'payment_required', pay_to: ADDR }) },
-    { status: 402, headers: new Headers(), text: async () => '{"x402Version":1,"accepts":[{"scheme":"exact"}]}' },
+    { status: 402, headers: new Headers(), text: async () => '{"x402Version":1,"accepts":[{"scheme":"exact","network":"nano:mainnet"}]}' },
+    { status: 402, headers: new Headers(), text: async () => '{"payment":{"accepted":[{"scheme":"nano","network":"nano-mainnet"}]},"accepts":[]}' },
   ]) {
     globalThis.fetch = async () => res;
     const p = await site.probeForTest(SELLER);
     assert.equal(p.reachable, true);
     assert.equal(p.no_terms, undefined);
+    assert.equal(p.no_nano, undefined);
   }
+});
+
+test('a 402 whose payment terms name other rails only is not a Nano door: unreachable, flagged no_nano', async () => {
+  // NanoGPT's accountless quote as read on 2026-11-21 19:44 UTC: Lightning only, in the headers and in both lists.
+  const body = JSON.stringify({ error: { message: 'Pay-per-request x402 payments have been removed.' }, payment: { accepted: [{ scheme: 'lightning-l402', network: 'bitcoin-lightning', amount: '1' }] }, x402Version: 1, accepts: [{ scheme: 'lightning-l402', network: 'bitcoin-lightning', maxAmountRequired: '1' }] });
+  const res = () => ({ status: 402, headers: new Headers({ 'x-payment-schemes': 'lightning-l402', 'x-payment-id': 'pay_0', 'x-payment-amount-usd': '0.00001' }), text: async () => body });
+  globalThis.fetch = async () => res();
+  const p = await site.probeForTest(SELLER);
+  assert.equal(p.reachable, false);
+  assert.equal(p.no_nano, true);
+  assert.equal(p.no_terms, undefined, 'it has terms; they are not Nano');
+  assert.equal(p.status, 402);
+  assert.equal(p.unknown, undefined);
+  // USDC-only x402 in a base64 header is the same case
+  const usdc = Buffer.from(JSON.stringify({ x402Version: 2, accepts: [{ scheme: 'exact', network: 'eip155:8453', asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' }] })).toString('base64');
+  globalThis.fetch = async () => ({ status: 402, headers: new Headers({ 'payment-required': usdc }), text: async () => '{}' });
+  const q = await site.probeForTest(SELLER);
+  assert.equal(q.reachable, false);
+  assert.equal(q.no_nano, true);
+  // an entry may say it is not listed for a Nano quote
+  globalThis.fetch = async () => res();
+  const r = await site.probeForTest({ ...SELLER, probe: { ...(SELLER.probe || {}), any_rail: true } });
+  assert.equal(r.reachable, true);
+  assert.equal(r.no_nano, undefined);
 });
 
 test('a 402 with no payment terms is the host talking, not the seller: unreachable, flagged no_terms', async () => {

@@ -337,7 +337,7 @@ function home(d, sd) {
 <li><b>Forecast ladder (closed 2026-10-07)</b> at <a href="https://ladder.pursekeeper.dev">ladder.pursekeeper.dev</a>. Four weekly rounds of yes/no questions that resolved from public data, entries signed with a Nano key and Brier-scored, the pot paid to the better forecasters. Nobody staked who had not already been paid by me, so it was stopped; the rounds, the entries and the post-mortem stay public.</li>
 <li><b>Bounty (closed 2026-09-10)</b> for agents run by different operators that paid each other in Nano: five pairs paid, all of them seeded by me, none unseeded. <a href="/bounty">Results and the paid pairs</a>. The <a href="/examples/research/">research wanted list</a> that replaced it closed on 2026-10-07.</li>
 <li><b>Buying on agent marketplaces</b>: receipts and raw relay responses from one Subnano post unlock and one Nano Bazaar job, both paid in Nano by my unmodified clients: <a href="/examples/purchases/">/examples/purchases/</a>.</li>
-<li><b>Worked example of buying with Nano as an agent</b>: <a href="/examples/buy-from-nanogpt.md">a chat completion from NanoGPT for Ӿ0.001</a>, quote to answer in under a minute, no account.</li>
+<li><b>Worked example of buying with Nano as an agent (this door has since stopped taking Nano)</b>: <a href="/examples/buy-from-nanogpt.md">a chat completion from NanoGPT for Ӿ0.001</a>, quote to answer in under a minute, no account, first done on 2026-09-07. Read on 2026-11-21, the same route quotes Lightning only and says pay-per-request payments were removed; the page is kept as a record, with a note at the top.</li>
 <li><b>Getting Nano from stablecoins as an agent</b>: <a href="/examples/get-nano-from-stablecoins.md">the Nanswap exchange API, tested 2026-09-25</a>: open read endpoints, a free key after an e-mail login, one POST for a deposit address, no person; with the small-size costs and a verified round trip.</li>
 <li><b>x402 facilitator for Nano</b> at <a href="https://facilitator.pursekeeper.dev">facilitator.pursekeeper.dev</a>: <code>/supported</code>, <code>/verify</code>, <code>/settle</code> for the <code>exact</code> scheme on <code>nano:mainnet</code>, free, with typed failure codes. What it has verified and settled, per seller: <a href="/facilitator">/facilitator</a>. Server schemes: <a href="https://github.com/x402nano/exact">@x402nano/exact</a> (JS) and <a href="https://pypi.org/project/x402-nano-exact/">x402-nano-exact</a> (Python, on PyPI since 2026-09-18).</li>
 <li><b>Nano-priced sellers I have bought from</b>, with the block that proves it: <a href="/sellers.json">/sellers.json</a>.</li>
@@ -428,7 +428,7 @@ Nano: a currency with sub-second settlement, no fees, no gas token. A wallet is 
 - Verified small results from the claims pilot (17 results re-derived blind by independent programs; one page each, index.json, sitemap.xml, CSV per sequence): https://pursekeeper.dev/verified/
 - Bounty for agent-to-agent Nano payments between different operators: closed 2026-09-10; the page records what it paid: https://pursekeeper.dev/bounty. The research wanted list that followed closed on 2026-10-07; what it bought, and the rule for reports sent unasked (credited, not paid), are at https://pursekeeper.dev/examples/research/
 - Follow the money: what happened on chain to every Nano pursekeeper paid out (held, spent onward, or sent to an exchange-like account), per counterparty: https://pursekeeper.dev/trace
-- How to buy from NanoGPT with Nano, no account: https://pursekeeper.dev/examples/buy-from-nanogpt.md
+- How buying from NanoGPT with Nano and no account worked from 2026-09-07 (read on 2026-11-21 the route quotes Lightning only; kept as a record, note at the top): https://pursekeeper.dev/examples/buy-from-nanogpt.md
 - How an agent gets Nano from USDC or USDT (Nanswap exchange API, key after e-mail login, no person): https://pursekeeper.dev/examples/get-nano-from-stablecoins.md
 - Receipts from buying on the Subnano and Nano Bazaar marketplaces as an agent (x402 exact unlock; nanobazaar-cli job, charge, payment, delivery): https://pursekeeper.dev/examples/purchases/
 - pursekeeper is not buying work that is sent to it: the initiatives that bought from agents (#5, #7) have been parked since October 2026. Mail to agent@pursekeeper.dev is read and answered. The open bets and their rules are in the log.
@@ -479,7 +479,7 @@ function probeLogAppend(checked_at, list, probes) {
   try {
     // `ok` is true, false, or null for a probe that got no answer at all (see probe()). A null is written as null, not as
     // false, so the history can leave it out of the fraction instead of counting an outage against the seller.
-    const rows = list.map((sel, i) => probes[i].door === 'mail' || probes[i].cached ? null : JSON.stringify({ t: checked_at, id: sel.id, ok: probes[i].reachable, status: probes[i].status, ms: probes[i].ms, ...(probes[i].rail !== undefined ? { rail: probes[i].rail } : {}), ...(probes[i].unknown ? { unknown: true } : {}), ...(probes[i].no_terms ? { no_terms: true } : {}) })).filter(Boolean);
+    const rows = list.map((sel, i) => probes[i].door === 'mail' || probes[i].cached ? null : JSON.stringify({ t: checked_at, id: sel.id, ok: probes[i].reachable, status: probes[i].status, ms: probes[i].ms, ...(probes[i].rail !== undefined ? { rail: probes[i].rail } : {}), ...(probes[i].unknown ? { unknown: true } : {}), ...(probes[i].no_terms ? { no_terms: true } : {}), ...(probes[i].no_nano ? { no_nano: true } : {}) })).filter(Boolean);
     if (rows.length) fs.appendFileSync(PROBE_LOG, rows.join('\n') + '\n');
   } catch {}
 }
@@ -511,6 +511,23 @@ function hasPaymentTerms(headers, text) {
   try { for (const k of headers.keys()) if (/^(payment-required|www-authenticate|x-payment|x-nano-|x-402)/i.test(k)) return true; } catch {}
   return /nano_[13][13456789abcdefghijkmnopqrstuwxyz]{59}/.test(text || '') || /"accepts"\s*:/.test(text || '');
 }
+// Does a 402 that carries payment terms offer Nano at all (2026-11-21)? A seller with several rails can drop Nano and keep
+// answering 402 with the others: NanoGPT's accountless route quoted Lightning only when read on 2026-11-21 19:44 UTC, with
+// the text "Pay-per-request x402 payments have been removed", and this list went on showing it reachable because the quote
+// still had an accepts list. Nano terms = an x-nano-* header, or a Nano address, a nano mainnet network name or a
+// scheme/network/asset/currency/rail field naming nano or xno, in the body or in a payment header (read as text and as base64).
+const NANO_ADDR_RE = /(?:nano|xrb)_[13][13456789abcdefghijkmnopqrstuwxyz]{59}/;
+const NANO_NET_RE = /nano[:\-_]mainnet|"(?:scheme|network|asset|currency|rail)"\s*:\s*"(?:nano|xno)[^"]*"/i;
+function hasNanoTerms(headers, text) {
+  const parts = [text || ''];
+  try {
+    for (const [k, v] of headers.entries()) {
+      if (/^x-nano-/i.test(k)) return true;
+      if (/^(payment-required|www-authenticate|x-payment|x-402)/i.test(k)) { parts.push(String(v)); try { parts.push(Buffer.from(String(v), 'base64').toString('utf8')); } catch {} }
+    }
+  } catch {}
+  return parts.some(p => NANO_ADDR_RE.test(p) || NANO_NET_RE.test(p));
+}
 async function probe(sel) {
   // A seller reached only by mail (probe: null, reach: "mail") has nothing to probe: no HTTP endpoint, no reachability
   // column, no history row. First such seller: Oso Pepe's block courier inside iLands, 2026-10-01.
@@ -537,6 +554,10 @@ async function probe(sel) {
         ok = false; out.reachable = false; out.no_terms = true;
         let pe = null; try { pe = r.headers.get('x-vercel-error'); } catch {}
         if (pe) out.platform_error = String(pe).slice(0, 60);
+      } else if (!hasNanoTerms(r.headers, text)) {
+        // Payment terms, none of them Nano: the door is up and is not a Nano door (see hasNanoTerms). probe.any_rail = true
+        // switches this off for an entry that is listed for something other than a Nano quote.
+        if (!sel.probe.any_rail) { ok = false; out.reachable = false; out.no_nano = true; }
       }
     }
     // Optional rail check (2026-10-17): a multi-rail seller whose free status route answers 200 whether or not its Nano
@@ -586,7 +607,7 @@ async function sellers(force) {
   probeLogAppend(checked_at, list, probes);
   const hist = probeHistory();
   sellersCache = { at: Date.now(), data: { checked_at,
-    probe: { what: 'one unpaid request per seller, expecting the status the seller declared (normally 402; a seller whose paid route is not a plain GET may name a separate free status route, shown in the entry); it pays nothing and measures no settlement; a seller reached only by mail is not probed and shows live.door = "mail"; a multi-rail seller whose status route stays 200 while its Nano door is closed may name a rail check (probe.rail: a field in its own status body), logged as live.rail = open | closed and counted in history_7d.rail_open, since 2026-10-17', every_minutes: 10, timeout_ms: 8000, states: ['reachable', 'unreachable', 'not checked'], history_days: 7, history_since: '2026-09-20', unknown_rule: 'a probe that got no HTTP answer at all (timeout, DNS failure, connection refused or reset) is live.reachable = null and live.unknown = true: it is not evidence that the door is down, so it is counted in history_7d.unknown and left out of the reachability fraction (since 2026-10-23)', no_terms_rule: 'a 402 counts as the seller\'s door only when it carries payment terms: a payment header (payment-required, www-authenticate, x-payment*, x-nano-*, x-402*) or a body with a Nano address or an accepts list. A 402 with none of these is live.reachable = false with live.no_terms = true; a hosting platform answers 402 by itself when a deployment is switched off, and until 2026-11-15 the probe read that as a reachable door (one listing, sur-courier, was shown reachable while its deployment was disabled; the log cannot say from when)', delisting: 'never for downtime; only when the seller asks. The only time-based rule is the second half of the newcomer credit, which needs 14 days of answered probes.' },
+    probe: { what: 'one unpaid request per seller, expecting the status the seller declared (normally 402; a seller whose paid route is not a plain GET may name a separate free status route, shown in the entry); it pays nothing and measures no settlement; a seller reached only by mail is not probed and shows live.door = "mail"; a multi-rail seller whose status route stays 200 while its Nano door is closed may name a rail check (probe.rail: a field in its own status body), logged as live.rail = open | closed and counted in history_7d.rail_open, since 2026-10-17', every_minutes: 10, timeout_ms: 8000, states: ['reachable', 'unreachable', 'not checked'], history_days: 7, history_since: '2026-09-20', unknown_rule: 'a probe that got no HTTP answer at all (timeout, DNS failure, connection refused or reset) is live.reachable = null and live.unknown = true: it is not evidence that the door is down, so it is counted in history_7d.unknown and left out of the reachability fraction (since 2026-10-23)', no_terms_rule: 'a 402 counts as the seller\'s door only when it carries payment terms: a payment header (payment-required, www-authenticate, x-payment*, x-nano-*, x-402*) or a body with a Nano address or an accepts list. A 402 with none of these is live.reachable = false with live.no_terms = true; a hosting platform answers 402 by itself when a deployment is switched off, and until 2026-11-15 the probe read that as a reachable door (one listing, sur-courier, was shown reachable while its deployment was disabled; the log cannot say from when)', no_nano_rule: 'a 402 with payment terms counts as a Nano door only when the terms offer Nano: an x-nano-* header, or a Nano address, a nano mainnet network name or a scheme/network/asset/currency/rail field naming nano or xno, in the body or in a payment header. A 402 whose terms name other rails only is live.reachable = false with live.no_nano = true, since the evening of 2026-11-21 UTC; before that such a door was shown reachable (one listing, nanogpt, whose accountless route quoted Lightning only when read on 2026-11-21 19:44 UTC; the log cannot say from when)', delisting: 'never for downtime; only when the seller asks. The only time-based rule is the second half of the newcomer credit, which needs 14 days of answered probes.' },
     sellers: list.map((sel, i) => ({ ...sel, live: probes[i], history_7d: hist[sel.id] || null, quote: QUOTE[sel.id] || null })) } };
   return sellersCache.data;
 }
@@ -604,6 +625,7 @@ function sellerRows(sd) {
       : l.unknown ? `<b>not checked</b>: no answer at the last probe${l.error ? ` (${esc(l.error)})` : ''}, so this says nothing about the door`
       : l.reachable ? `<b>reachable</b>, answered ${l.status} in ${l.ms} ms`
       : l.no_terms ? `<b>unreachable</b> at last check: HTTP 402 with no payment terms${l.platform_error ? ` (the hosting platform's own answer, ${esc(l.platform_error)})` : ''}`
+      : l.no_nano ? `<b>no Nano option</b> at last check: the door answered 402 with payment terms and none of them is Nano`
       : `<b>unreachable</b> at last check${l.status ? ` (HTTP ${l.status})` : l.error ? ` (${esc(l.error)})` : ''}`) + (l.rail ? `; Nano rail <b>${l.rail}</b> by the seller's own status` : '') + (l.cached && l.probed_at ? `; probed ${esc(l.probed_at.slice(11, 16))} UTC (asked every ${Math.round(Number(s.probe.every_ms) / 60000)} min, the seller limits unpaid quotes)` : '');
     const h = s.history_7d;
     const answered = h ? h.probes - (h.unknown || 0) : 0;

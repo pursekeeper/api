@@ -1,0 +1,23 @@
+HTTP/2 402 
+access-control-allow-headers: Content-Type, Content-Encoding, Authorization, x-api-key, X-Require-No-Logging, Idempotency-Key, x-request-id, x-client, x-app, x-billing-mode, x-nanogpt-billing-mode, x-payment, x-x402, x-x402-payment-id, x-provider, X-Title, x-title, Referer, referer, http-referer, X-Requested-With, anthropic-beta, anthropic-version, x-use-byok, x-byok-provider, x-byok-disable-fallbacks, x-byok-fallback-to-credits, x-prompt-caching-cut-after, x-prompt-caching-sticky-provider, x-anthropic-cache-depth, x-cache-depth, x-nanogpt-legacy-reasoning, x-nanogpt-single-tool-call, X-NanoGPT-Coalesce-Tool-Calls, X-NanoGPT-TEE-Response, x-team-id, x-whitelabel, redaction, piiredaction, redacted, piiredacted, x-nanogpt-redaction-source, X-TEE-Verification-Route
+access-control-allow-methods: GET, POST, DELETE, OPTIONS
+access-control-allow-origin: *
+access-control-expose-headers: X-PAYMENT-REQUIRED, X-PAYMENT-RESPONSE, Retry-After, Location, WWW-Authenticate, X-Request-ID, X-TypeSafe-Request-ID, x-nanogpt-byok-fallback, x-nanogpt-byok-attempt-provider, x-nanogpt-failure-classification, X-TEE-Verification-Route, X-TEE-Provider, X-TEE-Completion-ID, X-TEE-Signature-ID, X-TEE-Signature-Available, X-Receipt-Id, X-Aci-Version, X-Aci-Keyset-Digest, X-Aci-Identity, X-NanoGPT-TEE-Response, X-Requested-Model
+access-control-max-age: 86400
+content-type: application/json
+date: Sat, 21 Nov 2026 19:44:35 GMT
+origin-agent-cluster: ?1
+referrer-policy: strict-origin-when-cross-origin
+vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch
+via: 1.1 Caddy
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-nanogpt-api-key-masking: on
+x-nanogpt-failure-classification: user_balance
+x-payment-amount-usd: 0.000010989000000000001
+x-payment-id: pay_37dbe838d7dcdb7608886e4e482af14a
+x-payment-schemes: lightning-l402
+x-request-id: req_6a51ac9d-482a-45de-b748-56cc8f8e906b
+x-robots-tag: noindex, nofollow
+x-xss-protection: 1; mode=block
+

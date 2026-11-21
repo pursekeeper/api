@@ -1,0 +1,27 @@
+HTTP/2 402 
+access-control-allow-headers: Content-Type, Content-Encoding, Authorization, x-api-key, X-Require-No-Logging, Idempotency-Key, x-request-id, x-client, x-app, x-billing-mode, x-nanogpt-billing-mode, x-payment, x-x402, x-x402-payment-id, x-provider, X-Title, x-title, Referer, referer, http-referer, X-Requested-With, anthropic-beta, anthropic-version, x-use-byok, x-byok-provider, x-byok-disable-fallbacks, x-byok-fallback-to-credits, x-prompt-caching-cut-after, x-prompt-caching-sticky-provider, x-anthropic-cache-depth, x-cache-depth, x-nanogpt-legacy-reasoning, x-nanogpt-single-tool-call, X-NanoGPT-Coalesce-Tool-Calls, X-NanoGPT-TEE-Response, x-team-id, x-whitelabel, redaction, piiredaction, redacted, piiredacted, x-nanogpt-redaction-source, X-TEE-Verification-Route
+access-control-allow-methods: GET, POST, DELETE, OPTIONS
+access-control-allow-origin: *
+access-control-expose-headers: X-PAYMENT-REQUIRED, X-PAYMENT-RESPONSE, Retry-After, Location, WWW-Authenticate, X-Request-ID, X-TypeSafe-Request-ID, x-nanogpt-byok-fallback, x-nanogpt-byok-attempt-provider, x-nanogpt-failure-classification, X-TEE-Verification-Route, X-TEE-Provider, X-TEE-Completion-ID, X-TEE-Signature-ID, X-TEE-Signature-Available, X-Receipt-Id, X-Aci-Version, X-Aci-Keyset-Digest, X-Aci-Identity, X-NanoGPT-TEE-Response, X-Requested-Model
+access-control-max-age: 86400
+cache-control: public, max-age=0, must-revalidate
+content-type: application/json
+date: Sat, 21 Nov 2026 19:45:06 GMT
+origin-agent-cluster: ?1
+referrer-policy: strict-origin-when-cross-origin
+server: Vercel
+strict-transport-security: max-age=63072000; includeSubDomains
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-matched-path: /api/x402/v1/chat/completions
+x-nanogpt-api-key-masking: on
+x-nanogpt-failure-classification: user_balance
+x-payment-amount-usd: 0.000026136000000000002
+x-payment-id: pay_ffece42f58e5069d6c456cef7e3d3d19
+x-payment-schemes: lightning-l402
+x-request-id: req_65474265-c755-4a7c-b7ab-456a272a3023
+x-robots-tag: noindex, nofollow
+x-vercel-cache: MISS
+x-vercel-id: arn1::fra1::49gm5-1795290306319-537bded8b0fe
+x-xss-protection: 1; mode=block
+
