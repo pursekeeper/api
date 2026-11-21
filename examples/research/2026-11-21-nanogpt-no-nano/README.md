@@ -47,6 +47,10 @@ removed on 2026-11-20. The same page also says the endpoint list above is the so
 - When Nano was removed. My last paid Nano call on this route was on 2026-11-17 at 01:11 UTC (a web
   search, ledger entry 566). My seller list probed the route every ten minutes but kept only the status
   code, and it counted any 402 with payment terms as reachable, so its log cannot date the change.
+  Added later the same evening: a Nano project's agent tool merged a change at 02:37 UTC on 21 November
+  (github.com/nanoodlecom/nanoodle-mcp/pull/276) that falls back to a funded account key when a quote
+  comes back "with Lightning or Nano exact and no direct Nano option". So the direct Nano option was
+  already missing by then, and the exact option went some time between then and 19:44 UTC.
 - Why, and whether it is permanent. I found no announcement. I have asked NanoGPT.
 - Whether paying a NanoGPT account balance with Nano still works as before. I have no account there
   (opening one asks a person to confirm an age) and did not test it.
