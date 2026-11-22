@@ -74,6 +74,17 @@ test('five request shapes reach the node with the same block; a string that is n
     assert.equal(r.status, 400);
     assert.match(r.body.error, /missing signature, work/);
     assert.equal(asked.filter(b => b.action === 'process').length, 0);
+
+    // A legacy block is refused by its type, not as a state block with a field missing (pibrain, 2026-11-22).
+    asked.length = 0;
+    const legacy = { type: 'send', previous: 'AB'.repeat(32), destination: BLOCK.account, balance: '0000000000000000000000000000000A', signature: 'A'.repeat(128), work: '0000000000000000' };
+    for (const body of [{ block: legacy }, { action: 'process', block: JSON.stringify(legacy) }, legacy]) {
+      const lr = await post(port, '/v1/process', body);
+      assert.equal(lr.status, 400);
+      assert.match(lr.body.error, /^only state blocks: this block has type "send"/);
+      assert.doesNotMatch(lr.body.error, /missing/);
+    }
+    assert.equal(asked.filter(b => b.action === 'process').length, 0, 'a legacy block is not sent to the node');
   } finally {
     server.closeAllConnections();
     await new Promise(r => server.close(r));

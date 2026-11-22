@@ -1159,6 +1159,13 @@ async function processBlock(req, res) {
     }
   }
   const block = given && typeof given === 'object' ? given : body;
+  // A legacy block (type send, receive, open or change, with "destination" or "source" and no "representative") used to be
+  // answered "block is missing representative", which sent pibrain looking for a field its block form does not have
+  // (two probes, 2026-11-22). The type is named first now.
+  if (typeof block.type === 'string' && block.type !== 'state') {
+    logReq(req, { kind: 'process', hash: null, previous: String(block.previous || '').toUpperCase() || null, account: block.account || null, subtype: null, ok: false, error: 'not a state block (type ' + block.type.slice(0, 16) + ')' });
+    return send(res, 400, { error: 'only state blocks: this block has type "' + block.type.slice(0, 16) + '". This route takes the state form only ({type:"state", account, previous, representative, balance, link, signature, work}); a send names its recipient in "link" (the recipient public key) and carries the balance left after the send' });
+  }
   const need = ['type', 'account', 'previous', 'representative', 'balance', 'link', 'signature', 'work'];
   const missing = need.filter(k => block[k] == null || block[k] === '');
   if (missing.length) {
@@ -1634,6 +1641,8 @@ Endpoints
                               A body written for a node's own RPC is taken as it is: with or
                               without "action" and "json_block", and with "block" as an object
                               or as the JSON text of one (the text form since 2026-11-22).
+                              State blocks only: a legacy send, receive, open or change block
+                              is refused in those words, not as a missing field.
                               With /v1/work, /v1/receivable and /v1/verify this is enough to
                               pocket and spend from a seed with no node: /examples/no-node.md
                               The block goes to the node as sent: this route attaches no work,
