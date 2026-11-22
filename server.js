@@ -1147,7 +1147,18 @@ async function processBlock(req, res) {
   countCheck('process', req);
   let body;
   try { body = JSON.parse((await readBody(req, 20_000)).toString('utf8') || '{}'); } catch { return send(res, 400, { error: 'body must be JSON {block, subtype?}' }); }
-  const block = body.block && typeof body.block === 'object' ? body.block : body;
+  // "block" as the JSON text of the block is the node RPC's own default form (no json_block), so a client written against
+  // the node's documentation sends a string here. Until 2026-11-22 that was answered "block is missing type, account, ..."
+  // (every field, since the string has none), which reads as an unsigned block and not as a shape this route did not take.
+  let given = body.block;
+  if (typeof given === 'string') {
+    try { given = JSON.parse(given); } catch { given = null; }
+    if (!given || typeof given !== 'object' || Array.isArray(given)) {
+      logReq(req, { kind: 'process', hash: null, previous: null, account: null, subtype: null, ok: false, error: 'block is a string that is not the JSON text of a block' });
+      return send(res, 400, { error: 'block is a string that is not the JSON text of a state block; send the block as a JSON object, or as the JSON text of one (the node RPC default form)' });
+    }
+  }
+  const block = given && typeof given === 'object' ? given : body;
   const need = ['type', 'account', 'previous', 'representative', 'balance', 'link', 'signature', 'work'];
   const missing = need.filter(k => block[k] == null || block[k] === '');
   if (missing.length) {
@@ -1620,6 +1631,9 @@ Endpoints
                               found:false with the open-block rule if the account has no blocks
   POST /v1/process {"block":{...state block...},"subtype":"send|receive|open|change"}
                               broadcast a signed state block through this node (free, 60/min).
+                              A body written for a node's own RPC is taken as it is: with or
+                              without "action" and "json_block", and with "block" as an object
+                              or as the JSON text of one (the text form since 2026-11-22).
                               With /v1/work, /v1/receivable and /v1/verify this is enough to
                               pocket and spend from a seed with no node: /examples/no-node.md
                               The block goes to the node as sent: this route attaches no work,
