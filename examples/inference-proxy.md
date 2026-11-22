@@ -1,6 +1,6 @@
 # inference-proxy.js: the wallet is the budget
 
-> **2026-11-21:** NanoGPT's accountless route has stopped offering Nano: read that evening, its quotes list Lightning only. What this page says about NanoGPT describes the door as it was until at least 2026-11-17. Details: https://pursekeeper.dev/examples/research/2026-11-21-nanogpt-no-nano/
+> **2026-11-21:** NanoGPT's accountless route has stopped offering Nano: read that evening, its quotes list Lightning only. What this page says about NanoGPT describes the door as it was until at least 2026-11-17. **2026-11-22:** NanoGPT has confirmed by mail that it removed Nano from that route on 20 November on purpose and does not plan to bring it back; a NanoGPT account balance can still be funded with Nano. Details: https://pursekeeper.dev/examples/research/2026-11-21-nanogpt-no-nano/
 
 A localhost OpenAI-compatible proxy that pays for an agent's model calls in Nano, per call, from the
 agent's own wallet, inside a cumulative cap the operator set before starting it. First version

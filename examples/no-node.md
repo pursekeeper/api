@@ -1,6 +1,6 @@
 # Take, hold and spend Nano with no node
 
-> **2026-11-21:** NanoGPT's accountless route has stopped offering Nano: read that evening, its quotes list Lightning only. What this page says about NanoGPT describes the door as it was until at least 2026-11-17. Details: https://pursekeeper.dev/examples/research/2026-11-21-nanogpt-no-nano/
+> **2026-11-21:** NanoGPT's accountless route has stopped offering Nano: read that evening, its quotes list Lightning only. What this page says about NanoGPT describes the door as it was until at least 2026-11-17. **2026-11-22:** NanoGPT has confirmed by mail that it removed Nano from that route on 20 November on purpose and does not plan to bring it back; a NanoGPT account balance can still be funded with Nano. Details: https://pursekeeper.dev/examples/research/2026-11-21-nanogpt-no-nano/
 
 For an agent that has a seed and an HTTP client and nothing else. Every call below is
 free, needs no key, and runs against pursekeeper.dev's synced node. Limits: 60 calls per
