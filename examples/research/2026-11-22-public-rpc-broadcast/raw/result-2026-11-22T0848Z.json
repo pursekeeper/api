@@ -1,0 +1,187 @@
+{
+ "at": "2026-11-22T08:48:10Z",
+ "block": "120EB6DC5CABCB542C90E4ACE36100E0DC22F4FF951B9AEE6C07597798A0E315",
+ "rows": [
+  {
+   "server": "https://rpc.nano.to",
+   "read": [
+    200,
+    "{\"count\":\"226403500\",\"unchecked\":\"385\",\"cemented\":\"226403491\",\"node\":\"@mia-1\"}"
+   ],
+   "object_with_json_block": [
+    409,
+    "{\"error\":\"Old block\"}"
+   ],
+   "block_as_json_text": [
+    409,
+    "{\"error\":\"Old block\"}"
+   ],
+   "object_without_json_block": [
+    500,
+    "{\"error\":\"Block is invalid\"}"
+   ],
+   "body_not_json": [
+    400,
+    "{\"error\":400,\"code\":400,\"message\":\"Invalid JSON request body.\"}"
+   ]
+  },
+  {
+   "server": "https://node.somenano.com/proxy",
+   "read": [
+    200,
+    "{\"count\":\"226403816\",\"unchecked\":\"356\",\"cemented\":\"226403486\",\"requestsLimit\":\"5000\",\"requestsRemaining\":\"4995\",\"requestLimitReset\":\"Mon Nov 23 2026 09:46:34 GMT+0100 (Central European Standard Time)\"}"
+   ],
+   "object_with_json_block": [
+    200,
+    "{\"error\":\"Old block\",\"requestsLimit\":\"5000\",\"requestsRemaining\":\"4994\",\"requestLimitReset\":\"Mon Nov 23 2026 09:46:34 GMT+0100 (Central European Standard Time)\"}"
+   ],
+   "block_as_json_text": [
+    200,
+    "{\"error\":\"Old block\",\"requestsLimit\":\"5000\",\"requestsRemaining\":\"4993\",\"requestLimitReset\":\"Mon Nov 23 2026 09:46:34 GMT+0100 (Central European Standard Time)\"}"
+   ],
+   "object_without_json_block": [
+    200,
+    "{\"error\":\"Block is invalid\",\"requestsLimit\":\"5000\",\"requestsRemaining\":\"4992\",\"requestLimitReset\":\"Mon Nov 23 2026 09:46:34 GMT+0100 (Central European Standard Time)\"}"
+   ],
+   "body_not_json": [
+    400,
+    "{\"error\":\"Expected ',' or '}' after property value in JSON at position 48\"}"
+   ]
+  },
+  {
+   "server": "https://rainstorm.city/api",
+   "read": [
+    200,
+    "{\"count\":\"226403496\",\"unchecked\":\"495\",\"cemented\":\"226403487\",\"requestsLimit\":\"5000\",\"requestsRemaining\":\"4995\",\"requestLimitReset\":\"Mon Nov 23 2026 08:46:35 GMT+0000 (Greenwich Mean Time)\"}"
+   ],
+   "object_with_json_block": [
+    200,
+    "{\"error\":\"Old block\",\"requestsLimit\":\"5000\",\"requestsRemaining\":\"4994\",\"requestLimitReset\":\"Mon Nov 23 2026 08:46:35 GMT+0000 (Greenwich Mean Time)\"}"
+   ],
+   "block_as_json_text": [
+    200,
+    "{\"error\":\"Old block\",\"requestsLimit\":\"5000\",\"requestsRemaining\":\"4993\",\"requestLimitReset\":\"Mon Nov 23 2026 08:46:35 GMT+0000 (Greenwich Mean Time)\"}"
+   ],
+   "object_without_json_block": [
+    200,
+    "{\"error\":\"Block is invalid\",\"requestsLimit\":\"5000\",\"requestsRemaining\":\"4992\",\"requestLimitReset\":\"Mon Nov 23 2026 08:46:35 GMT+0000 (Greenwich Mean Time)\"}"
+   ],
+   "body_not_json": [
+    400,
+    "{\"error\":\"Unexpected token t in JSON at position 48\"}"
+   ]
+  },
+  {
+   "server": "https://nanoslo.0x.no/proxy",
+   "read": [
+    200,
+    "{\"count\":\"226403496\",\"unchecked\":\"342\",\"cemented\":\"226403487\",\"requestsLimit\":\"100000\",\"requestsRemaining\":\"99995\",\"requestLimitReset\":\"Mon Nov 23 2026 08:46:36 GMT+0000 (Coordinated Universal Time)\"}"
+   ],
+   "object_with_json_block": [
+    200,
+    "{\"error\":\"Old block\",\"requestsLimit\":\"100000\",\"requestsRemaining\":\"99994\",\"requestLimitReset\":\"Mon Nov 23 2026 08:46:36 GMT+0000 (Coordinated Universal Time)\"}"
+   ],
+   "block_as_json_text": [
+    200,
+    "{\"error\":\"Old block\",\"requestsLimit\":\"100000\",\"requestsRemaining\":\"99993\",\"requestLimitReset\":\"Mon Nov 23 2026 08:46:36 GMT+0000 (Coordinated Universal Time)\"}"
+   ],
+   "object_without_json_block": [
+    200,
+    "{\"error\":\"Block is invalid\",\"requestsLimit\":\"100000\",\"requestsRemaining\":\"99992\",\"requestLimitReset\":\"Mon Nov 23 2026 08:46:36 GMT+0000 (Coordinated Universal Time)\"}"
+   ],
+   "body_not_json": [
+    400,
+    "{\"error\":\"Expected ',' or '}' after property value in JSON at position 48\"}"
+   ]
+  },
+  {
+   "server": "https://app.natrium.io/api",
+   "read": [
+    200,
+    "{\"cemented\":\"226403491\",\"count\":\"226403821\",\"unchecked\":\"373\"}\n"
+   ],
+   "object_with_json_block": [
+    200,
+    "{\"error\":\"Old block\"}\n"
+   ],
+   "block_as_json_text": [
+    200,
+    "{\"error\":\"Old block\"}\n"
+   ],
+   "object_without_json_block": [
+    400,
+    "{\"error\":\"1 error(s) decoding:\\n\\n* 'block' expected type 'string', got unconvertible type 'map[string]interface {}', value: 'map[account:nano_1xug1q5t7nxoj3ywwzokiea9jz8fq8qfgzp8pbyfr3co3e5xgj755uofu8ue balance:177877087345970010000000000000005 link:AFE1DAAB3DCB2F1F380DCAA6BEB7EB71BB6CA623680357922"
+   ],
+   "body_not_json": [
+    400,
+    "{\"error\":\"The request was invalid and not recognized\"}\n"
+   ]
+  },
+  {
+   "server": "https://xno-rpc.berrypay.org/proxy",
+   "read": [
+    200,
+    "{\"count\":\"226403502\",\"unchecked\":\"64871\",\"cemented\":\"226403492\",\"requestsLimit\":\"5000\",\"requestsRemaining\":\"4998\",\"requestLimitReset\":\"Mon Nov 23 2026 08:46:40 GMT+0000 (Coordinated Universal Time)\"}"
+   ],
+   "object_with_json_block": [
+    200,
+    "{\"error\":\"Old block\",\"requestsLimit\":\"30\",\"requestsRemaining\":\"29\",\"requestLimitReset\":\"Sun Nov 22 2026 08:49:04 GMT+0000 (Coordinated Universal Time)\"}"
+   ],
+   "block_as_json_text": [
+    200,
+    "{\"error\":\"Old block\",\"requestsLimit\":\"30\",\"requestsRemaining\":\"28\",\"requestLimitReset\":\"Sun Nov 22 2026 08:49:04 GMT+0000 (Coordinated Universal Time)\"}"
+   ],
+   "object_without_json_block": [
+    400,
+    "{\"message\":\"json_block must be true when block is a JSON object\",\"error\":\"Bad Request\",\"statusCode\":400}"
+   ],
+   "body_not_json": [
+    400,
+    "{\"message\":\"Invalid JSON\",\"error\":\"Bad Request\",\"statusCode\":400}"
+   ]
+  },
+  {
+   "server": "https://www.bitrequest.app:8020",
+   "read": [
+    200,
+    "{\"count\":\"226403496\",\"unchecked\":\"360\",\"cemented\":\"226403487\",\"requestsLimit\":\"5000\",\"requestsRemaining\":\"4995\",\"requestLimitReset\":\"Sun Nov 22 2026 09:46:41 GMT+0000 (Coordinated Universal Time)\"}"
+   ],
+   "object_with_json_block": [
+    200,
+    "{\"error\":\"Old block\",\"requestsLimit\":\"5000\",\"requestsRemaining\":\"4994\",\"requestLimitReset\":\"Sun Nov 22 2026 09:46:41 GMT+0000 (Coordinated Universal Time)\"}"
+   ],
+   "block_as_json_text": [
+    429,
+    "You are making requests too fast, please slow down!"
+   ],
+   "object_without_json_block": [
+    200,
+    "{\"error\":\"Block is invalid\",\"requestsLimit\":\"5000\",\"requestsRemaining\":\"4992\",\"requestLimitReset\":\"Sun Nov 22 2026 09:46:41 GMT+0000 (Coordinated Universal Time)\"}"
+   ],
+   "body_not_json": [
+    400,
+    "{\"error\":\"Unexpected token t in JSON at position 48\"}"
+   ]
+  },
+  {
+   "server": "https://pursekeeper.dev/v1/process",
+   "read": null,
+   "object_with_json_block": [
+    400,
+    "{\n \"ok\": false,\n \"error\": \"node: Old block\",\n \"hint\": \"common causes: wrong previous (use /v1/account_info frontier), balance not exact, work below threshold fffffff800000000 for previous (or the account public key for an open), signature over the wrong fields\"\n}"
+   ],
+   "block_as_json_text": [
+    400,
+    "{\n \"ok\": false,\n \"error\": \"node: Old block\",\n \"hint\": \"common causes: wrong previous (use /v1/account_info frontier), balance not exact, work below threshold fffffff800000000 for previous (or the account public key for an open), signature over the wrong fields\"\n}"
+   ],
+   "object_without_json_block": [
+    400,
+    "{\n \"ok\": false,\n \"error\": \"node: Old block\",\n \"hint\": \"common causes: wrong previous (use /v1/account_info frontier), balance not exact, work below threshold fffffff800000000 for previous (or the account public key for an open), signature over the wrong fields\"\n}"
+   ],
+   "body_not_json": [
+    400,
+    "{\n \"error\": \"body must be JSON {block, subtype?}\"\n}"
+   ]
+  }
+ ]
+}
