@@ -162,3 +162,16 @@ test('a labelled donation is split out of inflow but stays in the total and the 
   assert.deepEqual(n.external.donation_names, ['a Nano business']);
   assert.equal(n.external.counterparties, 2);
 });
+
+// 2026-11-22: the backstop matched the digits after a decimal point as a whole number, so "0.010045 XNO"
+// was served as "0.[withheld]" (33 figures on /landscape and 34 on /log before the fix).
+test('redact leaves decimal fractions alone and still withholds budget-sized amounts', () => {
+  for (const s of ['0.0050225 XNO', 'paid 0.010045 XNO by x402', 'sent 123.456789 XNO', '1.8123 XNO', 'Ӿ0.8123456789', '0.9999 nano', '4999 XNO', 'in 2026 Nano']) {
+    assert.equal(redact(s), s);
+  }
+  for (const s of ['Ӿ8123.456789', 'cold 8123.456789', 'total 8123.456789 XNO', '8,123.45 XNO', '10000 XNO', 'Ӿ5,000', 'budget 9000', 'holds 8123.456789 XNO in']) {
+    const out = redact(s);
+    assert.match(out, /\[withheld\]/, s);
+    assert.doesNotMatch(out, /\d{4}/, s);
+  }
+});

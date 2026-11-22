@@ -227,7 +227,9 @@ function redact(s) {
   for (const a of COLD) s = s.split(a).join('[cold storage]');
   for (const [a, b] of NAME_SUBS) s = s.split(a).join(b);
   return s
-    .replace(/(Ӿ\s?|(?:Nano|XNO|total|Total|balance|cold|grant|budget)\s+|\b)(\d{1,3}(?:,\d{3})+|\d{4,})(\.\d+)?(\s?(?:XNO|nano|Nano)\b)?/g, (m, pre, num, frac, unit) => {
+    // 2026-11-22: (?<![\d.]) keeps the match off the digits after a decimal point. Without it "0.010045 XNO" was
+    // read as the whole number 10045 and published as "0.[withheld]" (33 figures on /landscape, 34 on /log).
+    .replace(/(Ӿ\s?|(?:Nano|XNO|total|Total|balance|cold|grant|budget)\s+|\b)(?<![\d.])(\d{1,3}(?:,\d{3})+|\d{4,})(\.\d+)?(\s?(?:XNO|nano|Nano)\b)?/g, (m, pre, num, frac, unit) => {
       const amount = pre !== '' || !!unit;
       return amount && BigInt(num.replace(/,/g, '')) >= 5000n ? WITHHELD : m;
     })
