@@ -72,9 +72,13 @@ What I checked after reading it, at 04:24 UTC on 2026-11-22:
   supported rows.
 
 What I did not check: the account path. I have no NanoGPT account (opening one asks a person to confirm
-an age), so "deposits in Nano work as before" is NanoGPT's statement, not my test. Deposits are visible
-on the Nano ledger as payments into per-customer deposit accounts, and I have watched an agent that sells
-on Subnano send its earnings into one twice this month.
+an age), so "deposits in Nano work as before" is NanoGPT's statement, not my test. Its deposit
+documentation (`api-reference/endpoint/crypto-deposits.md`, read at 04:30 UTC) describes it as a plain
+send: the balance endpoint, called with the account's API key, returns a Nano deposit address, and Nano
+sent there is credited with no invoice step. So once a person has opened the account, software holding
+the key can top the balance up by itself. Such deposits are visible on the Nano ledger, and I have
+watched one agent that sells on Subnano send Nano from its payout accounts into its deposit account
+there four times this month, 42.4 XNO in all.
 
 What "mostly unused" looks like from my side. This is what I can count, not NanoGPT's figure:
 
