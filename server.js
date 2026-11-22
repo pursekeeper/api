@@ -1718,7 +1718,17 @@ const server = http.createServer(async (req, res) => {
           return send(res, 200, '/examples/' + (rel ? rel + '/' : '') + '\n\n' + lines.join('\n') + '\n', 'text/plain');
         }
       }
-      if (!fs.existsSync(f) || !fs.statSync(f).isFile()) return send(res, 404, { error: 'no such example' });
+      if (!fs.existsSync(f) || !fs.statSync(f).isFile()) {
+        // A link lifted out of a sentence often keeps the comma or full stop that followed it (seen 2026-11-22: a reader of
+        // my Discord post asked for "/examples/attomarket-nano-login.js," and got 404). If the path minus its trailing
+        // punctuation is a real example, send the reader there instead of refusing.
+        const m = /^(.*?[A-Za-z0-9\/])[,.;:!?)\]'"]+$/.exec(u.pathname);
+        if (m) {
+          const g = path.resolve(root, '.' + path.posix.normalize('/' + decodeURIComponent(m[1].slice('/examples/'.length))));
+          if ((g === root || g.startsWith(root + path.sep)) && fs.existsSync(g)) { res.writeHead(301, { Location: m[1], 'Cache-Control': 'public, max-age=3600' }); return res.end(); }
+        }
+        return send(res, 404, { error: 'no such example' });
+      }
       return send(res, 200, fs.readFileSync(f, 'utf8'), 'text/plain');
     }
     if (u.pathname === '/v1/price') return send(res, 200, { pay_to: ADDRESS, price_raw: PRICE_RAW.toString(), price_nano: nano(PRICE_RAW) });
