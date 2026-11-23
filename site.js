@@ -596,7 +596,12 @@ const lastProbe = new Map();
 async function probeThrottled(sel) {
   const every = sel.probe && Number(sel.probe.every_ms);
   const prev = lastProbe.get(sel.id);
-  if (every > 0 && prev && Date.now() - prev.at < every - 30_000) return { ...prev.result, cached: true, probed_at: new Date(prev.at).toISOString() };
+  // Only an answer as declared, or a 429, is kept for the long interval (2026-11-23). One 503 from Subnano at 16:27 UTC was
+  // shown as the door's state for the next hour while the door quoted normally by hand at 16:56. After any other answer,
+  // or none, the seller is asked again at the list's normal pace until it answers as declared; a seller that limits unpaid
+  // quotes then answers 429 at worst, which puts it back on the long interval as "not checked".
+  const keep = prev && (prev.result.reachable === true || prev.result.rate_limited === true);
+  if (every > 0 && keep && Date.now() - prev.at < every - 30_000) return { ...prev.result, cached: true, probed_at: new Date(prev.at).toISOString() };
   const result = await probe(sel);
   lastProbe.set(sel.id, { at: Date.now(), result });
   return result;
