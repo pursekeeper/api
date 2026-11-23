@@ -1142,11 +1142,34 @@ function shapeAccountInfo(r) {
     receivable_raw: (r.receivable ?? r.pending) != null ? String(r.receivable ?? r.pending) : null, representative: r.representative, block_count: Number(r.block_count),
     confirmation_height: height !== null && /^\d+$/.test(height) ? Number(height) : null };
 }
+// A machine-readable class for every refusal of /v1/process, next to the sentence. Until 2026-11-23 a schema failure, a
+// work failure and a signature failure were all a 400 whose only discriminator was the wording of "error" (pibrain's
+// re-probe that day: "the hint text is the only discriminator"). The node's sentence stays as it is, in "error" after
+// "node: " and alone in "node_error"; "code" is the part a client can switch on. The node texts were read from this
+// server's own node on 2026-11-23; a text not listed here answers node_refused, never a guess.
+const PROCESS_NODE_CODES = [
+  [/\bwork\b/i, 'node_work_low'],
+  [/signature/i, 'node_bad_signature'],
+  [/^old block/i, 'node_old_block'],
+  [/^fork/i, 'node_fork'],
+  [/gap previous/i, 'node_gap_previous'],
+  [/gap source/i, 'node_gap_source'],
+  [/given subtype/i, 'node_subtype_mismatch'],
+  [/balance/i, 'node_balance_mismatch'],
+  [/unreceivable/i, 'node_unreceivable'],
+  [/negative spend/i, 'node_negative_spend'],
+  [/cannot follow|position/i, 'node_block_position'],
+  [/block is invalid|unable to parse/i, 'node_block_invalid'],
+];
+function processNodeCode(text) {
+  for (const [re, code] of PROCESS_NODE_CODES) if (re.test(String(text))) return code;
+  return 'node_refused';
+}
 async function processBlock(req, res) {
-  if (overFreeLimit(req, checkHits.process, 60, res)) return send(res, 429, { error: 'limit is 60 checks per minute per IP' });
+  if (overFreeLimit(req, checkHits.process, 60, res)) return send(res, 429, { error: 'limit is 60 checks per minute per IP', code: 'rate_limited' });
   countCheck('process', req);
   let body;
-  try { body = JSON.parse((await readBody(req, 20_000)).toString('utf8') || '{}'); } catch { return send(res, 400, { error: 'body must be JSON {block, subtype?}' }); }
+  try { body = JSON.parse((await readBody(req, 20_000)).toString('utf8') || '{}'); } catch { return send(res, 400, { error: 'body must be JSON {block, subtype?}', code: 'body_not_json' }); }
   // "block" as the JSON text of the block is the node RPC's own default form (no json_block), so a client written against
   // the node's documentation sends a string here. Until 2026-11-22 that was answered "block is missing type, account, ..."
   // (every field, since the string has none), which reads as an unsigned block and not as a shape this route did not take.
@@ -1155,7 +1178,7 @@ async function processBlock(req, res) {
     try { given = JSON.parse(given); } catch { given = null; }
     if (!given || typeof given !== 'object' || Array.isArray(given)) {
       logReq(req, { kind: 'process', hash: null, previous: null, account: null, subtype: null, ok: false, error: 'block is a string that is not the JSON text of a block' });
-      return send(res, 400, { error: 'block is a string that is not the JSON text of a state block; send the block as a JSON object, or as the JSON text of one (the node RPC default form)' });
+      return send(res, 400, { error: 'block is a string that is not the JSON text of a state block; send the block as a JSON object, or as the JSON text of one (the node RPC default form)', code: 'block_not_json_text' });
     }
   }
   const block = given && typeof given === 'object' ? given : body;
@@ -1164,7 +1187,7 @@ async function processBlock(req, res) {
   // (two probes, 2026-11-22). The type is named first now.
   if (typeof block.type === 'string' && block.type !== 'state') {
     logReq(req, { kind: 'process', hash: null, previous: String(block.previous || '').toUpperCase() || null, account: block.account || null, subtype: null, ok: false, error: 'not a state block (type ' + block.type.slice(0, 16) + ')' });
-    return send(res, 400, { error: 'only state blocks: this block has type "' + block.type.slice(0, 16) + '". This route takes the state form only ({type:"state", account, previous, representative, balance, link, signature, work}); a send names its recipient in "link" (the recipient public key) and carries the balance left after the send' });
+    return send(res, 400, { error: 'only state blocks: this block has type "' + block.type.slice(0, 16) + '". This route takes the state form only ({type:"state", account, previous, representative, balance, link, signature, work}); a send names its recipient in "link" (the recipient public key) and carries the balance left after the send', code: 'block_type_not_state', block_type: block.type.slice(0, 16) });
   }
   const need = ['type', 'account', 'previous', 'representative', 'balance', 'link', 'signature', 'work'];
   const missing = need.filter(k => block[k] == null || block[k] === '');
@@ -1172,13 +1195,13 @@ async function processBlock(req, res) {
     // Logged too (hash null), so an egress probe from a hosted platform that POSTs an empty or
     // partial block leaves a dated line a claimant's report can be checked against.
     logReq(req, { kind: 'process', hash: null, previous: String(block.previous || '').toUpperCase() || null, account: block.account || null, subtype: null, ok: false, error: 'missing ' + missing.join(',') });
-    return send(res, 400, { error: 'block is missing ' + missing.join(', ') + ' (a signed state block with work)' });
+    return send(res, 400, { error: 'block is missing ' + missing.join(', ') + ' (a signed state block with work)', code: 'block_fields_missing', missing });
   }
-  if (block.type !== 'state') return send(res, 400, { error: 'only state blocks' });
+  if (block.type !== 'state') return send(res, 400, { error: 'only state blocks', code: 'block_type_not_state' });
   const sub = ['send', 'receive', 'open', 'change', 'epoch'].includes(body.subtype) ? body.subtype : undefined;
   const r = await rpc({ action: 'process', json_block: 'true', ...(sub ? { subtype: sub } : {}), block });
   logReq(req, { kind: 'process', hash: r.hash || null, previous: String(block.previous || '').toUpperCase(), account: block.account, subtype: sub || null, ok: !r.error, error: r.error || null });
-  if (r.error) return send(res, 400, { ok: false, error: 'node: ' + r.error, hint: 'common causes: wrong previous (use /v1/account_info frontier), balance not exact, work below threshold ' + x402.WORK_THRESHOLD + ' for previous (or the account public key for an open), signature over the wrong fields' });
+  if (r.error) return send(res, 400, { ok: false, error: 'node: ' + r.error, code: processNodeCode(r.error), node_error: String(r.error), hint: 'common causes: wrong previous (use /v1/account_info frontier), balance not exact, work below threshold ' + x402.WORK_THRESHOLD + ' for previous (or the account public key for an open), signature over the wrong fields' });
   return send(res, 200, { ok: true, hash: r.hash, subtype: sub, note: 'broadcast; check confirmation with /v1/verify?hash=' + r.hash + '&any=1&any_to=1', node: 'pursekeeper.dev' });
 }
 
@@ -1643,6 +1666,14 @@ Endpoints
                               or as the JSON text of one (the text form since 2026-11-22).
                               State blocks only: a legacy send, receive, open or change block
                               is refused in those words, not as a missing field.
+                              Every refusal carries "code" beside the sentence (since 2026-11-23):
+                              rate_limited, body_not_json, block_not_json_text, block_type_not_state,
+                              block_fields_missing, and for a block the node refused node_work_low,
+                              node_bad_signature, node_old_block, node_fork, node_gap_previous,
+                              node_gap_source, node_subtype_mismatch, node_balance_mismatch,
+                              node_unreceivable, node_negative_spend, node_block_position,
+                              node_block_invalid or node_refused, with the node's own sentence
+                              in "node_error".
                               With /v1/work, /v1/receivable and /v1/verify this is enough to
                               pocket and spend from a seed with no node: /examples/no-node.md
                               The block goes to the node as sent: this route attaches no work,
