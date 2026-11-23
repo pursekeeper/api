@@ -1,0 +1,27 @@
+Direct 30-day flows of named non-exchange accounts, local node, window ending 2026-11-23 about 02:35Z (aggregates only)
+LuckyNano                            blocks    70917 bal      5,511 recv'able         0 | in    283 from    21 accts (  13 sent >=1 XNO) Ӿ      4,853 | out    488 to    28 accts Ӿ      1,026
+Natrium                              blocks     3231 bal        411 recv'able         0 | in      3 from     3 accts (   1 sent >=1 XNO) Ӿ         50 | out      0 to     0 accts Ӿ          0
+FreeNanoFaucet                       blocks  1204295 bal          3 recv'able         0 | in      7 from     4 accts (   0 sent >=1 XNO) Ӿ          0 | out   1371 to   628 accts Ӿ          0
+PlayNANO Hot Wallet #1               blocks   435926 bal        130 recv'able         0 | in    329 from    39 accts (  35 sent >=1 XNO) Ӿ      1,232 | out   5331 to   236 accts Ӿ      1,118
+PlayNANO Hot Wallet #10              blocks   287851 bal         38 recv'able         0 | in      5 from     4 accts (   3 sent >=1 XNO) Ӿ         47 | out    128 to    33 accts Ӿ         15
+PlayNANO Hot Wallet #11              blocks   308074 bal         33 recv'able         0 | in     18 from    15 accts (  13 sent >=1 XNO) Ӿ         91 | out     77 to    29 accts Ӿ         63
+PlayNANO Hot Wallet #12              blocks   289196 bal         28 recv'able         0 | in     10 from     7 accts (   4 sent >=1 XNO) Ӿ         40 | out     47 to    17 accts Ӿ         16
+PlayNANO Hot Wallet #13              blocks   311697 bal         25 recv'able         0 | in     15 from    12 accts (   6 sent >=1 XNO) Ӿ         44 | out     38 to    15 accts Ӿ         23
+PlayNANO Hot Wallet #14              blocks   294273 bal         21 recv'able         0 | in      5 from     3 accts (   3 sent >=1 XNO) Ӿ         25 | out     29 to    12 accts Ӿ          7
+PlayNANO Hot Wallet #15              blocks   289957 bal         19 recv'able         0 | in     34 from    32 accts (   9 sent >=1 XNO) Ӿ         47 | out     46 to    17 accts Ӿ         31
+PlayNANO Hot Wallet #16              blocks   357153 bal         16 recv'able         0 | in      7 from     5 accts (   3 sent >=1 XNO) Ӿ         26 | out     31 to    13 accts Ӿ         12
+PlayNANO Hot Wallet #17              blocks   296202 bal         14 recv'able         0 | in     13 from    11 accts (   8 sent >=1 XNO) Ӿ         44 | out     47 to    22 accts Ӿ         32
+PlayNANO Hot Wallet #18              blocks   314131 bal         12 recv'able         0 | in     18 from    16 accts (  12 sent >=1 XNO) Ӿ         65 | out     43 to    14 accts Ӿ         54
+PlayNANO Hot Wallet #19              blocks   276395 bal         11 recv'able         0 | in     10 from     7 accts (   4 sent >=1 XNO) Ӿ         25 | out     26 to     9 accts Ӿ         16
+Nanswap                              blocks   172133 bal     10,561 recv'able         0 | in   1457 from  1382 accts ( 745 sent >=1 XNO) Ӿ    127,429 | out   1205 to   367 accts Ӿ    124,902
+TipNano ⛲                            blocks  1048568 bal         14 recv'able         0 | in      7 from     2 accts (   1 sent >=1 XNO) Ӿ      2,033 | out   3245 to   771 accts Ӿ      2,029
+Nano.to/Faucet                       blocks    49311 bal          7 recv'able         0 | in      2 from     2 accts (   0 sent >=1 XNO) Ӿ          0 | out     44 to    19 accts Ӿ          1
+Nanswap - Earn                       blocks   242236 bal         76 recv'able         0 | in      1 from     1 accts (   1 sent >=1 XNO) Ӿ        300 | out   2174 to   215 accts Ӿ        438
+Nanswap Faucet                       blocks  1052549 bal         28 recv'able         0 | in      2 from     2 accts (   0 sent >=1 XNO) Ӿ          0 | out  10277 to  2331 accts Ӿ          1
+Nanobot Hot Wallet                   blocks    33394 bal      2,886 recv'able         0 | in    118 from    24 accts (   8 sent >=1 XNO) Ӿ        144 | out    132 to    53 accts Ӿ         52
+Bc.game Hot Wallet                   blocks    63282 bal     54,602 recv'able         0 | in      0 from     0 accts (   0 sent >=1 XNO) Ӿ          0 | out     11 to     9 accts Ӿ      1,105
+Cwallet.com Hot wallet               blocks    62541 bal     22,004 recv'able         0 | in     59 from    59 accts (  59 sent >=1 XNO) Ӿ      8,065 | out     78 to    53 accts Ӿ      1,147
+Nanogames.io Hot Wallet #2           blocks   114722 bal     19,294 recv'able         0 | in    350 from   139 accts ( 139 sent >=1 XNO) Ӿ     60,654 | out   1258 to   142 accts Ӿ     72,809
+Pasino.com Hot Wallet                blocks    35812 bal        469 recv'able         0 | in     49 from    15 accts (   7 sent >=1 XNO) Ӿ        672 | out     14 to     6 accts Ӿ      2,021
+NanoGPT collection wallet (my match; blocks    13063 bal      7,724 recv'able         0 | in    273 from   233 accts ( 213 sent >=1 XNO) Ӿ     40,193 | out      7 to     7 accts Ӿ     33,755
+Subnano fee collector (7.5% / 5%)    blocks     1782 bal         32 recv'able         6 | in    269 from   269 accts (   2 sent >=1 XNO) Ӿ         10 | out      0 to     0 accts Ӿ          0

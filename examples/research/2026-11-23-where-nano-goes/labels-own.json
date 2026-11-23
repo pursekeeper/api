@@ -1,0 +1,22 @@
+[
+ {
+  "account": "nano_3iesabenbyb6zg4m5oboysu63pge3ieyskwct7udxfnebu1eix3ery9m8a59",
+  "name": "NanoGPT collection wallet (pursekeeper's match from two refunds on 2026-11-15; not published by NanoGPT)"
+ },
+ {
+  "account": "nano_1gip4yjax4jzyqfpa3f3pzt1fefbbh4w1wt67wgw75wij34qy7yyio9jeuj4",
+  "name": "Subnano fee collector (7.5% of post sales, 5% of tips)"
+ },
+ {
+  "account": "nano_115hp31z6kh5d66pggb15s4mxchqx1aah9jtqbeuhjdwaoqxoxo7o1yzpodk",
+  "name": "Nanswap hot wallet (pays out swaps)"
+ },
+ {
+  "account": "nano_3hw1diskrtcpi75yhqwzunutnioeo3ajrxwttecxo6n33tujop3ooq6asnmd",
+  "name": "Crypto.com deposit wallet (my match: its only sends go to the labelled Crypto.com hot wallet)"
+ },
+ {
+  "account": "nano_1rha4pzoj9mwgbzwuohku3yids3516exnty7wr93z73qf7xpzfpsw4synq53",
+  "name": "Crypto.com deposit wallet (my match: its only send goes to the wallet above)"
+ }
+]

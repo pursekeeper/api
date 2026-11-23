@@ -1,0 +1,59 @@
+
+EXCHANGE WITHDRAWALS: 540 accounts received Ӿ2,600,885 from Binance, Binance US, KuCoin, HitBTC, OKX, Kraken, Crypto.com in 30 days to 2026-11-23 02:05Z
+   sent on          387 accounts  Ӿ     1,773,217 received
+   kept             147 accounts  Ӿ       825,594 received
+   never opened       6 accounts  Ӿ         2,074 received
+   destination class                    accounts sending there (an account can be in several) | sends | XNO sent || accounts for which it is the largest destination | XNO those accounts received
+   listed exchange                          195 |   483 |  1,083,924.64 ||   187 |     1,230,665
+   unnamed account                           72 |  2115 |     76,502.31 ||    53 |        86,711
+   gambling site                             66 |   417 |     21,521.91 ||    63 |        28,325
+   swap service                              41 |   165 |     16,603.66 ||    32 |        17,665
+   NanoGPT (model calls)                     32 |    42 |      6,518.44 ||    32 |         6,906
+   unnamed, exchange-like by shape           13 |    27 |    387,201.13 ||    13 |       389,325
+   faucet / tip / wallet service              6 |    74 |      3,425.66 ||     4 |         3,204
+   not pocketed by the receiver               4 |    34 |          2.85 ||     2 |           280
+   Subnano or a project I track               4 |    13 |         79.18 ||     1 |        10,137
+
+SWAP SERVICE PAYOUTS (Nanswap hot wallet): 43 accounts received Ӿ3,457 from Nanswap in 30 days to 2026-11-23 02:05Z
+   sent on           33 accounts  Ӿ         3,422 received
+   kept               9 accounts  Ӿ            35 received
+   never opened       1 accounts  Ӿ             0 received
+   destination class                    accounts sending there (an account can be in several) | sends | XNO sent || accounts for which it is the largest destination | XNO those accounts received
+   swap service                              20 |    33 |      3,083.11 ||    19 |         3,052
+   unnamed account                           10 |    30 |      1,470.40 ||     8 |           258
+   listed exchange                            3 |     3 |      1,784.34 ||     2 |            15
+   gambling site                              3 |    15 |         74.57 ||     3 |            48
+   NanoGPT (model calls)                      1 |     1 |         50.00 ||     1 |            50
+   Subnano or a project I track               1 |     1 |          0.13 ||     0 |             0
+
+MINING PAYOUTS (unMineable): 707 accounts received Ӿ4,396 from unMineable in 30 days to 2026-11-23 02:05Z
+   sent on          371 accounts  Ӿ         3,840 received
+   kept             316 accounts  Ӿ           553 received
+   never opened      20 accounts  Ӿ             4 received
+   destination class                    accounts sending there (an account can be in several) | sends | XNO sent || accounts for which it is the largest destination | XNO those accounts received
+   listed exchange                          269 |   778 |      3,697.01 ||   266 |         2,340
+   unnamed account                           65 |   223 |        481.37 ||    56 |           499
+   swap service                              26 |    76 |     24,791.23 ||    25 |           399
+   NanoGPT (model calls)                     13 |    18 |        654.14 ||    13 |           579
+   not pocketed by the receiver               6 |     7 |          2.53 ||     4 |             1
+   faucet / tip / wallet service              4 |     4 |         31.80 ||     4 |            13
+   gambling site                              2 |    15 |          1.53 ||     1 |             0
+   unnamed, exchange-like by shape            2 |     2 |         13.10 ||     2 |             8
+
+named non-exchange destinations of exchange-withdrawal accounts (accounts | sends | XNO)
+     51 |  277 |   18,208.31 | Nanogames.io Hot Wallet #2
+     36 |  148 |   12,311.06 | Nanswap
+     32 |   42 |    6,518.44 | NanoGPT collection wallet (my match)
+     10 |  131 |    2,655.16 | LuckyNano
+      6 |    9 |      658.44 | Pasino.com Hot Wallet
+      4 |    8 |    3,013.14 | Nanswap (source wallet)
+      4 |    9 |    1,279.46 | Yakamoz Node - nano.trade
+      4 |   13 |       79.18 | Subnano checkout, a Subnano reader or the With Silex paywall
+      2 |    2 |        4.91 | Nanobot Hot Wallet
+      1 |   61 |      796.75 | PlayNANO hot wallets (39 labelled)
+      1 |    4 |        2.92 | Twister32
+      1 |    6 |    2,032.80 | TipNano ⛲
+      1 |    1 |      588.28 | Cwallet.com Hot wallet
+
+exchange-withdrawal accounts by XNO received: median 232.6; <10: 56; 10-100: 142; 100-1000: 181; 1000-10000: 123; >=10000: 38
+accounts paid by more than one exchange group: 16

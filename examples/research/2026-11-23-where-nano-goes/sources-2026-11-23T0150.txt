@@ -1,0 +1,30 @@
+Binance Hot Wallet           blocks    918631 bal           0.00 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 9.1s
+Binance Hot Wallet #2        blocks    141637 bal      285100.55 | 30d sends    458 Ӿ    247689.18 to     74 accts | receives    229 Ӿ     86497.03 | oldest read 10-24 | 7.4s
+Binance US Hot Wallet        blocks     38544 bal           0.00 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 12.3s
+Binance US Hot Wallet #2     blocks      5707 bal     2292596.41 | 30d sends     48 Ӿ     63976.01 to     10 accts | receives     26 Ӿ     43227.95 | oldest read 10-24 | 8.2s
+Binance Cold Wallet          blocks       105 bal    15086706.38 | 30d sends      1 Ӿ   1500000.00 to      1 accts | receives      4 Ӿ         0.01 | oldest read 11-12 | 0.4s
+Binance Cold Wallet #2       blocks        84 bal           0.00 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 0.7s
+Kraken Hot Wallet            blocks    201445 bal           0.10 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 8.9s
+KuCoin Hot Wallet            blocks    355670 bal           0.00 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 8.7s
+KuCoin Hot Wallet #2         blocks     14085 bal      347413.68 | 30d sends     77 Ӿ     79359.15 to     37 accts | receives    329 Ӿ    345725.89 | oldest read 10-24 | 5.8s
+KuCoin Hot Wallet #3         blocks     12325 bal     1952435.06 | 30d sends    187 Ӿ    191240.84 to     44 accts | receives    148 Ӿ     28836.89 | oldest read 10-24 | 11.8s
+KuCoin Cold Wallet           blocks        65 bal           0.00 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 0.3s
+Huobi Hot Wallet             blocks     27896 bal           0.00 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 11.2s
+Huobi Cold Wallet            blocks         1 bal           0.00 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 0.0s
+Huobi Hot Wallet #2          blocks      3520 bal           0.00 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 9.6s
+Mercatox Cold Wallet         blocks        91 bal      146274.22 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 0.2s
+Crypto.com                   blocks     62275 bal           0.00 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 11.7s
+Crypto.com Deposits          blocks     44768 bal           0.00 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 10.5s
+OKEx Deposits                blocks     66308 bal         824.54 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 15.4s
+OKEx Withdrawals             blocks     13134 bal      195413.55 | 30d sends      4 Ӿ      1344.77 to      4 accts | receives      5 Ӿ        91.86 | oldest read 10-26 | 5.8s
+Bitvavo Hot Wallet           blocks     65699 bal           8.89 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 8.0s
+Bitvavo Cold Wallet          blocks       151 bal           1.89 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 0.5s
+CoinEx                       blocks    100918 bal           0.00 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 6.7s
+CoinEx Hot Wallet #2         blocks      9103 bal           0.05 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 7.9s
+CoinEx Cold Wallet #1        blocks        26 bal           0.00 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 0.1s
+CoinEx Cold Wallet #2        blocks        29 bal           0.00 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 0.2s
+Wirex Hot Wallet             blocks     24269 bal           1.34 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 6.1s
+ChangeNow.io                 blocks     55748 bal           0.50 | 30d sends      0 Ӿ         0.00 to      0 accts | receives      0 Ӿ         0.00 | oldest read - | 6.7s
+HitBTC Hot Wallet            blocks      5168 bal       14124.39 | 30d sends      9 Ӿ     10334.63 to      7 accts | receives     19 Ӿ     10557.67 | oldest read 10-24 | 7.8s
+Nanswap hot wallet           blocks      5939 bal        3494.68 | 30d sends     98 Ӿ      3456.92 to     43 accts | receives    517 Ӿ      3225.32 | oldest read 10-24 | 9.3s
+unMineable payout            blocks    415601 bal          16.20 | 30d sends   6141 Ӿ      4351.77 to    708 accts | receives     62 Ӿ      4349.45 | oldest read 10-24 | 21.7s
