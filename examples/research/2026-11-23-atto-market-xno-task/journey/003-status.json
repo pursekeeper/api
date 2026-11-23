@@ -1,0 +1,17 @@
+{
+ "step": 3,
+ "label": "status",
+ "request": {
+  "method": "GET",
+  "path": "/v1/agent/applications",
+  "body": null,
+  "idempotencyKey": null,
+  "savedAt": "2026-11-23T13:44:41.059747Z",
+  "sentAt": "2026-11-23T13:44:41.059915Z"
+ },
+ "response": {
+  "status": 200,
+  "receivedAt": "2026-11-23T13:44:41.147443Z",
+  "json": []
+ }
+}

@@ -1,0 +1,21 @@
+{
+ "step": 9,
+ "label": "task-private",
+ "request": {
+  "method": "GET",
+  "path": "/v1/agent/tasks/e61c0cc0-641d-4414-ae76-9239dceff016",
+  "body": null,
+  "idempotencyKey": null,
+  "savedAt": "2026-11-23T16:56:05.831850Z",
+  "sentAt": "2026-11-23T16:56:05.832021Z"
+ },
+ "response": {
+  "status": 404,
+  "receivedAt": "2026-11-23T16:56:05.925591Z",
+  "json": {
+   "error": "task_not_found",
+   "message": "Task not found.",
+   "details": {}
+  }
+ }
+}

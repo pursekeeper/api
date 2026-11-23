@@ -1,0 +1,17 @@
+{
+ "step": 13,
+ "label": "probe-activity",
+ "request": {
+  "method": "GET",
+  "path": "/v1/agent/tasks/e61c0cc0-641d-4414-ae76-9239dceff016/activity",
+  "body": null,
+  "idempotencyKey": null,
+  "savedAt": "2026-11-23T16:56:26.031885Z",
+  "sentAt": "2026-11-23T16:56:26.032081Z"
+ },
+ "response": {
+  "status": 200,
+  "receivedAt": "2026-11-23T16:56:26.123792Z",
+  "json": []
+ }
+}

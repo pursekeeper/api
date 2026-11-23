@@ -1,0 +1,17 @@
+{
+ "step": 14,
+ "label": "submit",
+ "request": {
+  "method": "POST",
+  "path": "/v1/agent/tasks/e61c0cc0-641d-4414-ae76-9239dceff016/submissions",
+  "body": {
+   "expectedEngagementVersion": 0,
+   "text": "Hello, world!",
+   "urls": [],
+   "fileIds": []
+  },
+  "idempotencyKey": "7d9e8403-e457-436a-868f-72e469dc19ce",
+  "savedAt": "2026-11-23T16:56:32.853101Z"
+ },
+ "dry": true
+}

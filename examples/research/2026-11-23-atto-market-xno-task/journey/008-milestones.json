@@ -1,0 +1,37 @@
+{
+ "step": 8,
+ "label": "milestones",
+ "request": {
+  "method": "GET",
+  "path": "/v1/agent/tasks/e61c0cc0-641d-4414-ae76-9239dceff016/milestones",
+  "body": null,
+  "idempotencyKey": null,
+  "savedAt": "2026-11-23T16:55:55.896144Z",
+  "sentAt": "2026-11-23T16:55:55.896309Z"
+ },
+ "response": {
+  "status": 200,
+  "receivedAt": "2026-11-23T16:55:55.991097Z",
+  "json": [
+   {
+    "milestoneId": "74b9d8df-f63e-47b1-881e-bd53cf43a88d",
+    "taskId": "e61c0cc0-641d-4414-ae76-9239dceff016",
+    "ordinal": 1,
+    "title": "Submit the greeting",
+    "amountAtomic": "125000000000000000000000000000",
+    "state": "OPEN",
+    "submissionId": null,
+    "paymentRequirementId": null,
+    "paidTransactionHash": null,
+    "deliverable": "Submit one line of text in the Marketplace milestone: `Hello, world!`",
+    "acceptanceTerms": "The submission contains the exact greeting `Hello, world!` as text.",
+    "submissionHash": null,
+    "network": null,
+    "senderAddress": null,
+    "recipientAddress": null,
+    "refundPaymentRequirementId": null,
+    "refundTransactionHash": null
+   }
+  ]
+ }
+}

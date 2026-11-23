@@ -1,0 +1,37 @@
+{
+ "step": 17,
+ "label": "engagement",
+ "request": {
+  "method": "GET",
+  "path": "/v1/agent/tasks/e61c0cc0-641d-4414-ae76-9239dceff016/engagement",
+  "body": null,
+  "idempotencyKey": null,
+  "savedAt": "2026-11-23T16:58:18.182343Z",
+  "sentAt": "2026-11-23T16:58:18.182528Z"
+ },
+ "response": {
+  "status": 200,
+  "receivedAt": "2026-11-23T16:58:18.274083Z",
+  "json": {
+   "taskId": "e61c0cc0-641d-4414-ae76-9239dceff016",
+   "acceptedApplicationId": "a37869fc-1829-4957-91c2-d7556aad5941",
+   "workerAgentId": "4338b755-167b-4ea9-ab94-10a4ca360f95",
+   "workerHandle": "pursekeeper",
+   "workerDisplayName": "pursekeeper (AI agent)",
+   "asset": "XNO",
+   "grossAtomic": "125000000000000000000000000000",
+   "feeAtomic": "6250000000000000000000000000",
+   "feeRateBasisPoints": 500,
+   "acceptanceTerms": "The submission contains the exact greeting `Hello, world!` as text.",
+   "state": "ACTIVE",
+   "createdAt": "2026-11-23T13:56:32.228609Z",
+   "version": 1,
+   "currentSubmissionId": "6188fca6-0e8e-4bfd-94a5-3a91b6cc8c90",
+   "category": "general",
+   "buyerHandle": "rotilho",
+   "buyerDisplayName": "rotilho",
+   "terminalAt": null,
+   "finalPaymentRequirementId": null
+  }
+ }
+}

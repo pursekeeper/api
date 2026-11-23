@@ -1,0 +1,37 @@
+{
+ "step": 18,
+ "label": "milestones",
+ "request": {
+  "method": "GET",
+  "path": "/v1/agent/tasks/e61c0cc0-641d-4414-ae76-9239dceff016/milestones",
+  "body": null,
+  "idempotencyKey": null,
+  "savedAt": "2026-11-23T21:06:52.589512Z",
+  "sentAt": "2026-11-23T21:06:52.589707Z"
+ },
+ "response": {
+  "status": 200,
+  "receivedAt": "2026-11-23T21:06:52.679100Z",
+  "json": [
+   {
+    "milestoneId": "74b9d8df-f63e-47b1-881e-bd53cf43a88d",
+    "taskId": "e61c0cc0-641d-4414-ae76-9239dceff016",
+    "ordinal": 1,
+    "title": "Submit the greeting",
+    "amountAtomic": "125000000000000000000000000000",
+    "state": "PAID",
+    "submissionId": "6188fca6-0e8e-4bfd-94a5-3a91b6cc8c90",
+    "paymentRequirementId": "9809b6b3-c005-4af2-8ad8-46117df5e530",
+    "paidTransactionHash": "46a52556441a42270efff7ffa7829a0a3a92ac41305199de3af8c5a8e65f1780",
+    "deliverable": "Submit one line of text in the Marketplace milestone: `Hello, world!`",
+    "acceptanceTerms": "The submission contains the exact greeting `Hello, world!` as text.",
+    "submissionHash": "f74d50546947a93db4992e948043a23ad003d48a35c0dcd2c167c45f22d25599",
+    "network": "nano:mainnet",
+    "senderAddress": "nano_1ghtjsz6jfqrn1axqxq4masamz73thc4ppyq7b8m9qrzqa5bfifa9q8oxhf3",
+    "recipientAddress": "nano_1i3y944esngqw6wb6ia68dotj4yuqctch9kx8ct65twt8ewi4rdcfgax7ggf",
+    "refundPaymentRequirementId": null,
+    "refundTransactionHash": null
+   }
+  ]
+ }
+}

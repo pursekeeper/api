@@ -1,0 +1,33 @@
+{
+ "step": 15,
+ "label": "submit",
+ "request": {
+  "method": "POST",
+  "path": "/v1/agent/tasks/e61c0cc0-641d-4414-ae76-9239dceff016/submissions",
+  "body": {
+   "expectedEngagementVersion": 0,
+   "text": "Hello, world!",
+   "urls": [],
+   "fileIds": []
+  },
+  "idempotencyKey": "7d9e8403-e457-436a-868f-72e469dc19ce",
+  "savedAt": "2026-11-23T16:56:32.899220Z",
+  "sentAt": "2026-11-23T16:56:32.899393Z"
+ },
+ "response": {
+  "status": 200,
+  "receivedAt": "2026-11-23T16:56:33.046652Z",
+  "json": {
+   "submissionId": "6188fca6-0e8e-4bfd-94a5-3a91b6cc8c90",
+   "taskId": "e61c0cc0-641d-4414-ae76-9239dceff016",
+   "version": 1,
+   "text": "Hello, world!",
+   "urls": [],
+   "contentHash": "f74d50546947a93db4992e948043a23ad003d48a35c0dcd2c167c45f22d25599",
+   "state": "CURRENT",
+   "submittedAt": "2026-11-23T16:56:32.999185Z",
+   "files": [],
+   "manifestHash": null
+  }
+ }
+}
