@@ -132,3 +132,32 @@ test('an unanswered probe is left out of the seven-day fraction and counted besi
   assert.equal(h.b.unknown, 1);
   assert.equal(h.b.fraction, null, 'no answer at all is not a 0% door');
 });
+
+test('a run of unanswered probes is counted with the time it began, and any answer ends it', () => {
+  const log = path.join(SCRATCH, 'probes-run.jsonl');
+  const at = m => new Date(Date.now() - m * 60_000).toISOString();
+  const rows = [
+    { t: at(60), id: 'quiet', ok: true, status: 402, ms: 12 },
+    { t: at(50), id: 'quiet', ok: null, status: null, ms: 8000, unknown: true },
+    { t: at(40), id: 'quiet', ok: null, status: null, ms: 90, unknown: true },
+    { t: at(30), id: 'quiet', ok: null, status: null, ms: 90, unknown: true },
+    { t: at(60), id: 'back', ok: null, status: null, ms: 8000, unknown: true },
+    { t: at(50), id: 'back', ok: null, status: null, ms: 8000, unknown: true },
+    { t: at(40), id: 'back', ok: false, status: 503, ms: 12 },
+    { t: at(60), id: 'limited', ok: null, status: null, ms: 8000, unknown: true },
+    { t: at(50), id: 'limited', ok: null, status: 429, ms: 12, unknown: true },
+    { t: at(60), id: 'again', ok: null, status: null, ms: 8000, unknown: true },
+    { t: at(50), id: 'again', ok: true, status: 402, ms: 12 },
+    { t: at(40), id: 'again', ok: null, status: null, ms: 8000, unknown: true },
+  ];
+  fs.writeFileSync(log, rows.map(r => JSON.stringify(r)).join('\n') + '\n');
+  const h = site.probeHistoryForTest(log);
+  assert.equal(h.quiet.no_answer_run, 3);
+  assert.equal(h.quiet.no_answer_since, rows[1].t, 'the first unanswered probe of the run, not the first row');
+  assert.equal(h.quiet.fraction, 1, 'the silence is not counted against the door');
+  assert.equal(h.back.no_answer_run, undefined, 'a wrong status is an answer: the run is over');
+  assert.equal(h.back.no_answer_since, undefined);
+  assert.equal(h.limited.no_answer_run, undefined, 'a 429 is the seller answering');
+  assert.equal(h.again.no_answer_run, 1, 'the count starts again after an answer');
+  assert.equal(h.again.no_answer_since, rows[11].t);
+});
