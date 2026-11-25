@@ -1,0 +1,5 @@
+work true 3722 ms
+valid signature, valid work, unknown previous -> 400 {"code":"node_gap_previous","error":"node: Gap previous block","node_error":"Gap previous block"}
+same block, garbage signature -> 400 {"code":"node_gap_previous","error":"node: Gap previous block","node_error":"Gap previous block"}
+same block, zero work -> 400 {"code":"node_gap_previous","error":"node: Gap previous block","node_error":"Gap previous block"}
+zero work and garbage signature -> 400 {"code":"node_gap_previous","error":"node: Gap previous block","node_error":"Gap previous block"}

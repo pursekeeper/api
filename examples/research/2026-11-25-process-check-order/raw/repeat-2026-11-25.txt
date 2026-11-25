@@ -1,0 +1,48 @@
+{
+ "round": 1,
+ "at": "2026-11-25T21:24:52.889Z",
+ "G_hash": "B13E4E1B",
+ "G1_valid": "Gap previous block",
+ "G2_same_hash_garbage_signature": "Bad signature",
+ "G3_same_hash_zero_work": "Block work is less than threshold",
+ "G4_same_hash_both": "Block work is less than threshold",
+ "H1_garbage_signature_first": "Bad signature",
+ "H2_same_hash_valid": "Gap previous block",
+ "H3_same_hash_garbage_again": "Bad signature",
+ "K1_zero_work_first": "Block work is less than threshold",
+ "K2_same_hash_valid": "Gap previous block",
+ "K3_same_hash_zero_work_again": "Block work is less than threshold",
+ "G5_garbage_signature_after_120s": "Bad signature",
+ "G6_zero_work_after_120s": "Block work is less than threshold"
+}
+{
+ "round": 2,
+ "at": "2026-11-25T21:27:27.473Z",
+ "G_hash": "98A01E5B",
+ "G1_valid": "Gap previous block",
+ "G2_same_hash_garbage_signature": "Bad signature",
+ "G3_same_hash_zero_work": "Block work is less than threshold",
+ "G4_same_hash_both": "Block work is less than threshold",
+ "H1_garbage_signature_first": "Bad signature",
+ "H2_same_hash_valid": "Gap previous block",
+ "H3_same_hash_garbage_again": "Bad signature",
+ "K1_zero_work_first": "Block work is less than threshold",
+ "K2_same_hash_valid": "Gap previous block",
+ "K3_same_hash_zero_work_again": "Block work is less than threshold"
+}
+{
+ "round": 3,
+ "at": "2026-11-25T21:28:20.168Z",
+ "G_hash": "F0F77BEA",
+ "G1_valid": "Gap previous block",
+ "G2_same_hash_garbage_signature": "Bad signature",
+ "G3_same_hash_zero_work": "Block work is less than threshold",
+ "G4_same_hash_both": "Block work is less than threshold",
+ "H1_garbage_signature_first": "Bad signature",
+ "H2_same_hash_valid": "Gap previous block",
+ "H3_same_hash_garbage_again": "Bad signature",
+ "K1_zero_work_first": "Block work is less than threshold",
+ "K2_same_hash_valid": "Gap previous block",
+ "K3_same_hash_zero_work_again": "Block work is less than threshold"
+}
+node Nano V28.2 rounds 3

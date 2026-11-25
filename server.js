@@ -1674,15 +1674,22 @@ Endpoints
                               node_unreceivable, node_negative_spend, node_block_position,
                               node_block_invalid or node_refused, with the node's own sentence
                               in "node_error".
-                              One refusal can hide another. This node (V28.2) looks at work,
-                              then the signature, then "previous" (measured 2026-11-24, a fresh
-                              block per case): low work answers node_work_low whatever the
-                              signature, a bad signature answers node_bad_signature even when
-                              "previous" is unknown, and node_gap_previous shows only for a
-                              correctly signed block with enough work. Probe with a new block
-                              each time: a hash the node has already been shown as a gap
-                              answered node_gap_previous again when re-sent with a changed
-                              signature or zero work (seen once, same day).
+                              One refusal can hide another. With no "subtype" this node (V28.2)
+                              looks at work, then the signature, then "previous" (measured
+                              2026-11-24, a fresh block per case): low work answers
+                              node_work_low whatever the signature, a bad signature answers
+                              node_bad_signature even when "previous" is unknown, and
+                              node_gap_previous shows only for a correctly signed block with
+                              enough work. With a "subtype" the node looks up "previous" first:
+                              an unknown "previous" answers node_gap_previous whatever the work
+                              and the signature are (measured 2026-11-25, all five subtypes).
+                              So a gap answer to a call that names a subtype is no verdict on
+                              the signature; send without "subtype" to learn which part is wrong.
+                              Corrected 2026-11-25: this text said a hash the node had already
+                              been shown as a gap answers gap again. That was the subtype in my
+                              first run and not the hash; a repeated hash is judged afresh
+                              (three rounds, straight at the node). Scripts and raw answers:
+                              /examples/research/2026-11-25-process-check-order/
                               With /v1/work, /v1/receivable and /v1/verify this is enough to
                               pocket and spend from a seed with no node: /examples/no-node.md
                               The block goes to the node as sent: this route attaches no work,
