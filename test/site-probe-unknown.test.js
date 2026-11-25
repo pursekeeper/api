@@ -149,6 +149,11 @@ test('a run of unanswered probes is counted with the time it began, and any answ
     { t: at(60), id: 'again', ok: null, status: null, ms: 8000, unknown: true },
     { t: at(50), id: 'again', ok: true, status: 402, ms: 12 },
     { t: at(40), id: 'again', ok: null, status: null, ms: 8000, unknown: true },
+    { t: at(9 * 24 * 60), id: 'long', ok: true, status: 402, ms: 12 },
+    { t: at(8 * 24 * 60), id: 'long', ok: null, status: null, ms: 8000, unknown: true },
+    { t: at(30), id: 'long', ok: null, status: null, ms: 8000, unknown: true },
+    { t: at(8 * 24 * 60), id: 'never', ok: null, status: null, ms: 8000, unknown: true },
+    { t: at(30), id: 'never', ok: null, status: null, ms: 8000, unknown: true },
   ];
   fs.writeFileSync(log, rows.map(r => JSON.stringify(r)).join('\n') + '\n');
   const h = site.probeHistoryForTest(log);
@@ -160,4 +165,10 @@ test('a run of unanswered probes is counted with the time it began, and any answ
   assert.equal(h.limited.no_answer_run, undefined, 'a 429 is the seller answering');
   assert.equal(h.again.no_answer_run, 1, 'the count starts again after an answer');
   assert.equal(h.again.no_answer_since, rows[11].t);
+  assert.equal(h.quiet.no_answer_whole_log, undefined);
+  assert.equal(h.long.no_answer_run, 2, 'the run is counted over the kept log, past the seven-day window');
+  assert.equal(h.long.no_answer_since, rows[13].t, 'not the edge of the seven-day window');
+  assert.equal(h.long.probes, 1, 'the seven-day history itself still holds the window only');
+  assert.equal(h.never.no_answer_run, 2);
+  assert.equal(h.never.no_answer_whole_log, true, 'no answered probe in the log: the silence began at or before no_answer_since');
 });

@@ -487,11 +487,18 @@ function probeLogAppend(checked_at, list, probes) {
 }
 // logFile defaults to the real log; a test passes its own file so the three answers can be exercised without the site's data.
 function probeHistory(logFile = PROBE_LOG) {
-  const out = {}; const cutoff = Date.now() - HIST_MS; const keep = [];
+  const out = {}; const cutoff = Date.now() - HIST_MS; const keep = []; const run = {};
   let lines; try { lines = fs.readFileSync(logFile, 'utf8').split('\n'); } catch { return out; }
   for (const ln of lines) {
     if (!ln) continue; let r; try { r = JSON.parse(ln); } catch { continue; }
     const t = Date.parse(r.t); if (!(t >= Date.now() - KEEP_MS)) continue; keep.push(ln);
+    // How long a silence has lasted (2026-11-25). One unanswered probe says nothing about a door; nineteen in a row over
+    // three hours (pyfile's three doors that evening) were still shown as "not checked ... says nothing about the door",
+    // each one alone. The run is counted over the whole kept log (30 days), not the seven-day window, so a door silent for
+    // three weeks is not shown as silent "since" the window's edge: unanswered probes since the last one that got any HTTP
+    // answer, a 429 included (status set), and the time of the first of them.
+    const q = run[r.id] ||= { n: 0, since: null, rows: 0 }; q.rows++;
+    if (r.status == null && (r.ok === null || r.unknown === true)) { if (!q.n) q.since = r.t; q.n++; } else { q.n = 0; q.since = null; }
     if (!(t >= cutoff)) continue;
     const h = out[r.id] ||= { probes: 0, reachable: 0, unknown: 0, since: r.t };
     h.probes++;
@@ -499,17 +506,14 @@ function probeHistory(logFile = PROBE_LOG) {
     // separately: it says nothing about whether the door works, so it must not lower the fraction. Rows written before the flag
     // existed carry ok:false for the same case and cannot be told apart; they keep their old meaning.
     if (r.ok === null || r.unknown === true) h.unknown++; else if (r.ok) h.reachable++;
-    // How long the silence has lasted (2026-11-25). One unanswered probe says nothing about a door; nineteen in a row over
-    // three hours (pyfile's three doors that evening) were still shown as "not checked ... says nothing about the door",
-    // each one alone. no_answer_run counts the unanswered probes since the last one that got any HTTP answer, a 429
-    // included (status set), and no_answer_since is the time of the first of them. Both are absent when the last probe
-    // was answered. The fraction is untouched: a silent door is still not counted as a failing one.
-    if (r.status == null && (r.ok === null || r.unknown === true)) { h.no_answer_run = (h.no_answer_run || 0) + 1; if (h.no_answer_run === 1) h.no_answer_since = r.t; }
-    else { delete h.no_answer_run; delete h.no_answer_since; }
     if (r.rail !== undefined) { h.rail_checked = (h.rail_checked || 0) + 1; h.rail_open = (h.rail_open || 0) + (r.rail === 'open' ? 1 : 0); }
   }
   // The fraction is over the probes that got an answer: unknown probes are reported beside it, not folded into the denominator.
   for (const h of Object.values(out)) { const answered = h.probes - h.unknown; h.fraction = answered ? +(h.reachable / answered).toFixed(3) : null; }
+  // no_answer_run and no_answer_since are absent when the last probe was answered. no_answer_whole_log marks a seller with
+  // no answered probe anywhere in the kept log: its silence began at or before no_answer_since. The fraction is untouched:
+  // a silent door is still not counted as a failing one.
+  for (const [id, h] of Object.entries(out)) { const q = run[id]; if (q && q.n) { h.no_answer_run = q.n; h.no_answer_since = q.since; if (q.n === q.rows) h.no_answer_whole_log = true; } }
   if (lines.length > keep.length + 5000) { try { fs.writeFileSync(logFile, keep.join('\n') + '\n'); } catch {} }
   return out;
 }
@@ -621,7 +625,7 @@ async function sellers(force) {
   probeLogAppend(checked_at, list, probes);
   const hist = probeHistory();
   sellersCache = { at: Date.now(), data: { checked_at,
-    probe: { what: 'one unpaid request per seller, expecting the status the seller declared (normally 402; a seller whose paid route is not a plain GET may name a separate free status route, shown in the entry); it pays nothing and measures no settlement; a seller reached only by mail is not probed and shows live.door = "mail"; a multi-rail seller whose status route stays 200 while its Nano door is closed may name a rail check (probe.rail: a field in its own status body), logged as live.rail = open | closed and counted in history_7d.rail_open, since 2026-10-17', every_minutes: 10, timeout_ms: 8000, states: ['reachable', 'unreachable', 'not checked'], history_days: 7, history_since: '2026-09-20', unknown_rule: 'a probe that got no HTTP answer at all (timeout, DNS failure, connection refused or reset) is live.reachable = null and live.unknown = true: it is not evidence that the door is down, so it is counted in history_7d.unknown and left out of the reachability fraction (since 2026-10-23). How long a silence has lasted is in history_7d.no_answer_run (unanswered probes in a row up to now) and history_7d.no_answer_since (the time of the first of them), both absent when the last probe got an answer (since 2026-11-25); from three in a row the page says "no answer" with that time', no_terms_rule: 'a 402 counts as the seller\'s door only when it carries payment terms: a payment header (payment-required, www-authenticate, x-payment*, x-nano-*, x-402*) or a body with a Nano address or an accepts list. A 402 with none of these is live.reachable = false with live.no_terms = true; a hosting platform answers 402 by itself when a deployment is switched off, and until 2026-11-15 the probe read that as a reachable door (one listing, sur-courier, was shown reachable while its deployment was disabled; the log cannot say from when)', no_nano_rule: 'a 402 with payment terms counts as a Nano door only when the terms offer Nano: an x-nano-* header, or a Nano address, a nano mainnet network name or a scheme/network/asset/currency/rail field naming nano or xno, in the body or in a payment header. A 402 whose terms name other rails only is live.reachable = false with live.no_nano = true, since the evening of 2026-11-21 UTC; before that such a door was shown reachable (one listing, nanogpt, whose accountless route quoted Lightning only when read on 2026-11-21 19:44 UTC; the log cannot say from when)', delisting: 'never for downtime; only when the seller asks. The only time-based rule is the second half of the newcomer credit, which needs 14 days of answered probes.' },
+    probe: { what: 'one unpaid request per seller, expecting the status the seller declared (normally 402; a seller whose paid route is not a plain GET may name a separate free status route, shown in the entry); it pays nothing and measures no settlement; a seller reached only by mail is not probed and shows live.door = "mail"; a multi-rail seller whose status route stays 200 while its Nano door is closed may name a rail check (probe.rail: a field in its own status body), logged as live.rail = open | closed and counted in history_7d.rail_open, since 2026-10-17', every_minutes: 10, timeout_ms: 8000, states: ['reachable', 'unreachable', 'not checked'], history_days: 7, history_since: '2026-09-20', unknown_rule: 'a probe that got no HTTP answer at all (timeout, DNS failure, connection refused or reset) is live.reachable = null and live.unknown = true: it is not evidence that the door is down, so it is counted in history_7d.unknown and left out of the reachability fraction (since 2026-10-23). How long a silence has lasted is in history_7d.no_answer_run (unanswered probes in a row up to now, counted over the 30-day log) and history_7d.no_answer_since (the time of the first of them), both absent when the last probe got an answer; history_7d.no_answer_whole_log = true means no probe in the 30-day log got an answer, so the silence began at or before that time (since 2026-11-25). From three in a row the page says "no answer" with that time', no_terms_rule: 'a 402 counts as the seller\'s door only when it carries payment terms: a payment header (payment-required, www-authenticate, x-payment*, x-nano-*, x-402*) or a body with a Nano address or an accepts list. A 402 with none of these is live.reachable = false with live.no_terms = true; a hosting platform answers 402 by itself when a deployment is switched off, and until 2026-11-15 the probe read that as a reachable door (one listing, sur-courier, was shown reachable while its deployment was disabled; the log cannot say from when)', no_nano_rule: 'a 402 with payment terms counts as a Nano door only when the terms offer Nano: an x-nano-* header, or a Nano address, a nano mainnet network name or a scheme/network/asset/currency/rail field naming nano or xno, in the body or in a payment header. A 402 whose terms name other rails only is live.reachable = false with live.no_nano = true, since the evening of 2026-11-21 UTC; before that such a door was shown reachable (one listing, nanogpt, whose accountless route quoted Lightning only when read on 2026-11-21 19:44 UTC; the log cannot say from when)', delisting: 'never for downtime; only when the seller asks. The only time-based rule is the second half of the newcomer credit, which needs 14 days of answered probes.' },
     sellers: list.map((sel, i) => ({ ...sel, live: probes[i], history_7d: hist[sel.id] || null, quote: QUOTE[sel.id] || null })) } };
   return sellersCache.data;
 }
@@ -640,7 +644,7 @@ function sellerRows(sd) {
     // distinct in the page for the same reason they are distinct in the data.
     const live = (l.door === 'mail' ? `<b>mail door</b>, not probed`
       : l.rate_limited ? `<b>not checked</b>: the seller answered 429 to this list's probe (asked too often), which says nothing about the door`
-      : silent ? `<b>no answer</b> at the last ${h.no_answer_run} probes, since ${esc(h.no_answer_since.slice(0, 10))} ${esc(h.no_answer_since.slice(11, 16))} UTC${l.error ? ` (${esc(l.error)})` : ''}`
+      : silent ? (h.no_answer_whole_log ? `<b>no answer</b> at any probe in the 30-day log (${h.no_answer_run} probes)` : `<b>no answer</b> at the last ${h.no_answer_run} probes, since ${esc(h.no_answer_since.slice(0, 10))} ${esc(h.no_answer_since.slice(11, 16))} UTC`) + (l.error ? ` (${esc(l.error)})` : '')
       : l.unknown ? `<b>not checked</b>: no answer at the last probe${l.error ? ` (${esc(l.error)})` : ''}, so this says nothing about the door`
       : l.reachable ? `<b>reachable</b>, answered ${l.status} in ${l.ms} ms`
       : l.no_terms ? `<b>unreachable</b> at last check: HTTP 402 with no payment terms${l.platform_error ? ` (the hosting platform's own answer, ${esc(l.platform_error)})` : ''}`
