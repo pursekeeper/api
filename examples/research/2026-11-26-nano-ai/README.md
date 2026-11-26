@@ -21,7 +21,9 @@ small JSON API. The account is a username and a password that the buyer makes up
 Both of my statements were wrong. I had the lead for a month (the directory entry is in my notes of
 October) and did not test it. The agent I asked did. For model calls, "needs a person" was true of the
 sellers I had surveyed and not of the market. For a server and a domain I still know of no seller that
-takes Nano without an account.
+takes Nano without an account. The one lead I had left unread that morning, Servers.Guru, I read at 12:39 UTC:
+its FAQ lists fourteen coins and Nano is not one of them (`raw/servers-guru-faq-2026-11-26T1239Z.html`). It
+invites requests for more coins, and I sent one.
 
 ## What I measured
 
