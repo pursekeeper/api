@@ -1,0 +1,68 @@
+fee account receives walked: 1933 checkouts (skipped {'not a one-time account': 39, 'not the checkout shape': 1}); first 2025-03-11 10:03, last 2026-11-27 00:12 UTC; fee sends still waiting at the fee account: 198; read at 2026-11-27 09:32 UTC
+
+== ALL TIME
+   1933 checkouts, 679.0606 XNO: 1291 sales (338.0605), 533 tips (338.8174), 109 other
+   341 funding accounts, 202 payout accounts
+   largest  1 funding accounts:   88.7700 XNO (13%), 110 checkouts
+   largest  2 funding accounts:  160.8891 XNO (24%), 202 checkouts
+   largest  3 funding accounts:  210.8891 XNO (31%), 203 checkouts
+   largest  5 funding accounts:  293.6775 XNO (43%), 291 checkouts
+   largest 10 funding accounts:  440.9000 XNO (65%), 762 checkouts
+   funding accounts that paid 2 or more payout accounts: 137; 5 or more: 49; with a single checkout: 183
+   payout side: net 636.5267 XNO; largest 5 accounts 26%; accounts under 1 XNO: 107 of 202; median 0.6938
+   funding accounts with 1 or more sales: 305; tips only: 28; sales only: 254; both: 51
+   sales alone: 338.0605 XNO from 305 funding accounts; largest 2 21%, largest 5 48%
+   payout accounts with 1 or more sales: 133; paid by tips only: 62 (net 105.5768 XNO)
+
+== LAST 30 DAYS (from 2026-10-28 09:32 UTC)
+   394 checkouts, 271.4496 XNO: 152 sales (167.2351), 240 tips (103.6645), 2 other
+   23 funding accounts, 78 payout accounts
+   largest  1 funding accounts:   84.4000 XNO (31%), 78 checkouts
+   largest  2 funding accounts:  125.1968 XNO (46%), 120 checkouts
+   largest  3 funding accounts:  161.6955 XNO (60%), 147 checkouts
+   largest  5 funding accounts:  227.1500 XNO (84%), 310 checkouts
+   largest 10 funding accounts:  262.7138 XNO (97%), 363 checkouts
+   funding accounts that paid 2 or more payout accounts: 14; 5 or more: 6; with a single checkout: 7
+   payout side: net 253.7207 XNO; largest 5 accounts 32%; accounts under 1 XNO: 25 of 78; median 1.2613
+   funding accounts with 1 or more sales: 20; tips only: 3; sales only: 14; both: 6
+   sales alone: 167.2351 XNO from 20 funding accounts; largest 2 42%, largest 5 88%
+   payout accounts with 1 or more sales: 34; paid by tips only: 43 (net 41.5653 XNO)
+   funding accounts first seen inside the window: 12 of 23; 69 checkouts, 72.4068 XNO
+
+== LAST 30 DAYS without 1 excluded funding account(s)
+   391 checkouts, 251.9496 XNO: 149 sales (147.7351), 240 tips (103.6645), 2 other
+   22 funding accounts, 78 payout accounts
+   largest  1 funding accounts:   84.4000 XNO (33%), 78 checkouts
+   largest  2 funding accounts:  125.1968 XNO (50%), 120 checkouts
+   largest  3 funding accounts:  161.6955 XNO (64%), 147 checkouts
+   largest  5 funding accounts:  227.1500 XNO (90%), 310 checkouts
+   largest 10 funding accounts:  245.3638 XNO (97%), 361 checkouts
+   funding accounts that paid 2 or more payout accounts: 13; 5 or more: 6; with a single checkout: 7
+   payout side: net 235.6832 XNO; largest 5 accounts 31%; accounts under 1 XNO: 25 of 78; median 1.2613
+   funding accounts with 1 or more sales: 19; tips only: 3; sales only: 13; both: 6
+   sales alone: 147.7351 XNO from 19 funding accounts; largest 2 47%, largest 5 90%
+   payout accounts with 1 or more sales: 34; paid by tips only: 43 (net 41.5653 XNO)
+   funding accounts first seen inside the window: 11 of 22; 66 checkouts, 52.9068 XNO
+
+== BY MONTH (checkouts, XNO, funding accounts)
+   2025-03:  403   11.9832 119
+   2025-04:  217   52.8101  88
+   2025-05:   69    8.4100  43
+   2025-06:   21   12.5100  16
+   2025-07:   19    4.1100  13
+   2025-08:   19    1.6880  11
+   2025-09:   37    0.9159  20
+   2025-10:  116   59.2335  39
+   2025-11:  117   29.5021  37
+   2025-12:   25    6.4900   7
+   2026-01:   28    5.7701  13
+   2026-02:   50   70.6931  25
+   2026-03:   42   18.9253  21
+   2026-04:   16    4.6504  11
+   2026-05:   15    8.5335   8
+   2026-06:   10   10.4400   7
+   2026-07:   35   25.6530  19
+   2026-08:   29    5.1892  15
+   2026-09:   65   24.9002  33
+   2026-10:  228   48.1235  24
+   2026-11:  372  268.5296  23
