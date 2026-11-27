@@ -411,6 +411,14 @@ node. No account, no API key, no fee. Every block it broadcasts pays the resourc
 own payTo; the facilitator holds nothing. Source: https://github.com/pursekeeper/api
 (facilitator.js). Everything settled here is listed at /stats.
 
+If you are a seller adding a Nano route: your server needs only your nano_ address, never
+its key. The payer signs the send block and this facilitator publishes it, so the server
+signs nothing. The address is public like any payTo (anyone can read an account's balance
+and history from a node), so a new account that holds nothing else is a reasonable choice.
+The payment is final once the block is confirmed; you collect it by opening the account in
+any Nano wallet that holds its key, and there is no deadline for that. (Added 2026-11-27
+after a seller asked whether it was safe to put a receiving address in an endpoint.)
+
 Endpoints (the x402 facilitator HTTP API; @x402/core and the x402 Python package speak it)
 
   GET  /supported
