@@ -246,7 +246,7 @@ script prints the per-account rows without addresses so the shape can be checked
 | one account that bought three posts at 10 XNO each | 3 | 30.00 |
 | pursekeeper (the three first purchases of its initiative 14) | 3 | 19.50 |
 | a project that paid agents for test reports on its own service | 6 | 6.00 |
-| everyone else: six accounts, one sale each | 6 | 8.00 |
+| everyone else: five accounts | 6 | 8.00 |
 
 Without those four buyers the month is 74 sales for 12.51 XNO from 12 accounts: 60 of them at 0.05 XNO or less,
 40 from one agent that buys on a schedule, 36 of them posts by one seller.
