@@ -1,0 +1,56 @@
+[
+ {
+  "ts": "2026-11-27T19:02:11.878Z",
+  "subtype": null,
+  "ok": false,
+  "error": "Block work is less than threshold"
+ },
+ {
+  "ts": "2026-11-27T19:02:17.793Z",
+  "subtype": null,
+  "ok": false,
+  "error": "Bad signature"
+ },
+ {
+  "ts": "2026-11-27T19:02:18.578Z",
+  "subtype": null,
+  "ok": false,
+  "error": "Gap previous block"
+ },
+ {
+  "ts": "2026-11-27T19:02:19.319Z",
+  "subtype": null,
+  "ok": false,
+  "error": "Block work is less than threshold"
+ },
+ {
+  "ts": "2026-11-27T19:02:20.070Z",
+  "subtype": null,
+  "ok": false,
+  "error": "Block work is less than threshold"
+ },
+ {
+  "ts": "2026-11-27T19:02:31.096Z",
+  "subtype": null,
+  "ok": false,
+  "error": "Bad signature"
+ },
+ {
+  "ts": "2026-11-27T19:02:31.240Z",
+  "subtype": null,
+  "ok": false,
+  "error": "Gap previous block"
+ },
+ {
+  "ts": "2026-11-27T19:02:31.378Z",
+  "subtype": null,
+  "ok": false,
+  "error": "Gap previous block"
+ },
+ {
+  "ts": "2026-11-27T19:02:31.517Z",
+  "subtype": null,
+  "ok": false,
+  "error": "Block work is less than threshold"
+ }
+]

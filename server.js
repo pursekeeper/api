@@ -1161,6 +1161,7 @@ const PROCESS_NODE_CODES = [
   [/cannot follow|position/i, 'node_block_position'],
   [/block is invalid|unable to parse/i, 'node_block_invalid'],
 ];
+const PROCESS_SUBTYPES = ['send', 'receive', 'open', 'change', 'epoch'];
 function processNodeCode(text) {
   for (const [re, code] of PROCESS_NODE_CODES) if (re.test(String(text))) return code;
   return 'node_refused';
@@ -1198,11 +1199,34 @@ async function processBlock(req, res) {
     return send(res, 400, { error: 'block is missing ' + missing.join(', ') + ' (a signed state block with work)', code: 'block_fields_missing', missing });
   }
   if (block.type !== 'state') return send(res, 400, { error: 'only state blocks', code: 'block_type_not_state' });
-  const sub = ['send', 'receive', 'open', 'change', 'epoch'].includes(body.subtype) ? body.subtype : undefined;
+  // Which subtype the node is told. Until 2026-11-27 only a "subtype" beside the block holding one of the five names
+  // was passed on; one inside the block object, or any other value ("Send", "foo"), was dropped without a word, so a
+  // caller that named a subtype believed the node was checking it and the node had never been told. PiBrain's run of
+  // that day (Subnano comment a438472f) answered "work first" for calls it had sent with subtype send and receive; the
+  // request log has its nine calls with subtype null. The node's own RPC ignores a subtype inside the block and answers
+  // "Invalid block subtype" to an unknown value once "previous" is known (measured the same day; scripts and raw
+  // answers in examples/research/2026-11-27-process-subtype-placement/).
+  // Now: beside the block or inside it, both are passed on; an unknown value and two that differ are refused before
+  // the node is asked; and every answer from the node step says what the node was told (subtype_used, subtype_from).
+  // In a flat body (the block's fields at the top level) the two places are the same one.
+  const named = v => v != null && v !== '';
+  const top = named(body.subtype) ? body.subtype : undefined;
+  const inside = block !== body && named(block.subtype) ? block.subtype : undefined;
+  const refuseSubtype = (code, error, extra) => {
+    logReq(req, { kind: 'process', hash: null, previous: String(block.previous || '').toUpperCase() || null, account: block.account || null, subtype: null, ok: false, error: code });
+    return send(res, 400, { error, code, ...extra, subtypes: PROCESS_SUBTYPES });
+  };
+  const shown = v => (typeof v === 'string' ? v.slice(0, 16) : typeof v);
+  if (top !== undefined && inside !== undefined && top !== inside)
+    return refuseSubtype('subtype_conflict', 'two subtypes that differ: "' + shown(top) + '" beside the block and "' + shown(inside) + '" inside it. Name one; nothing was sent to the node', { subtype_given: shown(top), subtype_in_block: shown(inside) });
+  const sub = top !== undefined ? top : inside;
+  const subFrom = sub === undefined ? null : (top !== undefined ? 'body' : 'block');
+  if (sub !== undefined && !PROCESS_SUBTYPES.includes(sub))
+    return refuseSubtype('subtype_unknown', 'subtype "' + shown(sub) + '" is not one of ' + PROCESS_SUBTYPES.join(', ') + ' (lower case). Leave it out to send the block with no subtype check; nothing was sent to the node', { subtype_given: shown(sub), subtype_from: subFrom });
   const r = await rpc({ action: 'process', json_block: 'true', ...(sub ? { subtype: sub } : {}), block });
   logReq(req, { kind: 'process', hash: r.hash || null, previous: String(block.previous || '').toUpperCase(), account: block.account, subtype: sub || null, ok: !r.error, error: r.error || null });
-  if (r.error) return send(res, 400, { ok: false, error: 'node: ' + r.error, code: processNodeCode(r.error), node_error: String(r.error), hint: 'common causes: wrong previous (use /v1/account_info frontier), balance not exact, work below threshold ' + x402.WORK_THRESHOLD + ' for previous (or the account public key for an open), signature over the wrong fields' });
-  return send(res, 200, { ok: true, hash: r.hash, subtype: sub, note: 'broadcast; check confirmation with /v1/verify?hash=' + r.hash + '&any=1&any_to=1', node: 'pursekeeper.dev' });
+  if (r.error) return send(res, 400, { ok: false, error: 'node: ' + r.error, code: processNodeCode(r.error), node_error: String(r.error), subtype_used: sub || null, subtype_from: subFrom, hint: 'common causes: wrong previous (use /v1/account_info frontier), balance not exact, work below threshold ' + x402.WORK_THRESHOLD + ' for previous (or the account public key for an open), signature over the wrong fields' });
+  return send(res, 200, { ok: true, hash: r.hash, subtype: sub, subtype_used: sub || null, subtype_from: subFrom, note: 'broadcast; check confirmation with /v1/verify?hash=' + r.hash + '&any=1&any_to=1', node: 'pursekeeper.dev' });
 }
 
 async function charge(req, res) {
@@ -1659,8 +1683,9 @@ Endpoints
                               frontier, confirmed_frontier, confirmed (bool), balance, representative,
                               confirmation_height (null if the node gives none) (free, 60/min);
                               found:false with the open-block rule if the account has no blocks
-  POST /v1/process {"block":{...state block...},"subtype":"send|receive|open|change"}
+  POST /v1/process {"block":{...state block...},"subtype":"send|receive|open|change|epoch"}
                               broadcast a signed state block through this node (free, 60/min).
+                              "subtype" is optional and sits beside "block".
                               A body written for a node's own RPC is taken as it is: with or
                               without "action" and "json_block", and with "block" as an object
                               or as the JSON text of one (the text form since 2026-11-22).
@@ -1668,7 +1693,8 @@ Endpoints
                               is refused in those words, not as a missing field.
                               Every refusal carries "code" beside the sentence (since 2026-11-23):
                               rate_limited, body_not_json, block_not_json_text, block_type_not_state,
-                              block_fields_missing, and for a block the node refused node_work_low,
+                              block_fields_missing, subtype_unknown, subtype_conflict (the last
+                              two since 2026-11-27), and for a block the node refused node_work_low,
                               node_bad_signature, node_old_block, node_fork, node_gap_previous,
                               node_gap_source, node_subtype_mismatch, node_balance_mismatch,
                               node_unreceivable, node_negative_spend, node_block_position,
@@ -1690,6 +1716,25 @@ Endpoints
                               first run and not the hash; a repeated hash is judged afresh
                               (three rounds, straight at the node). Scripts and raw answers:
                               /examples/research/2026-11-25-process-check-order/
+                              Corrected 2026-11-27, found by PiBrain (Subnano post a2a72ec0):
+                              the text above was right about the node and silent about where
+                              the field must sit. Until that day this route passed on a
+                              "subtype" only when it sat beside the block and held one of the
+                              five names; one inside the block object, or any other value
+                              ("Send", "foo"), was dropped without a word, and the node checked
+                              no subtype. None of PiBrain's nine calls reached the node with a
+                              subtype (request log), so the ones that named one were answered
+                              work first; I got the same answers with the subtype inside the
+                              block. Since 2026-11-27 a
+                              subtype inside the block is passed on too, an unknown value is
+                              refused (subtype_unknown) and two that differ are refused
+                              (subtype_conflict), both before the node is asked, and every
+                              answer from the node step says what the node was told:
+                              "subtype_used" (a name or null) and "subtype_from" ("body",
+                              "block" or null). A node's own RPC ignores a subtype inside the
+                              block, and answers "Invalid block subtype" to an unknown value
+                              when "previous" is known. Scripts and raw answers:
+                              /examples/research/2026-11-27-process-subtype-placement/
                               With /v1/work, /v1/receivable and /v1/verify this is enough to
                               pocket and spend from a seed with no node: /examples/no-node.md
                               The block goes to the node as sent: this route attaches no work,

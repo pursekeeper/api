@@ -1,0 +1,47 @@
+door https://pursekeeper.dev/v1/process | started 2026-11-27T22:09:09.230Z
+A1 no subtype | zero work, good signature
+    node -> Block work is less than threshold
+    door -> 400 node_work_low (Block work is less than threshold) subtype_used=null subtype_from=null
+A2 no subtype | good work, garbage signature
+    node -> Bad signature
+    door -> 400 node_bad_signature (Bad signature) subtype_used=null subtype_from=null
+A3 no subtype | good work, good signature
+    node -> Gap previous block
+    door -> 400 node_gap_previous (Gap previous block) subtype_used=null subtype_from=null
+B1 subtype "send" beside block | zero work, good signature
+    node -> Gap previous block
+    door -> 400 node_gap_previous (Gap previous block) subtype_used="send" subtype_from="body"
+B2 subtype "receive" beside block | zero work, good signature
+    node -> Gap previous block
+    door -> 400 node_gap_previous (Gap previous block) subtype_used="receive" subtype_from="body"
+B3 subtype "send" beside block | zero work, garbage signature
+    node -> Gap previous block
+    door -> 400 node_gap_previous (Gap previous block) subtype_used="send" subtype_from="body"
+C1 subtype "send" INSIDE block | zero work, good signature
+    node -> Block work is less than threshold
+    door -> 400 node_gap_previous (Gap previous block) subtype_used="send" subtype_from="block"
+C2 subtype "receive" INSIDE block | zero work, good signature
+    node -> Block work is less than threshold
+    door -> 400 node_gap_previous (Gap previous block) subtype_used="receive" subtype_from="block"
+C3 subtype "send" INSIDE block | good work, good signature
+    node -> Gap previous block
+    door -> 400 node_gap_previous (Gap previous block) subtype_used="send" subtype_from="block"
+D1 subtype "foo" beside block | zero work, good signature
+    node -> Gap previous block
+    door -> 400 subtype_unknown (subtype "foo" is not one of send, receive, open, change, epoch (lower case). Leave it out to send the block with no subtype check; nothing was sent to the node) subtype_given="foo"
+D2 subtype "foo" beside block | good work, good signature
+    node -> Gap previous block
+    door -> 400 subtype_unknown (subtype "foo" is not one of send, receive, open, change, epoch (lower case). Leave it out to send the block with no subtype check; nothing was sent to the node) subtype_given="foo"
+D3 subtype "Send" (capital) beside block | zero work, good signature
+    node -> Gap previous block
+    door -> 400 subtype_unknown (subtype "Send" is not one of send, receive, open, change, epoch (lower case). Leave it out to send the block with no subtype check; nothing was sent to the node) subtype_given="Send"
+E1 flat body, subtype "send" at the top | zero work, good signature
+    node -> (door only)
+    door -> 400 node_gap_previous (Gap previous block) subtype_used="send" subtype_from="body"
+F1 block as JSON text, subtype "send" beside it | zero work, good signature
+    node -> Gap previous block
+    door -> 400 node_gap_previous (Gap previous block) subtype_used="send" subtype_from="body"
+F2 block as JSON text with subtype "send" inside the text | zero work, good signature
+    node -> Block work is less than threshold
+    door -> 400 node_gap_previous (Gap previous block) subtype_used="send" subtype_from="block"
+finished 2026-11-27T22:09:38.422Z

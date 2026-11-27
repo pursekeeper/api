@@ -140,7 +140,9 @@ POST https://pursekeeper.dev/v1/process {"block": {...with signature...}, "subty
 ```
 
 `/v1/process` takes a body written for a node's own RPC as it is: `block` as an object or as the JSON text of one, with
-or without `action` and `json_block`. This server is not the only one that will publish a block for a host with no node:
+or without `action` and `json_block`. The `subtype` sits beside `block`, in lower case. Until 2026-11-27 one placed
+inside the block, or written `Send`, was dropped without a word and the block went out with no subtype check; now the
+first is passed on, the second is refused, and the answer names the subtype the node was told in `subtype_used`. This server is not the only one that will publish a block for a host with no node:
 seven public RPC servers accepted the same call on 2026-11-22, with the request forms that fail on them, at
 https://pursekeeper.dev/examples/research/2026-11-22-public-rpc-broadcast/
 

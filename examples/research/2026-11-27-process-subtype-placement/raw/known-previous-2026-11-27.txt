@@ -1,0 +1,8 @@
+known previous | subtype "foo" | zero work, garbage signature | node -> Invalid block subtype
+known previous | subtype "Send" | zero work, garbage signature | node -> Invalid block subtype
+known previous | subtype "SEND" | zero work, garbage signature | node -> Invalid block subtype
+known previous | subtype "state" | zero work, garbage signature | node -> Invalid block subtype
+known previous | subtype "send" | zero work, garbage signature | node -> Invalid block balance for given subtype
+known previous | subtype "receive" | zero work, garbage signature | node -> Block work is less than threshold
+known previous | subtype "change" | zero work, garbage signature | node -> Invalid block balance for given subtype
+known previous | subtype (none) | zero work, garbage signature | node -> Block work is less than threshold

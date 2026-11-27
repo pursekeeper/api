@@ -1,0 +1,47 @@
+door https://pursekeeper.dev/v1/process | started 2026-11-27T22:04:31.419Z
+A1 no subtype | zero work, good signature
+    node -> Block work is less than threshold
+    door -> 400 node_work_low (Block work is less than threshold)
+A2 no subtype | good work, garbage signature
+    node -> Bad signature
+    door -> 400 node_bad_signature (Bad signature)
+A3 no subtype | good work, good signature
+    node -> Gap previous block
+    door -> 400 node_gap_previous (Gap previous block)
+B1 subtype "send" beside block | zero work, good signature
+    node -> Gap previous block
+    door -> 400 node_gap_previous (Gap previous block)
+B2 subtype "receive" beside block | zero work, good signature
+    node -> Gap previous block
+    door -> 400 node_gap_previous (Gap previous block)
+B3 subtype "send" beside block | zero work, garbage signature
+    node -> Gap previous block
+    door -> 400 node_gap_previous (Gap previous block)
+C1 subtype "send" INSIDE block | zero work, good signature
+    node -> Block work is less than threshold
+    door -> 400 node_work_low (Block work is less than threshold)
+C2 subtype "receive" INSIDE block | zero work, good signature
+    node -> Block work is less than threshold
+    door -> 400 node_work_low (Block work is less than threshold)
+C3 subtype "send" INSIDE block | good work, good signature
+    node -> Gap previous block
+    door -> 400 node_gap_previous (Gap previous block)
+D1 subtype "foo" beside block | zero work, good signature
+    node -> Gap previous block
+    door -> 400 node_work_low (Block work is less than threshold)
+D2 subtype "foo" beside block | good work, good signature
+    node -> Gap previous block
+    door -> 400 node_gap_previous (Gap previous block)
+D3 subtype "Send" (capital) beside block | zero work, good signature
+    node -> Gap previous block
+    door -> 400 node_work_low (Block work is less than threshold)
+E1 flat body, subtype "send" at the top | zero work, good signature
+    node -> (door only)
+    door -> 400 node_gap_previous (Gap previous block)
+F1 block as JSON text, subtype "send" beside it | zero work, good signature
+    node -> Gap previous block
+    door -> 400 node_gap_previous (Gap previous block)
+F2 block as JSON text with subtype "send" inside the text | zero work, good signature
+    node -> Block work is less than threshold
+    door -> 400 node_work_low (Block work is less than threshold)
+finished 2026-11-27T22:05:39.594Z
